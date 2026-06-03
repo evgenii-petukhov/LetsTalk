@@ -1,0 +1,245 @@
+using FluentAssertions;
+using LetsTalk.Server.API.Core.Services;
+
+namespace LetsTalk.Server.API.Core.Tests.Services;
+
+[TestFixture]
+public class RegexServiceTests
+{
+    private RegexService _regexService;
+
+    [SetUp]
+    public void SetUp()
+    {
+        _regexService = new RegexService();
+    }
+
+    [Test]
+    public void ReplaceUrlsByHref_ShouldReturnOriginalText_WhenNoUrlsPresent()
+    {
+        // Arrange
+        var input = "This is just plain text without any URLs.";
+
+        // Act
+        var (html, url) = _regexService.ReplaceUrlsByHref(input);
+
+        // Assert
+        html.Should().Be(input);
+        url.Should().BeNull();
+    }
+
+    [Test]
+    public void ReplaceUrlsByHref_ShouldReplaceHttpUrl_WithAnchorTag()
+    {
+        // Arrange
+        var input = "Visit http://example.com for more info";
+        var expectedHtml = "Visit <a href=\"http://example.com\" target=\"_blank\">http://example.com</a> for more info";
+
+        // Act
+        var (html, url) = _regexService.ReplaceUrlsByHref(input);
+
+        // Assert
+        html.Should().Be(expectedHtml);
+        url.Should().Be("http://example.com");
+    }
+
+    [Test]
+    public void ReplaceUrlsByHref_ShouldReplaceHttpsUrl_WithAnchorTag()
+    {
+        // Arrange
+        var input = "Check out https://secure.example.com/path";
+        var expectedHtml = "Check out <a href=\"https://secure.example.com/path\" target=\"_blank\">https://secure.example.com/path</a>";
+
+        // Act
+        var (html, url) = _regexService.ReplaceUrlsByHref(input);
+
+        // Assert
+        html.Should().Be(expectedHtml);
+        url.Should().Be("https://secure.example.com/path");
+    }
+
+    [Test]
+    public void ReplaceUrlsByHref_ShouldReplaceFtpUrl_WithAnchorTag()
+    {
+        // Arrange
+        var input = "Download from ftp://files.example.com/file.zip";
+        var expectedHtml = "Download from <a href=\"ftp://files.example.com/file.zip\" target=\"_blank\">ftp://files.example.com/file.zip</a>";
+
+        // Act
+        var (html, url) = _regexService.ReplaceUrlsByHref(input);
+
+        // Assert
+        html.Should().Be(expectedHtml);
+        url.Should().Be("ftp://files.example.com/file.zip");
+    }
+
+    [Test]
+    public void ReplaceUrlsByHref_ShouldReplaceMultipleUrls_WithAnchorTags()
+    {
+        // Arrange
+        var input = "Visit http://example.com and https://another.com";
+        var expectedHtml = "Visit <a href=\"http://example.com\" target=\"_blank\">http://example.com</a> and <a href=\"https://another.com\" target=\"_blank\">https://another.com</a>";
+
+        // Act
+        var (html, url) = _regexService.ReplaceUrlsByHref(input);
+
+        // Assert
+        html.Should().Be(expectedHtml);
+        url.Should().Be("http://example.com");
+    }
+
+    [Test]
+    public void ReplaceUrlsByHref_ShouldHandleUrlWithQueryParameters()
+    {
+        // Arrange
+        var input = "Search https://example.com/search?q=test&page=1";
+        var expectedHtml = "Search <a href=\"https://example.com/search?q=test&page=1\" target=\"_blank\">https://example.com/search?q=test&page=1</a>";
+
+        // Act
+        var (html, url) = _regexService.ReplaceUrlsByHref(input);
+
+        // Assert
+        html.Should().Be(expectedHtml);
+        url.Should().Be("https://example.com/search?q=test&page=1");
+    }
+
+    [Test]
+    public void ReplaceUrlsByHref_ShouldHandleUrlWithFragment()
+    {
+        // Arrange
+        var input = "Go to https://example.com/page#section";
+        var expectedHtml = "Go to <a href=\"https://example.com/page#section\" target=\"_blank\">https://example.com/page#section</a>";
+
+        // Act
+        var (html, url) = _regexService.ReplaceUrlsByHref(input);
+
+        // Assert
+        html.Should().Be(expectedHtml);
+        url.Should().Be("https://example.com/page#section");
+    }
+
+    [Test]
+    public void ReplaceUrlsByHref_ShouldReturnFirstUrl_WhenMultipleUrlsPresent()
+    {
+        // Arrange
+        var input = "First https://first.com then https://second.com";
+
+        // Act
+        var (html, url) = _regexService.ReplaceUrlsByHref(input);
+
+        // Assert
+        url.Should().Be("https://first.com");
+    }
+
+    [Test]
+    public void ReplaceUrlsByHref_ShouldHandleEmptyString()
+    {
+        // Act
+        var (html, url) = _regexService.ReplaceUrlsByHref("");
+
+        // Assert
+        html.Should().Be("");
+        url.Should().BeNull();
+    }
+
+    [Test]
+    public void WrapEmojisWithSpan_ShouldReturnOriginalText_WhenNoEmojisPresent()
+    {
+        // Arrange
+        var input = "This is plain text";
+
+        // Act
+        var (wrapped, count, emojisOnly) = _regexService.WrapEmojisWithSpan(input);
+
+        // Assert
+        wrapped.Should().Be(input);
+        count.Should().Be(0);
+        emojisOnly.Should().BeFalse();
+    }
+
+    [Test]
+    public void WrapEmojisWithSpan_ShouldWrapSingleEmoji()
+    {
+        // Arrange
+        var input = "Hello 😀 world";
+
+        // Act
+        var (wrapped, count, emojisOnly) = _regexService.WrapEmojisWithSpan(input);
+
+        // Assert
+        wrapped.Should().Be("Hello <span class=\"emoji\">😀</span> world");
+        count.Should().Be(1);
+        emojisOnly.Should().BeFalse();
+    }
+
+    [Test]
+    public void WrapEmojisWithSpan_ShouldWrapMultipleEmojis()
+    {
+        // Arrange
+        var input = "😀😎🎉";
+
+        // Act
+        var (wrapped, count, emojisOnly) = _regexService.WrapEmojisWithSpan(input);
+
+        // Assert
+        wrapped.Should().Be("<span class=\"emoji\">😀</span><span class=\"emoji\">😎</span><span class=\"emoji\">🎉</span>");
+        count.Should().Be(3);
+        emojisOnly.Should().BeTrue();
+    }
+
+    [Test]
+    public void WrapEmojisWithSpan_ShouldDetectEmojisOnly_WhenOnlyEmojisPresent()
+    {
+        // Arrange
+        var input = "👍";
+
+        // Act
+        var (wrapped, count, emojisOnly) = _regexService.WrapEmojisWithSpan(input);
+
+        // Assert
+        wrapped.Should().Be("<span class=\"emoji\">👍</span>");
+        count.Should().Be(1);
+        emojisOnly.Should().BeTrue();
+    }
+
+    [Test]
+    public void WrapEmojisWithSpan_ShouldHandleEmojisWithWhitespace()
+    {
+        // Arrange
+        var input = "  😀  ";
+
+        // Act
+        var (wrapped, count, emojisOnly) = _regexService.WrapEmojisWithSpan(input);
+
+        // Assert
+        wrapped.Should().Be("  <span class=\"emoji\">😀</span>  ");
+        count.Should().Be(1);
+        emojisOnly.Should().BeTrue();
+    }
+
+    [Test]
+    public void WrapEmojisWithSpan_ShouldHandleEmptyString()
+    {
+        // Act
+        var (wrapped, count, emojisOnly) = _regexService.WrapEmojisWithSpan("");
+
+        // Assert
+        wrapped.Should().Be("");
+        count.Should().Be(0);
+        emojisOnly.Should().BeFalse();
+    }
+
+    [Test]
+    public void WrapEmojisWithSpan_ShouldNotDetectEmojisOnly_WhenTextPresent()
+    {
+        // Arrange
+        var input = "😀 text";
+
+        // Act
+        var (wrapped, count, emojisOnly) = _regexService.WrapEmojisWithSpan(input);
+
+        // Assert
+        count.Should().Be(1);
+        emojisOnly.Should().BeFalse();
+    }
+}

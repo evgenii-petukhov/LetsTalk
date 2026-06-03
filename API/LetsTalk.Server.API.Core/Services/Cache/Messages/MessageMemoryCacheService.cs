@@ -1,0 +1,46 @@
+﻿using LetsTalk.Server.Configuration.Models;
+using LetsTalk.Server.API.Core.Abstractions;
+using Microsoft.Extensions.Caching.Memory;
+using Microsoft.Extensions.Options;
+using LetsTalk.Server.Persistence.AgnosticServices.Models;
+
+namespace LetsTalk.Server.API.Core.Services.Cache.Messages;
+
+public class MessageMemoryCacheService(
+    IMemoryCache memoryCache,
+    IOptions<CachingSettings> cachingSettings,
+    IMessageService messageService) : MessageCacheServiceBase(messageService, cachingSettings), IMessageService, IMessageCacheManager
+{
+    private readonly IMemoryCache _memoryCache = memoryCache;
+
+    public Task<IReadOnlyList<MessageServiceModel>> GetPagedAsync(string chatId, int pageIndex, int messagesPerPage, CancellationToken cancellationToken)
+    {
+        if (!IsActive || pageIndex > 0)
+        {
+            return MessageService.GetPagedAsync(
+                chatId,
+                pageIndex,
+                messagesPerPage,
+                cancellationToken);
+        }
+
+        return _memoryCache.GetOrCreateAsync(GetMessagesKey(chatId), cacheEntry =>
+        {
+            if (IsVolatile)
+            {
+                cacheEntry.SetAbsoluteExpiration(CacheLifeTimeInSeconds);
+            }
+            return MessageService.GetPagedAsync(chatId, pageIndex, messagesPerPage, cancellationToken);
+        })!;
+    }
+
+    public Task ClearAsync(string chatId)
+    {
+        if (IsActive)
+        {
+            _memoryCache.Remove(GetMessagesKey(chatId));
+        }
+
+        return Task.CompletedTask;
+    }
+}

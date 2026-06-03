@@ -1,0 +1,85 @@
+﻿using LetsTalk.Server.Domain;
+using LetsTalk.Server.Persistence.DatabaseContext;
+using LetsTalk.Server.Persistence.EntityFramework.Repository.Abstractions;
+using LetsTalk.Server.Persistence.EntityFramework.Repository.Abstractions.Models;
+using Microsoft.EntityFrameworkCore;
+
+namespace LetsTalk.Server.Persistence.EntityFramework.Repository;
+
+public class ChatRepository(LetsTalkDbContext context)
+    : GenericRepository<Chat>(context), IChatRepository
+{
+    public Task<List<Chat>> GetChatsByAccountIdAsync(int accountId, CancellationToken cancellationToken = default)
+    {
+        return Context.ChatMembers
+            .Where(cm => cm.AccountId == accountId)
+            .Include(cm => cm.Chat!.ChatMembers!)
+                .ThenInclude(cm => cm.Account)
+                .ThenInclude(a => a!.Image)
+            .Select(cm => cm.Chat!)
+            .ToListAsync(cancellationToken);
+    }
+
+    public Task<Dictionary<int, ChatMetric>> GetChatMetricsAsync(int accountId, CancellationToken cancellationToken = default)
+    {
+        return Context.Chats
+            .Where(m => m.ChatMembers!.Any(cm => cm.AccountId == accountId))
+            .SelectMany(m => m.Messages!)
+            .Select(m => new
+            {
+                m.ChatId,
+                m.Id,
+                m.DateCreatedUnix,
+                ReadMessageId = Context.ChatMessageStatuses
+                    .Where(s => s.AccountId == accountId && s.MessageId == m.Id)
+                    .Select(s => s.MessageId)
+                    .FirstOrDefault()
+            })
+            .GroupBy(m => m.ChatId)
+            .Select(g => new
+            {
+                ChatId = g.Key,
+                LastMessageId = g.Max(m => m.Id),
+                LastMessageDate = g.Max(m => m.DateCreatedUnix),
+                LastReadMessageId = g.Max(m => m.ReadMessageId)
+            })
+            .GroupJoin(Context.Messages.Where(m => m.SenderId != accountId),
+                metric => metric.ChatId,
+                message => message.ChatId,
+                (metric, messages) => new { Metric = metric, Messages = messages })
+            .Select(g => new ChatMetric
+            {
+                ChatId = g.Metric.ChatId,
+                LastMessageId = g.Metric.LastMessageId,
+                LastMessageDate = g.Metric.LastMessageDate,
+                UnreadCount = g.Messages.Count(x => x.Id > g.Metric.LastReadMessageId)
+            })
+            .ToDictionaryAsync(x => x.ChatId, cancellationToken);
+    }
+
+    public Task<bool> IsChatIdValidAsync(int id, CancellationToken cancellationToken = default)
+    {
+        return Context.Chats
+            .AnyAsync(chat => chat.Id == id, cancellationToken);
+    }
+
+    public Task<Chat> GetIndividualChatByAccountIdsAsync(IEnumerable<int> accountIds, CancellationToken cancellationToken = default)
+    {
+        return Context.ChatMembers
+            .GroupBy(x => x.Chat)
+            .Where(g => g.Key!.IsIndividual && g.All(x => accountIds.Contains(x.AccountId)))
+            .Select(g => g.Key)
+            .FirstOrDefaultAsync(cancellationToken)!;
+    }
+
+    public Task<List<int>> GetAccountIdsInIndividualChatsAsync(int accountId, CancellationToken cancellationToken = default)
+    {
+        return Context.Chats
+            .Where(chat => chat.IsIndividual && chat.ChatMembers!.Any(cm => cm.AccountId == accountId))
+            .SelectMany(m => m.ChatMembers!)
+            .Where(cm => cm.AccountId != accountId)
+            .Select(cm => cm.AccountId)
+            .Distinct()
+            .ToListAsync(cancellationToken);
+    }
+}
