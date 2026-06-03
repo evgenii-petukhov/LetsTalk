@@ -1,4 +1,4 @@
-# LetsTalk Chat App @ back-end
+# LetsTalk Chat App
 
 ![C#](https://img.shields.io/badge/c%23-%23239120.svg?style=for-the-badge&logo=c-sharp&logoColor=white)
 ![.Net](https://img.shields.io/badge/.NET-5C2D91?style=for-the-badge&logo=.net&logoColor=white)
@@ -10,15 +10,13 @@
 ![Visual Studio](https://img.shields.io/badge/Visual%20Studio-5C2D91.svg?style=for-the-badge&logo=visual-studio&logoColor=white)
 ![Debian](https://img.shields.io/badge/Debian-A3002E?style=for-the-badge&logo=debian&logoColor=white)
 
-🔔 Please also see the [front-end repository](https://github.com/evgenii-petukhov/LetsTalk.Angular.App) 🙏
-
-![scheme](Images/demo.gif)
+![scheme](demo.gif)
 
 🔴 [Live demo](https://chat.petukhov.fyi/)
 
 ## Description
 
-LetsTalk is an instant messaging service with social media authentication (e.g., Facebook). Users can send text messages, images, and share links.
+LetsTalk is an instant messaging service. Users can send text messages, images, and share links.
 
 This project showcases my technical skills for potential IT recruiters, employers, and clients. It demonstrates that:
 
@@ -36,7 +34,7 @@ This project showcases my technical skills for potential IT recruiters, employer
 
 ## Architecture
 
-![scheme](Images/scheme-compressed.svg)
+![scheme](scheme-compressed.svg)
 
 The front-end is an Angular single-page application using NgRx for reactive state management.
 
@@ -57,13 +55,3 @@ Chat API supports both SQL and NoSQL databases, depending on the system configur
 - MongoDB
 - Azure CosmosDB for MongoDB
 - AWS DocumentDB
-
-## Deployment
-
-The back-end can be deployed on Linux. To do so, follow these steps:
-
-- Clone the repository
-- [Install .NET](https://learn.microsoft.com/en-us/dotnet/core/install/linux-ubuntu)
-- Install and [configure Nginx](https://learn.microsoft.com/en-us/aspnet/core/host-and-deploy/linux-nginx?view=aspnetcore-7.0&tabs=linux-ubuntu) as a reverse proxy
-- Set up SSL certificates (I recommend Certbot + Let's Encrypt)
-- Register microservices as Linux daemons
