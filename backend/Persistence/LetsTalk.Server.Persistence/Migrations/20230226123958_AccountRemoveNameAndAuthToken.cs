@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore.Migrations;
+using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
@@ -25,16 +25,18 @@ namespace LetsTalk.Server.Persistence.Migrations
             migrationBuilder.AddColumn<string>(
                 name: "AuthToken",
                 table: "Accounts",
-                type: "longtext",
+                type: "varchar(100)",
+                maxLength: 100,
                 nullable: true)
-                .Annotation("MySql:CharSet", "utf8mb4");
+                .Annotation("MySQL:CharSet", "utf8mb4");
 
             migrationBuilder.AddColumn<string>(
                 name: "Name",
                 table: "Accounts",
-                type: "longtext",
+                type: "varchar(100)",
+                maxLength: 100,
                 nullable: true)
-                .Annotation("MySql:CharSet", "utf8mb4");
+                .Annotation("MySQL:CharSet", "utf8mb4");
         }
     }
 }

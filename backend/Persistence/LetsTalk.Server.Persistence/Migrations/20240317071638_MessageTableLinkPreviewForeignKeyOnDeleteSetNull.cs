@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore.Metadata;
+using MySql.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
@@ -22,7 +22,7 @@ namespace LetsTalk.Server.Persistence.Migrations
                 nullable: false,
                 oldClrType: typeof(int),
                 oldType: "int")
-                .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn);
+                .Annotation("MySQL:ValueGenerationStrategy", MySQLValueGenerationStrategy.IdentityColumn);
 
             migrationBuilder.AlterColumn<int>(
                 name: "Id",
@@ -31,7 +31,7 @@ namespace LetsTalk.Server.Persistence.Migrations
                 nullable: false,
                 oldClrType: typeof(int),
                 oldType: "int")
-                .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn);
+                .Annotation("MySQL:ValueGenerationStrategy", MySQLValueGenerationStrategy.IdentityColumn);
 
             migrationBuilder.AlterColumn<int>(
                 name: "Id",
@@ -40,7 +40,7 @@ namespace LetsTalk.Server.Persistence.Migrations
                 nullable: false,
                 oldClrType: typeof(int),
                 oldType: "int")
-                .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn);
+                .Annotation("MySQL:ValueGenerationStrategy", MySQLValueGenerationStrategy.IdentityColumn);
 
             migrationBuilder.AlterColumn<int>(
                 name: "Id",
@@ -49,7 +49,7 @@ namespace LetsTalk.Server.Persistence.Migrations
                 nullable: false,
                 oldClrType: typeof(int),
                 oldType: "int")
-                .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn);
+                .Annotation("MySQL:ValueGenerationStrategy", MySQLValueGenerationStrategy.IdentityColumn);
 
             migrationBuilder.AlterColumn<int>(
                 name: "Id",
@@ -58,7 +58,7 @@ namespace LetsTalk.Server.Persistence.Migrations
                 nullable: false,
                 oldClrType: typeof(int),
                 oldType: "int")
-                .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn);
+                .Annotation("MySQL:ValueGenerationStrategy", MySQLValueGenerationStrategy.IdentityColumn);
 
             migrationBuilder.AddForeignKey(
                 name: "FK_messages_linkpreviews_LinkPreviewId",
@@ -83,7 +83,7 @@ namespace LetsTalk.Server.Persistence.Migrations
                 nullable: false,
                 oldClrType: typeof(int),
                 oldType: "int")
-                .OldAnnotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn);
+                .OldAnnotation("MySQL:ValueGenerationStrategy", MySQLValueGenerationStrategy.IdentityColumn);
 
             migrationBuilder.AlterColumn<int>(
                 name: "Id",
@@ -92,7 +92,7 @@ namespace LetsTalk.Server.Persistence.Migrations
                 nullable: false,
                 oldClrType: typeof(int),
                 oldType: "int")
-                .OldAnnotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn);
+                .OldAnnotation("MySQL:ValueGenerationStrategy", MySQLValueGenerationStrategy.IdentityColumn);
 
             migrationBuilder.AlterColumn<int>(
                 name: "Id",
@@ -101,7 +101,7 @@ namespace LetsTalk.Server.Persistence.Migrations
                 nullable: false,
                 oldClrType: typeof(int),
                 oldType: "int")
-                .OldAnnotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn);
+                .OldAnnotation("MySQL:ValueGenerationStrategy", MySQLValueGenerationStrategy.IdentityColumn);
 
             migrationBuilder.AlterColumn<int>(
                 name: "Id",
@@ -110,7 +110,7 @@ namespace LetsTalk.Server.Persistence.Migrations
                 nullable: false,
                 oldClrType: typeof(int),
                 oldType: "int")
-                .OldAnnotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn);
+                .OldAnnotation("MySQL:ValueGenerationStrategy", MySQLValueGenerationStrategy.IdentityColumn);
 
             migrationBuilder.AlterColumn<int>(
                 name: "Id",
@@ -119,7 +119,7 @@ namespace LetsTalk.Server.Persistence.Migrations
                 nullable: false,
                 oldClrType: typeof(int),
                 oldType: "int")
-                .OldAnnotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn);
+                .OldAnnotation("MySQL:ValueGenerationStrategy", MySQLValueGenerationStrategy.IdentityColumn);
 
             migrationBuilder.AddForeignKey(
                 name: "FK_messages_linkpreviews_LinkPreviewId",

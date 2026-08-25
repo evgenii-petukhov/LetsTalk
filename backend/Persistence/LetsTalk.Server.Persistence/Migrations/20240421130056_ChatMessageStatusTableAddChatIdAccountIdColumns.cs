@@ -22,7 +22,7 @@ namespace LetsTalk.Server.Persistence.Migrations
                 name: "ChatMemberId",
                 table: "chatmessagestatuses",
                 type: "int",
-                nullable: true,
+                nullable: false,
                 oldClrType: typeof(int),
                 oldType: "int");
 

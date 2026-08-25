@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore.Migrations;
+using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
@@ -61,7 +61,7 @@ namespace LetsTalk.Server.Persistence.Migrations
                 table: "chats",
                 type: "varchar(36)",
                 nullable: true)
-                .Annotation("MySql:CharSet", "utf8mb4");
+                .Annotation("MySQL:CharSet", "utf8mb4");
 
             migrationBuilder.AddColumn<bool>(
                 name: "IsIndividual",
@@ -73,9 +73,10 @@ namespace LetsTalk.Server.Persistence.Migrations
             migrationBuilder.AddColumn<string>(
                 name: "Name",
                 table: "chats",
-                type: "longtext",
+                type: "varchar(100)",
+                maxLength: 100,
                 nullable: true)
-                .Annotation("MySql:CharSet", "utf8mb4");
+                .Annotation("MySQL:CharSet", "utf8mb4");
 
             migrationBuilder.AlterColumn<int>(
                 name: "ChatId",

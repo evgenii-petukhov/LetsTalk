@@ -11,13 +11,14 @@ namespace LetsTalk.Server.Persistence.Migrations
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.Sql(@"INSERT INTO chats(SenderId, RecipientId)
-SELECT SenderId, RecipientId
+SELECT LEAST(SenderId, RecipientId), GREATEST(SenderId, RecipientId)
 FROM messages
 WHERE SenderId <> RecipientId
-GROUP BY SenderId * RecipientId, SenderId + RecipientId;");
+GROUP BY LEAST(SenderId, RecipientId), GREATEST(SenderId, RecipientId);");
 
             migrationBuilder.Sql(@"UPDATE messages m
-INNER JOIN chats c ON m.SenderId = c.SenderId AND m.RecipientId = c.RecipientId OR m.SenderId = c.RecipientId AND m.RecipientId = c.SenderId
+INNER JOIN chats c ON (m.SenderId = c.SenderId AND m.RecipientId = c.RecipientId)
+    OR (m.SenderId = c.RecipientId AND m.RecipientId = c.SenderId)
 SET m.ChatId = c.id;");
 
             migrationBuilder.Sql(@"INSERT INTO chatmembers(ChatId, AccountId)

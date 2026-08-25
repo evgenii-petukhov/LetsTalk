@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore.Migrations;
+using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
@@ -24,9 +24,10 @@ namespace LetsTalk.Server.Persistence.Migrations
             migrationBuilder.AddColumn<string>(
                 name: "FileName",
                 table: "files",
-                type: "longtext",
+                type: "varchar(100)",
+                maxLength: 100,
                 nullable: true)
-                .Annotation("MySql:CharSet", "utf8mb4");
+                .Annotation("MySQL:CharSet", "utf8mb4");
 
             migrationBuilder.CreateIndex(
                 name: "IX_images_FileId",
@@ -64,9 +65,10 @@ namespace LetsTalk.Server.Persistence.Migrations
             migrationBuilder.AddColumn<string>(
                 name: "FileName",
                 table: "images",
-                type: "longtext",
+                type: "varchar(100)",
+                maxLength: 100,
                 nullable: true)
-                .Annotation("MySql:CharSet", "utf8mb4");
+                .Annotation("MySQL:CharSet", "utf8mb4");
         }
     }
 }
