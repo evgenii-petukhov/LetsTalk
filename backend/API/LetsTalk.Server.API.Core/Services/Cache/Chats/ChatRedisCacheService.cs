@@ -42,7 +42,7 @@ public class ChatRedisCacheService(
             return accountDtos;
         }
 
-        return JsonSerializer.Deserialize<List<ChatDto>>(cachedAccounts!)!;
+        return JsonSerializer.Deserialize<List<ChatDto>>(cachedAccounts!.ToString())!;
     }
 
     public async Task ClearAsync(string accountId)

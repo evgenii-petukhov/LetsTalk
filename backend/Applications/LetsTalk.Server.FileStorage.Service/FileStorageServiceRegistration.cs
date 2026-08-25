@@ -43,7 +43,12 @@ public static class FileStorageServiceRegistration
         services.AddImageResizeEngineServices();
         services.Configure<FileStorageSettings>(configuration.GetSection("FileStorage"));
         services.Configure<ImageConstraints>(configuration.GetSection("ImageConstraints"));
-        services.AddAutoMapper(Assembly.GetExecutingAssembly());
+        services.AddAutoMapper(
+            cfg =>
+            {
+                cfg.LicenseKey = configuration.GetValue<string>("AutoMapper:LicenseKey");
+            },
+            Assembly.GetExecutingAssembly());
         services.AddMassTransit(x =>
         {
             if (configuration.GetValue<string>("Features:EventBrokerMode") == "aws")

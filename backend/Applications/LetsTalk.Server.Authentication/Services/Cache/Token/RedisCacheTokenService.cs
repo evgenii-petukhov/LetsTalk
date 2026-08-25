@@ -38,7 +38,7 @@ public class RedisCacheTokenService(
             return storedToken.AccountId;
         }
 
-        return JsonSerializer.Deserialize<string?>(cachedAccountId!)!;
+        return JsonSerializer.Deserialize<string?>(cachedAccountId!.ToString())!;
     }
 
     public async ValueTask<string> GenerateAsync(string accountId)

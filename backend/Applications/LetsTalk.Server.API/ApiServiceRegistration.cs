@@ -4,7 +4,7 @@ using LetsTalk.Server.API.Core;
 using LetsTalk.Server.Logging;
 using LetsTalk.Server.SignPackage;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.OpenApi.Models;
+using Microsoft.OpenApi;
 using System.Reflection;
 
 namespace LetsTalk.Server.API;
@@ -15,7 +15,12 @@ public static class ApiServiceRegistration
         this IServiceCollection services,
         IConfiguration configuration)
     {
-        services.AddAutoMapper(Assembly.GetExecutingAssembly());
+        services.AddAutoMapper(
+            cfg =>
+            {
+                cfg.LicenseKey = configuration.GetValue<string>("AutoMapper:LicenseKey");
+            },
+            Assembly.GetExecutingAssembly());
         await services.AddCoreServices(configuration);
         services.AddLoggingServices();
         services.AddAuthenticationClientServices(configuration);
@@ -40,18 +45,9 @@ public static class ApiServiceRegistration
                 In = ParameterLocation.Header,
                 Type = SecuritySchemeType.Http,
                 Scheme = "bearer", // must be lower case
-                BearerFormat = "JWT",
-                Reference = new OpenApiReference
-                {
-                    Id = JwtBearerDefaults.AuthenticationScheme,
-                    Type = ReferenceType.SecurityScheme
-                }
+                BearerFormat = "JWT"
             };
-            c.AddSecurityDefinition(securityScheme.Reference.Id, securityScheme);
-            c.AddSecurityRequirement(new OpenApiSecurityRequirement
-            {
-                {securityScheme, Array.Empty<string>()}
-            });
+            c.AddSecurityDefinition(JwtBearerDefaults.AuthenticationScheme, securityScheme);
         });
         services.Configure<MessagingSettings>(configuration.GetSection("Messaging"));
         services.Configure<SecuritySettings>(configuration.GetSection("Security"));
