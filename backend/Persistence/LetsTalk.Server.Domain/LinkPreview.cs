@@ -9,7 +9,7 @@ namespace LetsTalk.Server.Domain;
 public class LinkPreview : BaseEntity
 {
     [Required]
-    [MaxLength(4000)]
+    [MaxLength(700)]
     public string? Url { get; protected set; }
 
     [MaxLength(4000)]
