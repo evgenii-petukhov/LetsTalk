@@ -28,6 +28,11 @@ public class LinkPreviewService(
             _linkPreviewLogger.LogInformation("Parsing Open Graph data...");
             var model = _regexService.GetOpenGraphModel(pageString);
 
+            if (model == null)
+            {
+                return null!;
+            }
+
             return new OpenGraphModel
             {
                 Title = HttpUtility.HtmlDecode(model.Title),

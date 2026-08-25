@@ -1,12 +1,15 @@
-﻿using System.ComponentModel.DataAnnotations.Schema;
+﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace LetsTalk.Server.Domain;
 
 [Table("messages")]
 public class Message : BaseEntity
 {
+    [MaxLength(4000)]
     public string? Text { get; protected set; }
 
+    [MaxLength(4000)]
     public string? TextHtml { get; protected set; }
 
     public Account? Sender { get; protected set; }

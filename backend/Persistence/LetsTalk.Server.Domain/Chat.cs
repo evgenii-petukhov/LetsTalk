@@ -1,10 +1,12 @@
-﻿using System.ComponentModel.DataAnnotations.Schema;
+﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace LetsTalk.Server.Domain;
 
 [Table("chats")]
 public class Chat : BaseEntity
 {
+    [MaxLength(100)]
     public string? Name { get; protected set; }
 
     public Image? Image { get; protected set; }

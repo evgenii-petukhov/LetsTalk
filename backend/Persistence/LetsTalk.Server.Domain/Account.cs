@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace LetsTalk.Server.Domain;
@@ -11,15 +12,19 @@ public class Account : BaseEntity
 
     public int AccountTypeId { get; protected set; }
 
-    [Column(TypeName = "longtext")]
+    [MaxLength(100)]
     public string? ExternalId { get; protected set; }
 
+    [MaxLength(100)]
     public string? Email { get; protected set; }
 
+    [MaxLength(4000)]
     public string? PhotoUrl { get; protected set; }
 
+    [MaxLength(100)]
     public string? FirstName { get; protected set; }
 
+    [MaxLength(100)]
     public string? LastName { get; protected set; }
 
     public Image? Image { get; protected set; }

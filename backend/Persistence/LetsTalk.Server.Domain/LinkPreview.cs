@@ -9,11 +9,13 @@ namespace LetsTalk.Server.Domain;
 public class LinkPreview : BaseEntity
 {
     [Required]
-    [Column(TypeName = "longtext")]
+    [MaxLength(700)]
     public string? Url { get; protected set; }
 
+    [MaxLength(4000)]
     public string? Title { get; protected set; }
 
+    [MaxLength(4000)]
     public string? ImageUrl { get; protected set; }
 
     protected LinkPreview()

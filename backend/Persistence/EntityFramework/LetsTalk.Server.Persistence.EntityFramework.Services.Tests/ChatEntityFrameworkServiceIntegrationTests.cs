@@ -11,6 +11,8 @@ using LetsTalk.Server.Persistence.EntityFramework.Tests.TestData;
 using LetsTalk.Server.Persistence.Enums;
 using LetsTalk.Server.DateHelpers;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 using Moq;
 
 namespace LetsTalk.Server.Persistence.EntityFramework.Services.Tests;
@@ -31,6 +33,11 @@ public class ChatEntityFrameworkServiceIntegrationTests
     [SetUp]
     public void SetUp()
     {
+        var configurationBuilder = new ConfigurationBuilder()
+            .AddJsonFile(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "appsettings.json"), optional: false);
+        
+        var configuration = configurationBuilder.Build();
+
         var options = new DbContextOptionsBuilder<LetsTalkDbContext>()
             .UseInMemoryDatabase("LetsTalk")
             .Options;
@@ -41,12 +48,16 @@ public class ChatEntityFrameworkServiceIntegrationTests
 
         _chatRepository = new ChatRepository(_context);
 
-        var config = new MapperConfiguration(cfg =>
+        var services = new ServiceCollection();
+        services.AddLogging();
+        services.AddSingleton(configuration);
+        services.AddAutoMapper(cfg =>
         {
+            cfg.LicenseKey = configuration.GetValue<string>("AutoMapper:LicenseKey");
             cfg.AddProfile<ImageProfile>();
         });
-
-        _mapper = config.CreateMapper();
+        var serviceProvider = services.BuildServiceProvider();
+        _mapper = serviceProvider.GetRequiredService<IMapper>();
 
         _service = new ChatEntityFrameworkService(
             _chatRepository,

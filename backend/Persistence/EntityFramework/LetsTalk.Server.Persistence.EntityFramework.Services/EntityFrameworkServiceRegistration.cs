@@ -17,7 +17,12 @@ public static class EntityFrameworkServiceRegistration
         services.AddScoped<IProfileAgnosticService, ProfileEntityFrameworkService>();
         services.AddScoped<IChatAgnosticService, ChatEntityFrameworkService>();
         services.AddScoped<ILinkPreviewAgnosticService, LinkPreviewEntityFrameworkService>();
-        services.AddAutoMapper(Assembly.GetExecutingAssembly());
+        services.AddAutoMapper(
+            cfg =>
+            {
+                cfg.LicenseKey = configuration.GetValue<string>("AutoMapper:LicenseKey");
+            },
+            Assembly.GetExecutingAssembly());
         services.AddPersistenceRepositoryServices(configuration);
 
         return services;

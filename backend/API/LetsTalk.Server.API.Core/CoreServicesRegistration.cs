@@ -26,7 +26,12 @@ public static class CoreServicesRegistration
         this IServiceCollection services,
         IConfiguration configuration)
     {
-        services.AddAutoMapper(Assembly.GetExecutingAssembly());
+        services.AddAutoMapper(
+            cfg =>
+            {
+                cfg.LicenseKey = configuration.GetValue<string>("AutoMapper:LicenseKey");
+            },
+            Assembly.GetExecutingAssembly());
         services.AddMediatR(options => options.RegisterServicesFromAssembly(Assembly.GetExecutingAssembly()));
         services.AddScoped<IRegexService, RegexService>();
         services.AddScoped<IHtmlGenerator, HtmlGenerator>();

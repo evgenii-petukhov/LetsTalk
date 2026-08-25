@@ -86,7 +86,6 @@ public class LinkPreviewServiceTests
         var result = await _service.GenerateLinkPreviewAsync(request, cancellationToken);
 
         // Assert
-        result.Should().NotBeNull();
         result.Should().BeNull();
     }
 
@@ -118,7 +117,6 @@ public class LinkPreviewServiceTests
 
         // Assert
         result.Should().NotBeNull();
-        result.Should().NotBeNull();
         result.Title.Should().Be("<Test & Title>");
     }
 
@@ -147,7 +145,6 @@ public class LinkPreviewServiceTests
         var result = await _service.GenerateLinkPreviewAsync(request, cancellationToken);
 
         // Assert
-        result.Should().NotBeNull();
         result.Should().NotBeNull();
         result.Title.Should().Be("Fallback Title");
         _fallbackLinkPreviewServiceMock.Verify(x => x.GenerateLinkPreviewAsync(request, cancellationToken), Times.Once);

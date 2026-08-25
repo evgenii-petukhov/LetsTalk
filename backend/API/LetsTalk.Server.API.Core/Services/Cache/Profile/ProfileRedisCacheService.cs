@@ -42,7 +42,7 @@ public class ProfileRedisCacheService(
             return profile;
         }
 
-        return JsonSerializer.Deserialize<ProfileDto>(cachedProfile!)!;
+        return JsonSerializer.Deserialize<ProfileDto>(cachedProfile!.ToString())!;
     }
 
     public async Task ClearAsync(string accountId)

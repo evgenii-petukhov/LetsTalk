@@ -42,7 +42,7 @@ public class AccountRedisCacheService(
             return accountDtos;
         }
 
-        return JsonSerializer.Deserialize<List<AccountDto>>(cachedAccounts!)!;
+        return JsonSerializer.Deserialize<List<AccountDto>>(cachedAccounts!.ToString())!;
     }
 
     public async Task ClearAsync()

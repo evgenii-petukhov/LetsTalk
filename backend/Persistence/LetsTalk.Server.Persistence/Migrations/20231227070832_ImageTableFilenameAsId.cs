@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore.Metadata;
+using MySql.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
@@ -18,6 +18,10 @@ namespace LetsTalk.Server.Persistence.Migrations
                 table: "messages");
 
             migrationBuilder.DropForeignKey(
+                name: "FK_messages_images_ImagePreviewId",
+                table: "messages");
+
+            migrationBuilder.DropForeignKey(
                 name: "FK_accounts_images_ImageId",
                 table: "accounts");
 
@@ -29,7 +33,7 @@ namespace LetsTalk.Server.Persistence.Migrations
                 oldClrType: typeof(int),
                 oldType: "int",
                 oldNullable: true)
-                .Annotation("MySql:CharSet", "utf8mb4");
+                .Annotation("MySQL:CharSet", "utf8mb4");
 
             migrationBuilder.AlterColumn<string>(
                 name: "ImageId",
@@ -39,7 +43,7 @@ namespace LetsTalk.Server.Persistence.Migrations
                 oldClrType: typeof(int),
                 oldType: "int",
                 oldNullable: true)
-                .Annotation("MySql:CharSet", "utf8mb4");
+                .Annotation("MySQL:CharSet", "utf8mb4");
 
             migrationBuilder.AlterColumn<string>(
                 name: "Id",
@@ -49,8 +53,8 @@ namespace LetsTalk.Server.Persistence.Migrations
                 nullable: false,
                 oldClrType: typeof(int),
                 oldType: "int")
-                .Annotation("MySql:CharSet", "utf8mb4")
-                .OldAnnotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn);
+                .Annotation("MySQL:CharSet", "utf8mb4")
+                .OldAnnotation("MySQL:ValueGenerationStrategy", MySQLValueGenerationStrategy.IdentityColumn);
 
             migrationBuilder.AlterColumn<string>(
                 name: "ImageId",
@@ -60,7 +64,7 @@ namespace LetsTalk.Server.Persistence.Migrations
                 oldClrType: typeof(int),
                 oldType: "int",
                 oldNullable: true)
-                .Annotation("MySql:CharSet", "utf8mb4");
+                .Annotation("MySQL:CharSet", "utf8mb4");
 
             migrationBuilder.AddForeignKey(
                 name: "FK_messages_images_ImageId",
@@ -138,7 +142,7 @@ SET i.Id = FileName;");
                 oldClrType: typeof(string),
                 oldType: "varchar(36)",
                 oldNullable: true)
-                .OldAnnotation("MySql:CharSet", "utf8mb4");
+                .OldAnnotation("MySQL:CharSet", "utf8mb4");
 
             migrationBuilder.AlterColumn<int>(
                 name: "ImageId",
@@ -148,7 +152,7 @@ SET i.Id = FileName;");
                 oldClrType: typeof(string),
                 oldType: "varchar(36)",
                 oldNullable: true)
-                .OldAnnotation("MySql:CharSet", "utf8mb4");
+                .OldAnnotation("MySQL:CharSet", "utf8mb4");
 
             migrationBuilder.AlterColumn<int>(
                 name: "Id",
@@ -158,8 +162,8 @@ SET i.Id = FileName;");
                 oldClrType: typeof(string),
                 oldType: "varchar(36)",
                 oldMaxLength: 36)
-                .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn)
-                .OldAnnotation("MySql:CharSet", "utf8mb4");
+                .Annotation("MySQL:ValueGenerationStrategy", MySQLValueGenerationStrategy.IdentityColumn)
+                .OldAnnotation("MySQL:CharSet", "utf8mb4");
 
             migrationBuilder.AddColumn<int>(
                 name: "FileId",
@@ -183,47 +187,47 @@ SET i.Id = FileName;");
                 oldClrType: typeof(string),
                 oldType: "varchar(36)",
                 oldNullable: true)
-                .OldAnnotation("MySql:CharSet", "utf8mb4");
+                .OldAnnotation("MySQL:CharSet", "utf8mb4");
 
             migrationBuilder.CreateTable(
                 name: "filetypes",
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
-                    Name = table.Column<string>(type: "longtext", nullable: true)
-                        .Annotation("MySql:CharSet", "utf8mb4")
+                        .Annotation("MySQL:ValueGenerationStrategy", MySQLValueGenerationStrategy.IdentityColumn),
+                    Name = table.Column<string>(type: "varchar(100)", maxLength: 100, nullable: true)
+                        .Annotation("MySQL:CharSet", "utf8mb4")
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_filetypes", x => x.Id);
                 })
-                .Annotation("MySql:CharSet", "utf8mb4");
+                .Annotation("MySQL:CharSet", "utf8mb4");
 
             migrationBuilder.CreateTable(
                 name: "imageroles",
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
-                    Name = table.Column<string>(type: "longtext", nullable: true)
-                        .Annotation("MySql:CharSet", "utf8mb4")
+                        .Annotation("MySQL:ValueGenerationStrategy", MySQLValueGenerationStrategy.IdentityColumn),
+                    Name = table.Column<string>(type: "varchar(100)", maxLength: 100, nullable: true)
+                        .Annotation("MySQL:CharSet", "utf8mb4")
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_imageroles", x => x.Id);
                 })
-                .Annotation("MySql:CharSet", "utf8mb4");
+                .Annotation("MySQL:CharSet", "utf8mb4");
 
             migrationBuilder.CreateTable(
                 name: "files",
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
+                        .Annotation("MySQL:ValueGenerationStrategy", MySQLValueGenerationStrategy.IdentityColumn),
                     FileTypeId = table.Column<int>(type: "int", nullable: false),
-                    FileName = table.Column<string>(type: "longtext", nullable: true)
-                        .Annotation("MySql:CharSet", "utf8mb4")
+                    FileName = table.Column<string>(type: "varchar(100)", maxLength: 100, nullable: true)
+                        .Annotation("MySQL:CharSet", "utf8mb4")
                 },
                 constraints: table =>
                 {
@@ -235,7 +239,7 @@ SET i.Id = FileName;");
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                 })
-                .Annotation("MySql:CharSet", "utf8mb4");
+                .Annotation("MySQL:CharSet", "utf8mb4");
 
             migrationBuilder.InsertData(
                 table: "filetypes",

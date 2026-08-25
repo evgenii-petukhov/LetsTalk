@@ -51,7 +51,7 @@ public class MessageRedisCacheService(
             return messageDtos;
         }
 
-        return JsonSerializer.Deserialize<List<MessageServiceModel>>(cachedMessages!)!;
+        return JsonSerializer.Deserialize<List<MessageServiceModel>>(cachedMessages!.ToString())!;
     }
 
     public Task ClearAsync(string chatId)

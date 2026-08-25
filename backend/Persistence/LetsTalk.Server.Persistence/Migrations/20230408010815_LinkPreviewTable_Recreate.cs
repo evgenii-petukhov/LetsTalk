@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore.Migrations;
+using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
@@ -32,13 +32,15 @@ namespace LetsTalk.Server.Persistence.Migrations
             migrationBuilder.AlterColumn<string>(
                 name: "Url",
                 table: "linkpreviews",
-                type: "longtext",
+                type: "varchar(700)",
+                maxLength: 700,
                 nullable: false,
                 oldClrType: typeof(string),
-                oldType: "longtext",
+                oldType: "varchar(700)",
+                oldMaxLength: 700,
                 oldNullable: true)
-                .Annotation("MySql:CharSet", "utf8mb4")
-                .OldAnnotation("MySql:CharSet", "utf8mb4");
+                .Annotation("MySQL:CharSet", "utf8mb4")
+                .OldAnnotation("MySQL:CharSet", "utf8mb4");
 
             migrationBuilder.AddPrimaryKey(
                 name: "PK_linkpreviews",
@@ -80,12 +82,14 @@ namespace LetsTalk.Server.Persistence.Migrations
             migrationBuilder.AlterColumn<string>(
                 name: "Url",
                 table: "LinkPreview",
-                type: "longtext",
+                type: "varchar(700)",
+                maxLength: 700,
                 nullable: true,
                 oldClrType: typeof(string),
-                oldType: "longtext")
-                .Annotation("MySql:CharSet", "utf8mb4")
-                .OldAnnotation("MySql:CharSet", "utf8mb4");
+                oldType: "varchar(700)",
+                oldMaxLength: 700)
+                .Annotation("MySQL:CharSet", "utf8mb4")
+                .OldAnnotation("MySQL:CharSet", "utf8mb4");
 
             migrationBuilder.AddPrimaryKey(
                 name: "PK_LinkPreview",
