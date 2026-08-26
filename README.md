@@ -12,7 +12,7 @@
 
 ![scheme](demo.gif)
 
-🔴 [Live demo](https://chat.petukhov.fyi/)
+🔴 [Live demo](https://letstalk.petukhov.fyi/)
 
 ## Description
 
