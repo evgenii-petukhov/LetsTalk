@@ -15,7 +15,12 @@ public static class PersistenceServiceRegistration
         {
             var connectionString = configuration.GetConnectionString("MySql")!;
             options
-                .UseMySQL(connectionString)
+                .UseMySQL(
+                    connectionString,
+                    mysqlOptions =>
+                    {
+                        mysqlOptions.MigrationsHistoryTable("__efmigrationshistory");
+                    })
                 .UseQueryTrackingBehavior(QueryTrackingBehavior.NoTracking);
         });
         return services;
