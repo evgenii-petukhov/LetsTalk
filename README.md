@@ -1,4 +1,4 @@
-# LetsTalk Chat App
+# LetsTalk - Instant messenger 💬
 
 ![C#](https://img.shields.io/badge/c%23-%23239120.svg?style=for-the-badge&logo=c-sharp&logoColor=white)
 ![.Net](https://img.shields.io/badge/.NET-5C2D91?style=for-the-badge&logo=.net&logoColor=white)
@@ -16,29 +16,29 @@
 
 ## Description
 
-LetsTalk is an instant messaging service. Users can send text messages, images, and share links.
+LetsTalk is a messaging app for exchanging text messages, images, and video calls.
 
-This project showcases my technical skills for potential IT recruiters, employers, and clients. It demonstrates that:
+This project showcases my technical skills for potential employers and IT recruiters. It demonstrates that:
 
 - I can:
   - Design event-driven system architectures
-  - Use cloud services such as AWS SNS/SQS, S3, Lambda, DocumentDB, etc.
-  - Create single-page web applications with Angular
-  - Implement reactive state management with NgRx Store in Angular applications
-  - Implement caching with both Redis and the MemoryCache class
+  - Work with cloud services such as AWS SNS/SQS, S3, Lambda, and DocumentDB
+  - Build single-page web applications with Angular and TypeScript
+  - Implement reactive state management with NgRx in Angular
+  - Work with NoSQL databases such as MongoDB, Azure CosmosDB, and Redis
 - I understand:
-  - The basic principles of the OpenAPI Specification
-  - Microservice communication patterns and protocols, such as gRPC
-  - The main principles of microservice architecture and event-driven development, with experience in Apache Kafka
-  - Domain-driven design data consistency aspects ([see my article about DDD](https://www.linkedin.com/pulse/how-i-practiced-ddd-principles-ignoring-them-evgenii-petukhov/) on LinkedIn)
+  - The OpenAPI Specification
+  - Microservice communication patterns and protocols such as gRPC
+  - Microservice architecture and event-driven development principles, with hands-on experience using Apache Kafka
+  - Domain-driven design and data consistency ([see my article on DDD](https://www.linkedin.com/pulse/how-i-practiced-ddd-principles-ignoring-them-evgenii-petukhov/) on LinkedIn)
 
 ## Architecture
 
 ![scheme](scheme-compressed.svg)
 
-The front-end is an Angular single-page application using NgRx for reactive state management.
+The front end is an Angular single-page application using NgRx for reactive state management.
 
-The back-end implements a microservice, event-driven architecture. Depending on the system configuration, it uses Apache Kafka or AWS SNS/SQS as an event broker. The table below describes each microservice:
+The back end follows a microservice, event-driven architecture. Depending on the configuration, it uses Apache Kafka or AWS SNS/SQS as the event broker. The table below describes each microservice:
 
 | Microservice name | Protocol                    | Description                                                                                                                    |
 | ----------------- | --------------------------- | ------------------------------------------------------------------------------------------------------------------------------ |
