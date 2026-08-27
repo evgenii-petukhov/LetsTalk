@@ -32,6 +32,21 @@ This project showcases my technical skills for potential employers and IT recrui
   - Microservice architecture and event-driven development principles, with hands-on experience using Apache Kafka
   - Domain-driven design and data consistency ([see my article on DDD](https://www.linkedin.com/pulse/how-i-practiced-ddd-principles-ignoring-them-evgenii-petukhov/) on LinkedIn)
 
+## Technical stack
+
+**Back end**
+- C#, .NET 10, ASP.NET Core
+- Communication: REST, gRPC, SignalR, WebRTC (Cloudflare TURN)
+- CQRS: MediatR
+- Databases: MySQL (Entity Framework Core), MongoDB, Redis
+- Event messaging: Apache Kafka, AWS SNS/SQS (via MassTransit)
+- Cloud: AWS S3, AWS Lambda, Azure CosmosDB
+- Telemetry: Azure AppInsights
+
+**Front end**
+- TypeScript, Angular 21, NgRx
+- Testing: Vitest
+
 ## Architecture
 
 ![scheme](scheme-compressed.svg)
@@ -48,10 +63,3 @@ The back end follows a microservice, event-driven architecture. Depending on the
 | Link preview      | Apache Kafka or AWS SNS/SQS | Decorates messages with a website's name and a picture preview in the cloud by calling AWS Lambda, if a message contains links |
 | File storage      | gRPC                        | Saves avatars and images uploaded by users in the cloud (AWS S3) and serves them when requested                                |
 | Image processing  | Apache Kafka or AWS SNS/SQS | Generates image previews in the cloud by calling AWS Lambda; uses [SkiaSharp](https://github.com/mono/SkiaSharp)               |
-
-Chat API supports both SQL and NoSQL databases, depending on the system configuration. Supported databases include:
-
-- MySQL
-- MongoDB
-- Azure CosmosDB for MongoDB
-- AWS DocumentDB
