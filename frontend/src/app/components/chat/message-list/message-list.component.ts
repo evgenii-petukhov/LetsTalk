@@ -123,14 +123,17 @@ export class MessageListComponent implements AfterViewInit, OnDestroy, OnInit {
     }
 
     private async loadMessages(): Promise<void> {
-        if (this.chatId() === null) {
+        // capture chatId to avoid adding messages to a different chat when the internet connection is slow
+        const chatId = this.chatId();
+
+        if (chatId === null) {
             this.isMessageListLoaded.set(true);
             return;
         }
 
-        if (this.idGeneratorService.isFake(this.chatId())) {
+        if (this.idGeneratorService.isFake(chatId)) {
             const isChatIdValid = await this.storeService.isChatIdValid(
-                this.chatId(),
+                chatId,
             );
             if (isChatIdValid) {
                 this.isMessageListLoaded.set(true);
@@ -149,7 +152,7 @@ export class MessageListComponent implements AfterViewInit, OnDestroy, OnInit {
         this.previousScrollHeight = this.scrollContainer?.scrollHeight ?? 0;
         try {
             const messageDtos = await this.apiService.getMessages(
-                this.chatId(),
+                chatId,
                 this.pageIndex(),
             );
             this.storeService.addMessages(messageDtos);
@@ -165,7 +168,7 @@ export class MessageListComponent implements AfterViewInit, OnDestroy, OnInit {
                     : '';
 
                 this.storeService.setLastMessageInfo(
-                    this.chatId(),
+                    chatId,
                     lastMessageDate,
                     lastMessageId,
                 );
