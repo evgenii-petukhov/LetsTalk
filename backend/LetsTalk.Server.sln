@@ -177,6 +177,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LetsTalk.Server.Notificatio
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LetsTalk.Server.Notifications.Tests", "Applications\LetsTalk.Server.Notifications.Tests\LetsTalk.Server.Notifications.Tests.csproj", "{A07EADE3-6A3B-3BB5-AEA0-C16CCB6B2A81}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LetsTalk.Server.Persistence.EntityFramework.MigrationTool", "Persistence\EntityFramework\LetsTalk.Server.Persistence.EntityFramework.MigrationTool\LetsTalk.Server.Persistence.EntityFramework.MigrationTool.csproj", "{A88B819A-C417-CB90-1DA6-0759264D6A7C}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -459,6 +461,10 @@ Global
 		{A07EADE3-6A3B-3BB5-AEA0-C16CCB6B2A81}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{A07EADE3-6A3B-3BB5-AEA0-C16CCB6B2A81}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{A07EADE3-6A3B-3BB5-AEA0-C16CCB6B2A81}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A88B819A-C417-CB90-1DA6-0759264D6A7C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A88B819A-C417-CB90-1DA6-0759264D6A7C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A88B819A-C417-CB90-1DA6-0759264D6A7C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A88B819A-C417-CB90-1DA6-0759264D6A7C}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -550,6 +556,7 @@ Global
 		{D2AAD7A0-A8D3-7983-2658-9CA1A84A93CD} = {5686F7F7-B6BB-40D6-A0BC-BA7D8A853981}
 		{F4E9F312-149A-642A-B231-729EB56ABBFB} = {5686F7F7-B6BB-40D6-A0BC-BA7D8A853981}
 		{A07EADE3-6A3B-3BB5-AEA0-C16CCB6B2A81} = {5686F7F7-B6BB-40D6-A0BC-BA7D8A853981}
+		{A88B819A-C417-CB90-1DA6-0759264D6A7C} = {8A574EDF-59E2-44F6-BE08-8CE2D2D7B783}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {3787FEEA-6175-4B41-A979-51B2D1E11B8D}
