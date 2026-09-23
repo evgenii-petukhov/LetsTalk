@@ -2,6 +2,7 @@
 using Microsoft.Extensions.DependencyInjection;
 using LetsTalk.Server.Persistence.MongoDB.Services;
 using LetsTalk.Server.Persistence.EntityFramework.Services;
+using LetsTalk.Server.Persistence.CosmosDB.Services;
 
 namespace LetsTalk.Server.Persistence.AgnosticServices;
 
@@ -15,6 +16,9 @@ public static class PersistenceAgnosticServicesRegistration
         {
             case "MongoDB":
                 await services.AddMongoDBServices(configuration);
+                break;
+            case "CosmosDB":
+                await services.AddCosmosDBServices(configuration);
                 break;
             default:
                 services.AddEntityFrameworkServices(configuration);

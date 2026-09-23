@@ -31,6 +31,7 @@ public class SetLinkPreviewCommandHandler(
         {
             message = await _messageAgnosticService.SetLinkPreviewAsync(
                 request.MessageId!,
+                request.ChatId!,
                 request.Url!,
                 request.Title!,
                 request.ImageUrl!,
@@ -42,6 +43,7 @@ public class SetLinkPreviewCommandHandler(
 
             message = await _messageAgnosticService.SetLinkPreviewAsync(
                 request.MessageId!,
+                request.ChatId!,
                 linkPreviewId!,
                 cancellationToken);
         }

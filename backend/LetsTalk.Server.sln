@@ -179,6 +179,16 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LetsTalk.Server.Notificatio
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LetsTalk.Server.Persistence.EntityFramework.MigrationTool", "Persistence\EntityFramework\LetsTalk.Server.Persistence.EntityFramework.MigrationTool\LetsTalk.Server.Persistence.EntityFramework.MigrationTool.csproj", "{A88B819A-C417-CB90-1DA6-0759264D6A7C}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "CosmosDB", "CosmosDB", "{1DA41D82-BF24-44CB-A165-3BED0D319BBC}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LetsTalk.Server.Persistence.CosmosDB.Services", "Persistence\CosmosDB\LetsTalk.Server.Persistence.CosmosDB.Services\LetsTalk.Server.Persistence.CosmosDB.Services.csproj", "{D755A2B4-F2A9-400F-B7F6-F64A79D7C313}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LetsTalk.Server.Persistence.CosmosDB.Repository", "Persistence\CosmosDB\LetsTalk.Server.Persistence.CosmosDB.Repository\LetsTalk.Server.Persistence.CosmosDB.Repository.csproj", "{156D47F1-D542-4D1A-B196-218C4DF81A3F}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LetsTalk.Server.Persistence.CosmosDB.Repository.Abstractions", "Persistence\CosmosDB\LetsTalk.Server.Persistence.CosmosDB.Repository.Abstractions\LetsTalk.Server.Persistence.CosmosDB.Repository.Abstractions.csproj", "{25BD3569-8E3A-4EDE-8FDA-96F4C85C7B5E}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LetsTalk.Server.Persistence.CosmosDB.Models", "Persistence\CosmosDB\LetsTalk.Server.Persistence.CosmosDB.Models\LetsTalk.Server.Persistence.CosmosDB.Models.csproj", "{D1832F38-B4C7-4EF3-87E6-B9E1729991EC}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -465,6 +475,22 @@ Global
 		{A88B819A-C417-CB90-1DA6-0759264D6A7C}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{A88B819A-C417-CB90-1DA6-0759264D6A7C}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{A88B819A-C417-CB90-1DA6-0759264D6A7C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D755A2B4-F2A9-400F-B7F6-F64A79D7C313}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D755A2B4-F2A9-400F-B7F6-F64A79D7C313}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D755A2B4-F2A9-400F-B7F6-F64A79D7C313}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D755A2B4-F2A9-400F-B7F6-F64A79D7C313}.Release|Any CPU.Build.0 = Release|Any CPU
+		{156D47F1-D542-4D1A-B196-218C4DF81A3F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{156D47F1-D542-4D1A-B196-218C4DF81A3F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{156D47F1-D542-4D1A-B196-218C4DF81A3F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{156D47F1-D542-4D1A-B196-218C4DF81A3F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{25BD3569-8E3A-4EDE-8FDA-96F4C85C7B5E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{25BD3569-8E3A-4EDE-8FDA-96F4C85C7B5E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{25BD3569-8E3A-4EDE-8FDA-96F4C85C7B5E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{25BD3569-8E3A-4EDE-8FDA-96F4C85C7B5E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D1832F38-B4C7-4EF3-87E6-B9E1729991EC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D1832F38-B4C7-4EF3-87E6-B9E1729991EC}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D1832F38-B4C7-4EF3-87E6-B9E1729991EC}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D1832F38-B4C7-4EF3-87E6-B9E1729991EC}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -557,6 +583,11 @@ Global
 		{F4E9F312-149A-642A-B231-729EB56ABBFB} = {5686F7F7-B6BB-40D6-A0BC-BA7D8A853981}
 		{A07EADE3-6A3B-3BB5-AEA0-C16CCB6B2A81} = {5686F7F7-B6BB-40D6-A0BC-BA7D8A853981}
 		{A88B819A-C417-CB90-1DA6-0759264D6A7C} = {8A574EDF-59E2-44F6-BE08-8CE2D2D7B783}
+		{1DA41D82-BF24-44CB-A165-3BED0D319BBC} = {EA773367-D1CB-470C-9DB7-8E87CA9D637E}
+		{D755A2B4-F2A9-400F-B7F6-F64A79D7C313} = {1DA41D82-BF24-44CB-A165-3BED0D319BBC}
+		{156D47F1-D542-4D1A-B196-218C4DF81A3F} = {1DA41D82-BF24-44CB-A165-3BED0D319BBC}
+		{25BD3569-8E3A-4EDE-8FDA-96F4C85C7B5E} = {1DA41D82-BF24-44CB-A165-3BED0D319BBC}
+		{D1832F38-B4C7-4EF3-87E6-B9E1729991EC} = {1DA41D82-BF24-44CB-A165-3BED0D319BBC}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {3787FEEA-6175-4B41-A979-51B2D1E11B8D}

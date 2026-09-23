@@ -33,10 +33,15 @@ public interface IMessageAgnosticService
         int messagesPerPage,
         CancellationToken cancellationToken = default);
 
-    Task<MessageServiceModel> SetLinkPreviewAsync(string messageId, string linkPreviewId, CancellationToken cancellationToken = default);
+    Task<MessageServiceModel> SetLinkPreviewAsync(
+        string messageId,
+        string chatId,
+        string linkPreviewId,
+        CancellationToken cancellationToken = default);
 
     Task<MessageServiceModel> SetLinkPreviewAsync(
         string messageId,
+        string chatId,
         string url,
         string title,
         string imageUrl,
@@ -50,6 +55,7 @@ public interface IMessageAgnosticService
 
     Task<MessageServiceModel> SaveImagePreviewAsync(
         string messageId,
+        string chatId,
         string filename,
         ImageFormats imageFormat,
         int width,

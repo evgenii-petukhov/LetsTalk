@@ -3,7 +3,8 @@ using LetsTalk.Server.Persistence.MongoDB.Repository.Abstractions;
 
 namespace LetsTalk.Server.Persistence.MongoDB.Services;
 
-public class LinkPreviewMongoDBService(ILinkPreviewRepository linkPreviewRepository) : ILinkPreviewAgnosticService
+public class LinkPreviewMongoDBService(
+    ILinkPreviewRepository linkPreviewRepository) : ILinkPreviewAgnosticService
 {
     private readonly ILinkPreviewRepository _linkPreviewRepository = linkPreviewRepository;
 

@@ -90,10 +90,20 @@ public class MessageEntityFrameworkService(
         return _mapper.Map<List<MessageServiceModel>>(messages);
     }
 
-    public async Task<MessageServiceModel> SetLinkPreviewAsync(string messageId, string linkPreviewId, CancellationToken cancellationToken = default)
+    public async Task<MessageServiceModel> SetLinkPreviewAsync(
+        string messageId,
+        string chatId,
+        string linkPreviewId,
+        CancellationToken cancellationToken = default)
     {
-        var linkPreview = await _linkPreviewRepository.GetByIdAsync(int.Parse(linkPreviewId, CultureInfo.InvariantCulture), cancellationToken);
-        var message = await _messageRepository.GetByIdAsTrackingAsync(int.Parse(messageId, CultureInfo.InvariantCulture), cancellationToken);
+        var linkPreview = await _linkPreviewRepository.GetByIdAsync(
+            int.Parse(linkPreviewId, CultureInfo.InvariantCulture),
+            cancellationToken);
+
+        var message = await _messageRepository.GetByIdAsTrackingAsync(
+            int.Parse(messageId, CultureInfo.InvariantCulture),
+            cancellationToken);
+
         message.SetLinkPreview(linkPreview);
         await _unitOfWork.SaveAsync(cancellationToken);
 
@@ -102,13 +112,18 @@ public class MessageEntityFrameworkService(
 
     public async Task<MessageServiceModel> SetLinkPreviewAsync(
         string messageId,
+        string chatId,
         string url,
         string title,
         string imageUrl,
         CancellationToken cancellationToken = default)
     {
         var linkPreview = _entityFactory.CreateLinkPreview(url, title, imageUrl);
-        var message = await _messageRepository.GetByIdAsTrackingAsync(int.Parse(messageId, CultureInfo.InvariantCulture), cancellationToken);
+
+        var message = await _messageRepository.GetByIdAsTrackingAsync(
+            int.Parse(messageId, CultureInfo.InvariantCulture),
+            cancellationToken);
+
         message.SetLinkPreview(linkPreview);
         await _unitOfWork.SaveAsync(cancellationToken);
 
@@ -130,6 +145,7 @@ public class MessageEntityFrameworkService(
 
     public async Task<MessageServiceModel> SaveImagePreviewAsync(
         string messageId,
+        string chatId,
         string filename,
         ImageFormats imageFormat,
         int width,

@@ -13,6 +13,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\CosmosDB\LetsTalk.Server.Persistence.CosmosDB.Services\LetsTalk.Server.Persistence.CosmosDB.Services.csproj" />
     <ProjectReference Include="..\EntityFramework\LetsTalk.Server.Persistence.EntityFramework.Services\LetsTalk.Server.Persistence.EntityFramework.Services.csproj" />
     <ProjectReference Include="..\MongoDB\LetsTalk.Server.Persistence.MongoDB.Services\LetsTalk.Server.Persistence.MongoDB.Services.csproj" />
   </ItemGroup>

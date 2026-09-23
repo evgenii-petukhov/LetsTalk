@@ -74,6 +74,7 @@ public class SetImagePreviewCommandHandlerTests
         _messageAgnosticServiceMock
             .Setup(x => x.SaveImagePreviewAsync(
                 "message-123",
+                "chat-456",
                 "image.jpg",
                 ImageFormats.Jpeg,
                 800,
@@ -107,6 +108,7 @@ public class SetImagePreviewCommandHandlerTests
         _messageAgnosticServiceMock.Verify(
             x => x.SaveImagePreviewAsync(
                 "message-123",
+                "chat-456",
                 "image.jpg",
                 ImageFormats.Jpeg,
                 800,
@@ -164,6 +166,7 @@ public class SetImagePreviewCommandHandlerTests
             _messageAgnosticServiceMock
                 .Setup(x => x.SaveImagePreviewAsync(
                     "message-123",
+                    "chat-456",
                     $"image.{format.ToString().ToLower()}",
                     format,
                     800,
@@ -191,6 +194,7 @@ public class SetImagePreviewCommandHandlerTests
             _messageAgnosticServiceMock.Verify(
                 x => x.SaveImagePreviewAsync(
                     "message-123",
+                    "chat-456",
                     $"image.{format.ToString().ToLower()}",
                     format,
                     800,
@@ -228,6 +232,7 @@ public class SetImagePreviewCommandHandlerTests
             _messageAgnosticServiceMock
                 .Setup(x => x.SaveImagePreviewAsync(
                     "message-123",
+                    "chat-456",
                     "image.jpg",
                     ImageFormats.Jpeg,
                     800,
@@ -255,6 +260,7 @@ public class SetImagePreviewCommandHandlerTests
             _messageAgnosticServiceMock.Verify(
                 x => x.SaveImagePreviewAsync(
                     "message-123",
+                    "chat-456",
                     "image.jpg",
                     ImageFormats.Jpeg,
                     800,
@@ -296,6 +302,7 @@ public class SetImagePreviewCommandHandlerTests
         _messageAgnosticServiceMock.Verify(
             x => x.SaveImagePreviewAsync(
                 "message-123",
+                "chat-456",
                 "image.jpg",
                 ImageFormats.Jpeg,
                 0,
@@ -336,6 +343,7 @@ public class SetImagePreviewCommandHandlerTests
         _messageAgnosticServiceMock.Verify(
             x => x.SaveImagePreviewAsync(
                 "message-123",
+                "chat-456",
                 "image.jpg",
                 ImageFormats.Jpeg,
                 -100,
@@ -376,6 +384,7 @@ public class SetImagePreviewCommandHandlerTests
         _messageAgnosticServiceMock.Verify(
             x => x.SaveImagePreviewAsync(
                 "message-123",
+                "chat-456",
                 "image.jpg",
                 ImageFormats.Jpeg,
                 int.MaxValue,
@@ -409,6 +418,7 @@ public class SetImagePreviewCommandHandlerTests
             .Setup(x => x.SaveImagePreviewAsync(
                 null!,
                 null!,
+                null!,
                 ImageFormats.Jpeg,
                 800,
                 600,
@@ -434,6 +444,7 @@ public class SetImagePreviewCommandHandlerTests
 
         _messageAgnosticServiceMock.Verify(
             x => x.SaveImagePreviewAsync(
+                null!,
                 null!,
                 null!,
                 ImageFormats.Jpeg,
@@ -546,6 +557,7 @@ public class SetImagePreviewCommandHandlerTests
         _messageAgnosticServiceMock
             .Setup(x => x.SaveImagePreviewAsync(
                 "message-123",
+                "chat-456",
                 "image.jpg",
                 ImageFormats.Jpeg,
                 800,
@@ -596,6 +608,7 @@ public class SetImagePreviewCommandHandlerTests
         _messageAgnosticServiceMock
             .Setup(x => x.SaveImagePreviewAsync(
                 "message-123",
+                "chat-456",
                 "image.jpg",
                 ImageFormats.Jpeg,
                 800,
@@ -615,6 +628,7 @@ public class SetImagePreviewCommandHandlerTests
         _messageAgnosticServiceMock.Verify(
             x => x.SaveImagePreviewAsync(
                 "message-123",
+                "chat-456",
                 "image.jpg",
                 ImageFormats.Jpeg,
                 800,
@@ -658,6 +672,7 @@ public class SetImagePreviewCommandHandlerTests
         _messageAgnosticServiceMock
             .Setup(x => x.SaveImagePreviewAsync(
                 "message-123",
+                "chat-456",
                 "image.jpg",
                 ImageFormats.Jpeg,
                 800,
@@ -681,6 +696,7 @@ public class SetImagePreviewCommandHandlerTests
         _messageAgnosticServiceMock.Verify(
             x => x.SaveImagePreviewAsync(
                 "message-123",
+                "chat-456",
                 "image.jpg",
                 ImageFormats.Jpeg,
                 800,
@@ -725,6 +741,7 @@ public class SetImagePreviewCommandHandlerTests
         _messageAgnosticServiceMock
             .Setup(x => x.SaveImagePreviewAsync(
                 "message-123",
+                "chat-456",
                 "image.jpg",
                 ImageFormats.Jpeg,
                 800,
@@ -777,6 +794,7 @@ public class SetImagePreviewCommandHandlerTests
         _messageAgnosticServiceMock
             .Setup(x => x.SaveImagePreviewAsync(
                 "message-123",
+                "chat-456",
                 "image.jpg",
                 ImageFormats.Jpeg,
                 800,
@@ -835,6 +853,7 @@ public class SetImagePreviewCommandHandlerTests
         _messageAgnosticServiceMock.Verify(
             x => x.SaveImagePreviewAsync(
                 "message-123",
+                "chat-456",
                 "image.jpg",
                 ImageFormats.Jpeg,
                 800,
@@ -883,6 +902,7 @@ public class SetImagePreviewCommandHandlerTests
         _messageAgnosticServiceMock.Verify(
             x => x.SaveImagePreviewAsync(
                 "message-123",
+                "chat-456",
                 "image with spaces & special chars!@#$%^&*().jpg",
                 ImageFormats.Jpeg,
                 800,
@@ -923,6 +943,7 @@ public class SetImagePreviewCommandHandlerTests
         _messageAgnosticServiceMock.Verify(
             x => x.SaveImagePreviewAsync(
                 "message-123",
+                "chat-456",
                 "图片-🖼️-صورة.jpg",
                 ImageFormats.Jpeg,
                 800,
@@ -936,6 +957,7 @@ public class SetImagePreviewCommandHandlerTests
     {
         _messageAgnosticServiceMock
             .Setup(x => x.SaveImagePreviewAsync(
+                It.IsAny<string>(),
                 It.IsAny<string>(),
                 It.IsAny<string>(),
                 It.IsAny<ImageFormats>(),

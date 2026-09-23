@@ -8,9 +8,13 @@ namespace LetsTalk.Server.Persistence.MongoDB.Services;
 
 public class MessageMongoDBService(
     IMessageRepository messageRepository,
+    IChatMessageStatusRepository chatMessageStatusRepository,
+    ILinkPreviewRepository linkPreviewRepository,
     IMapper mapper) : IMessageAgnosticService
 {
     private readonly IMessageRepository _messageRepository = messageRepository;
+    private readonly IChatMessageStatusRepository _chatMessageStatusRepository = chatMessageStatusRepository;
+    private readonly ILinkPreviewRepository _linkPreviewRepository = linkPreviewRepository;
     private readonly IMapper _mapper = mapper;
 
     public async Task<MessageServiceModel> CreateMessageAsync(
@@ -78,23 +82,43 @@ public class MessageMongoDBService(
         return _mapper.Map<List<MessageServiceModel>>(messages);
     }
 
-    public async Task<MessageServiceModel> SetLinkPreviewAsync(string messageId, string linkPreviewId, CancellationToken cancellationToken = default)
+    public async Task<MessageServiceModel> SetLinkPreviewAsync(
+        string messageId,
+        string chatId,
+        string linkPreviewId,
+        CancellationToken cancellationToken = default)
     {
         var message = await _messageRepository.SetLinkPreviewAsync(messageId, linkPreviewId, cancellationToken);
 
-        return _mapper.Map<MessageServiceModel>(message);
+        var linkPreview = await _linkPreviewRepository.GetByIdAsync(linkPreviewId, cancellationToken);
+
+        var mappedMessage = _mapper.Map<MessageServiceModel>(message);
+        mappedMessage.LinkPreview = _mapper.Map<LinkPreviewServiceModel>(linkPreview);
+
+        return mappedMessage;
     }
 
     public async Task<MessageServiceModel> SetLinkPreviewAsync(
         string messageId,
+        string chatId,
         string url,
         string title,
         string imageUrl,
         CancellationToken cancellationToken = default)
     {
-        var message = await _messageRepository.SetLinkPreviewAsync(messageId, url, title, imageUrl, cancellationToken);
+        var linkPreview = await _linkPreviewRepository.CreateLinkPreviewAsync(url, title, imageUrl, cancellationToken);
 
-        return _mapper.Map<MessageServiceModel>(message);
+        if (linkPreview == null || string.IsNullOrWhiteSpace(linkPreview.Id))
+        {
+            return null!;
+        }
+
+        var message = await _messageRepository.SetLinkPreviewAsync(messageId, linkPreview.Id, cancellationToken);
+
+        var mappedMessage = _mapper.Map<MessageServiceModel>(message);
+        mappedMessage.LinkPreview = _mapper.Map<LinkPreviewServiceModel>(linkPreview);
+
+        return mappedMessage;
     }
 
     public Task MarkAsReadAsync(
@@ -103,11 +127,12 @@ public class MessageMongoDBService(
         string messageId,
         CancellationToken cancellationToken)
     {
-        return _messageRepository.MarkAsReadAsync(chatId, accountId, messageId, cancellationToken);
+        return _chatMessageStatusRepository.MarkAsReadAsync(chatId, accountId, messageId, cancellationToken);
     }
 
     public async Task<MessageServiceModel> SaveImagePreviewAsync(
         string messageId,
+        string chatId,
         string filename,
         ImageFormats imageFormat,
         int width,

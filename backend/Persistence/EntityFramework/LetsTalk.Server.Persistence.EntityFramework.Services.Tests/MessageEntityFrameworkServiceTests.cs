@@ -382,6 +382,7 @@ public class MessageEntityFrameworkServiceTests
         {
             // Arrange
             const string messageId = "123";
+            const string chatId = "456";
             const string linkPreviewId = "456";
             var linkPreview = CreateLinkPreview("https://example.com");
             var message = CreateMessageWithId(123);
@@ -404,7 +405,7 @@ public class MessageEntityFrameworkServiceTests
                 .Returns(expectedResult);
 
             // Act
-            var result = await _service.SetLinkPreviewAsync(messageId, linkPreviewId);
+            var result = await _service.SetLinkPreviewAsync(messageId, chatId, linkPreviewId);
 
             // Assert
             result.Should().BeEquivalentTo(expectedResult);
@@ -419,10 +420,11 @@ public class MessageEntityFrameworkServiceTests
         {
             // Arrange
             const string messageId = "invalid";
+            const string chatId = "456";
             const string linkPreviewId = "456";
 
             // Act & Assert
-            var act = async () => await _service.SetLinkPreviewAsync(messageId, linkPreviewId);
+            var act = async () => await _service.SetLinkPreviewAsync(messageId, chatId, linkPreviewId);
             act.Should().ThrowAsync<FormatException>();
         }
 
@@ -431,10 +433,11 @@ public class MessageEntityFrameworkServiceTests
         {
             // Arrange
             const string messageId = "123";
+            const string chatId = "456";
             const string linkPreviewId = "invalid";
 
             // Act & Assert
-            var act = async () => await _service.SetLinkPreviewAsync(messageId, linkPreviewId);
+            var act = async () => await _service.SetLinkPreviewAsync(messageId, chatId, linkPreviewId);
             act.Should().ThrowAsync<FormatException>();
         }
     }
@@ -447,6 +450,7 @@ public class MessageEntityFrameworkServiceTests
         {
             // Arrange
             const string messageId = "123";
+            const string chatId = "456";
             const string url = "https://example.com";
             const string title = "Example Title";
             const string imageUrl = "https://example.com/image.jpg";
@@ -471,7 +475,7 @@ public class MessageEntityFrameworkServiceTests
                 .Returns(expectedResult);
 
             // Act
-            var result = await _service.SetLinkPreviewAsync(messageId, url, title, imageUrl);
+            var result = await _service.SetLinkPreviewAsync(messageId, chatId, url, title, imageUrl);
 
             // Assert
             result.Should().BeEquivalentTo(expectedResult);
@@ -486,12 +490,13 @@ public class MessageEntityFrameworkServiceTests
         {
             // Arrange
             const string messageId = "invalid";
+            const string chatId = "456";
             const string url = "https://example.com";
             const string title = "Example Title";
             const string imageUrl = "https://example.com/image.jpg";
 
             // Act & Assert
-            var act = async () => await _service.SetLinkPreviewAsync(messageId, url, title, imageUrl);
+            var act = async () => await _service.SetLinkPreviewAsync(messageId, chatId, url, title, imageUrl);
             act.Should().ThrowAsync<FormatException>();
         }
     }
@@ -614,6 +619,7 @@ public class MessageEntityFrameworkServiceTests
         {
             // Arrange
             const string messageId = "123";
+            const string chatId = "456";
             const string filename = "preview.jpg";
             const ImageFormats imageFormat = ImageFormats.Jpeg;
             const int width = 200;
@@ -641,7 +647,7 @@ public class MessageEntityFrameworkServiceTests
                 .Returns(expectedResult);
 
             // Act
-            var result = await _service.SaveImagePreviewAsync(messageId, filename, imageFormat, width, height, fileStorageType);
+            var result = await _service.SaveImagePreviewAsync(messageId, chatId, filename, imageFormat, width, height, fileStorageType);
 
             // Assert
             result.Should().BeEquivalentTo(expectedResult);
@@ -656,6 +662,7 @@ public class MessageEntityFrameworkServiceTests
         {
             // Arrange
             const string messageId = "invalid";
+            const string chatId = "456";
             const string filename = "preview.jpg";
             const ImageFormats imageFormat = ImageFormats.Jpeg;
             const int width = 200;
@@ -663,7 +670,7 @@ public class MessageEntityFrameworkServiceTests
             const FileStorageTypes fileStorageType = FileStorageTypes.Local;
 
             // Act & Assert
-            var act = async () => await _service.SaveImagePreviewAsync(messageId, filename, imageFormat, width, height, fileStorageType);
+            var act = async () => await _service.SaveImagePreviewAsync(messageId, chatId, filename, imageFormat, width, height, fileStorageType);
             act.Should().ThrowAsync<FormatException>();
         }
     }
