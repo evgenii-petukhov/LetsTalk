@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using LetsTalk.Server.Persistence.AgnosticServices.Abstractions;
 using LetsTalk.Server.Persistence.AgnosticServices.Models;
+using LetsTalk.Server.Persistence.CosmosDB.Models;
 using LetsTalk.Server.Persistence.CosmosDB.Repository.Abstractions;
 using LetsTalk.Server.Persistence.Enums;
 
@@ -84,7 +85,27 @@ public class MessageCosmosDBService(
             messagesPerPage,
             cancellationToken);
 
-        return _mapper.Map<List<MessageServiceModel>>(messages);
+        var linkPreviewIds = messages
+            .Select(message => message.LinkPreviewId!)
+            .Where(id => !string.IsNullOrWhiteSpace(id))
+            .Distinct(StringComparer.Ordinal)
+            .ToList();
+
+        if (linkPreviewIds?.Count > 0)
+        {
+            var linkPreviews = await _linkPreviewRepository.GetLinkPreviewsByIdAsync(linkPreviewIds, cancellationToken);
+
+            foreach (Message message in messages)
+            {
+                if (message.LinkPreviewId is not null &&
+                    linkPreviews.TryGetValue(message.LinkPreviewId, out LinkPreview? linkPreview))
+                {
+                    message.LinkPreview = linkPreview;
+                }
+            }
+        }
+
+        return _mapper.Map<List<MessageServiceModel>>(messages.OrderBy(message => message.DateCreatedUnix));
     }
 
     public Task MarkAsReadAsync(

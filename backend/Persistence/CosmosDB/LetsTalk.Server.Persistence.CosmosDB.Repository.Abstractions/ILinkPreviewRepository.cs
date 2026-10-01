@@ -15,4 +15,8 @@ public interface ILinkPreviewRepository
         string title,
         string imageUrl,
         CancellationToken cancellationToken = default);
+
+    Task<Dictionary<string, LinkPreview>> GetLinkPreviewsByIdAsync(
+            IEnumerable<string> linkPreviewIds,
+            CancellationToken cancellationToken = default);
 }

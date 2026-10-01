@@ -77,4 +77,40 @@ public class LinkPreviewRepository(
 
         return page.FirstOrDefault()!;
     }
+
+    public async Task<Dictionary<string, LinkPreview>> GetLinkPreviewsByIdAsync(
+        IEnumerable<string> linkPreviewIds,
+        CancellationToken cancellationToken = default)
+    {
+        var linkPreviewIdArray = linkPreviewIds.ToArray();
+
+        var linkPreviewQuery = new QueryDefinition(
+            "SELECT * FROM c WHERE ARRAY_CONTAINS(@linkPreviewIds, c.id)")
+            .WithParameter("@linkPreviewIds", linkPreviewIdArray);
+
+        using FeedIterator<LinkPreview> linkPreviewIterator =
+            _container.GetItemQueryIterator<LinkPreview>(
+                linkPreviewQuery,
+                requestOptions: new QueryRequestOptions
+                {
+                    MaxItemCount = linkPreviewIdArray.Length
+                });
+
+        var linkPreviews = new Dictionary<string, LinkPreview>(StringComparer.Ordinal);
+
+        while (linkPreviewIterator.HasMoreResults)
+        {
+            FeedResponse<LinkPreview> page = await linkPreviewIterator.ReadNextAsync(cancellationToken);
+
+            foreach (LinkPreview linkPreview in page)
+            {
+                if (!string.IsNullOrWhiteSpace(linkPreview.Id))
+                {
+                    linkPreviews[linkPreview.Id] = linkPreview;
+                }
+            }
+        }
+
+        return linkPreviews;
+    }
 }

@@ -4,17 +4,14 @@ using LetsTalk.Server.Persistence.CosmosDB.Repository.Abstractions;
 using LetsTalk.Server.Persistence.Enums;
 using Microsoft.Azure.Cosmos;
 using Microsoft.Extensions.DependencyInjection;
-using System.Linq;
 using System.Net;
 
 namespace LetsTalk.Server.Persistence.CosmosDB.Repository;
 
 public class MessageRepository(
-    [FromKeyedServices(nameof(Message))] Container messageContainer,
-    [FromKeyedServices(nameof(LinkPreview))] Container linkPreviewContainer) : IMessageRepository
+    [FromKeyedServices(nameof(Message))] Container messageContainer) : IMessageRepository
 {
     private readonly Container _messageContainer = messageContainer;
-    private readonly Container _linkPreviewContainer = linkPreviewContainer;
 
     public async Task<Message> CreateAsync(
         string senderId,
@@ -140,53 +137,7 @@ public class MessageRepository(
             messages.AddRange(page);
         }
 
-        string?[] linkPreviewIds = [.. messages
-            .Select(message => message.LinkPreviewId)
-            .Where(id => !string.IsNullOrWhiteSpace(id))
-            .Distinct(StringComparer.Ordinal)];
-
-        if (linkPreviewIds.Length == 0)
-        {
-            return messages.OrderBy(message => message.DateCreatedUnix).ToList();
-        }
-
-        var linkPreviewQuery = new QueryDefinition(
-            "SELECT * FROM c WHERE ARRAY_CONTAINS(@linkPreviewIds, c.id)")
-            .WithParameter("@linkPreviewIds", linkPreviewIds);
-
-        using FeedIterator<LinkPreview> linkPreviewIterator =
-            _linkPreviewContainer.GetItemQueryIterator<LinkPreview>(
-                linkPreviewQuery,
-                requestOptions: new QueryRequestOptions
-                {
-                    MaxItemCount = linkPreviewIds.Length
-                });
-
-        var linkPreviews = new Dictionary<string, LinkPreview>(StringComparer.Ordinal);
-
-        while (linkPreviewIterator.HasMoreResults)
-        {
-            FeedResponse<LinkPreview> page = await linkPreviewIterator.ReadNextAsync(cancellationToken);
-
-            foreach (LinkPreview linkPreview in page)
-            {
-                if (!string.IsNullOrWhiteSpace(linkPreview.Id))
-                {
-                    linkPreviews[linkPreview.Id] = linkPreview;
-                }
-            }
-        }
-
-        foreach (Message message in messages)
-        {
-            if (message.LinkPreviewId is not null &&
-                linkPreviews.TryGetValue(message.LinkPreviewId, out LinkPreview? linkPreview))
-            {
-                message.LinkPreview = linkPreview;
-            }
-        }
-
-        return [.. messages.OrderBy(message => message.DateCreatedUnix)];
+        return messages;
     }
 
     public async Task<Message> SetImagePreviewAsync(
