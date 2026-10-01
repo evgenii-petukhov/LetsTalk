@@ -113,7 +113,8 @@ public class MessageRepository(
         ArgumentOutOfRangeException.ThrowIfNegativeOrZero(messagesPerPage);
 
         var messageQuery = new QueryDefinition(
-            "SELECT * FROM c " +
+            "SELECT * " +
+            "FROM c " +
             "WHERE c.chatId = @chatId " +
             "ORDER BY c.dateCreatedUnix DESC " +
             "OFFSET @offset LIMIT @limit")

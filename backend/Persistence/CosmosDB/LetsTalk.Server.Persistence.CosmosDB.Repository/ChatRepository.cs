@@ -54,10 +54,11 @@ public class ChatRepository(
         }
 
         var memberPredicates = ids
-            .Select((_, index) => $"ARRAY_CONTAINS(c.accountIds, @accountId{index})");
+            .Select((_, index) => $"ARRAY_CONTAINS(c.accountIds, @A{index})");
 
         var query = new QueryDefinition(
-            "SELECT TOP 1 * FROM c " +
+            "SELECT TOP 1 * " +
+            "FROM c " +
             "WHERE c.isIndividual = true " +
             "AND ARRAY_LENGTH(c.accountIds) = @accountCount " +
             $"AND {string.Join(" AND ", memberPredicates)}")
@@ -65,7 +66,7 @@ public class ChatRepository(
 
         for (int index = 0; index < ids.Length; index++)
         {
-            query = query.WithParameter($"@accountId{index}", ids[index]);
+            query = query.WithParameter($"@A{index}", ids[index]);
         }
 
         using var iterator = _container.GetItemQueryIterator<Chat>(
@@ -172,7 +173,7 @@ public class ChatRepository(
         ArgumentException.ThrowIfNullOrWhiteSpace(accountId);
 
         var query = new QueryDefinition(
-            "SELECT * " +
+            "SELECT id " +
             "FROM c " +
             "WHERE c.isIndividual = true AND ARRAY_CONTAINS(c.accountIds, @accountId)")
             .WithParameter("@accountId", accountId);

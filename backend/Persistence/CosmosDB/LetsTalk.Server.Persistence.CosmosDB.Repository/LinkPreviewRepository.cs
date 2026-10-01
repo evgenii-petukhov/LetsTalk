@@ -13,7 +13,9 @@ public class LinkPreviewRepository(
     public async Task<string?> GetIdByUrlAsync(string url, CancellationToken cancellationToken = default)
     {
         var query = new QueryDefinition(
-            "SELECT TOP 1 * FROM c WHERE c.url = @url")
+            "SELECT TOP 1 id " +
+            "FROM c " +
+            "WHERE c.url = @url")
             .WithParameter("@url", url);
 
         using var iterator = _container.GetItemQueryIterator<LinkPreview>(
@@ -58,7 +60,9 @@ public class LinkPreviewRepository(
     public async Task<LinkPreview> GetByIdAsync(string id, CancellationToken cancellationToken = default)
     {
         var query = new QueryDefinition(
-            "SELECT TOP 1 * FROM c WHERE c.id = @id")
+            "SELECT TOP 1 * " +
+            "FROM c " +
+            "WHERE c.id = @id")
             .WithParameter("@id", id);
 
         using var iterator = _container.GetItemQueryIterator<LinkPreview>(
@@ -85,7 +89,9 @@ public class LinkPreviewRepository(
         var linkPreviewIdArray = linkPreviewIds.ToArray();
 
         var linkPreviewQuery = new QueryDefinition(
-            "SELECT * FROM c WHERE ARRAY_CONTAINS(@linkPreviewIds, c.id)")
+            "SELECT * " +
+            "FROM c " +
+            "WHERE ARRAY_CONTAINS(@linkPreviewIds, c.id)")
             .WithParameter("@linkPreviewIds", linkPreviewIdArray);
 
         using FeedIterator<LinkPreview> linkPreviewIterator =

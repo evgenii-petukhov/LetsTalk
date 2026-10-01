@@ -32,7 +32,9 @@ public class AccountRepository(
     public async Task<Account> GetByEmailAsync(string email, AccountTypes accountType, CancellationToken cancellationToken = default)
     {
         var query = new QueryDefinition(
-            "SELECT TOP 1 * FROM c WHERE c.email = @email AND c.accountTypeId = @accountTypeId")
+            "SELECT TOP 1 * " +
+            "FROM c " +
+            "WHERE c.email = @email AND c.accountTypeId = @accountTypeId")
             .WithParameter("@email", email)
             .WithParameter("@accountTypeId", (int)accountType);
 

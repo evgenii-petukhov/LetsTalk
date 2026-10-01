@@ -40,14 +40,16 @@ public class ChatCosmosDBService(
     {
         var chats = await _chatRepository.GetChatsByAccountIdAsync(accountId, cancellationToken);
 
-        var accounts = await _accountRepository.GetAccountsByChatsAsync(chats, accountId, cancellationToken);
+        var accountsTask = _accountRepository.GetAccountsByChatsAsync(chats, accountId, cancellationToken);
 
-        var chatMetrics = await GetChatMetricsInternal(accountId, cancellationToken);
+        var metricsTask = GetChatMetricsInternal(accountId, cancellationToken);
+
+        await Task.WhenAll(accountsTask, metricsTask);
 
         return [.. chats.Select(chat =>
         {
-            chatMetrics.TryGetValue(chat.Id!, out var metrics);
-            var otherAccount = accounts.FirstOrDefault(a => chat.AccountIds!.Contains(a.Id!));
+            metricsTask.Result.TryGetValue(chat.Id!, out var metrics);
+            var otherAccount = accountsTask.Result.FirstOrDefault(a => chat.AccountIds!.Contains(a.Id!));
 
             return new ChatServiceModel
             {
@@ -85,7 +87,9 @@ public class ChatCosmosDBService(
 
         var chats = await _chatRepository.GetChatsByAccountIdAsync(accountId, cancellationToken);
 
-        var chatIds = chats.Select(x => x.Id!).ToList();
+        var chatIds = chats
+            .Select(x => x.Id!)
+            .ToList();
 
         var messagesTask = _messageRepository.GetMessagesByChatIdsAsync(chatIds, cancellationToken);
         var statusesTask = _chatMessageStatusRepository.GetStatusesByAccountIdAndChatIdsAsync(accountId, chatIds, cancellationToken);
