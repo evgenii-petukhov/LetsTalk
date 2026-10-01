@@ -190,4 +190,28 @@ public class MessageRepository(
 
         return messageResponse.Resource;
     }
+
+    public async Task<List<Message>> GetMessagesByChatIdsAsync(
+        IReadOnlyList<string> chatIds,
+        CancellationToken cancellationToken)
+    {
+        var inClause = string.Join(",", chatIds.Select((_, i) => $"@C{i}"));
+        var query = new QueryDefinition(
+            "SELECT c.id, c.chatId, c.senderId, c.dateCreatedUnix " +
+            "FROM c " +
+            $"WHERE c.chatId IN ({inClause})");
+        for (int i = 0; i < chatIds.Count; i++)
+        {
+            query = query.WithParameter($"@C{i}", chatIds[i]);
+        }    
+
+        using var iterator = _messageContainer.GetItemQueryIterator<Message>(query);
+        var messages = new List<Message>();
+        while (iterator.HasMoreResults)
+        {
+            var page = await iterator.ReadNextAsync(cancellationToken);
+            messages.AddRange(page);
+        }
+        return messages;
+    }
 }

@@ -50,4 +50,8 @@ public interface IMessageRepository
         string chatId,
         string linkPreviewId,
         CancellationToken cancellationToken = default);
+
+    Task<List<Message>> GetMessagesByChatIdsAsync(
+        IReadOnlyList<string> chatIds,
+        CancellationToken cancellationToken);
 }

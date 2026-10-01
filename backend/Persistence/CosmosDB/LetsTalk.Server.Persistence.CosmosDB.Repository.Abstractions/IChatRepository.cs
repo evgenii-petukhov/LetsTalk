@@ -1,13 +1,10 @@
 ﻿using LetsTalk.Server.Persistence.CosmosDB.Models;
-using LetsTalk.Server.Persistence.CosmosDB.Repository.Abstractions.Models;
 
 namespace LetsTalk.Server.Persistence.CosmosDB.Repository.Abstractions;
 
 public interface IChatRepository
 {
     Task<List<Chat>> GetChatsByAccountIdAsync(string accountId, CancellationToken cancellationToken = default);
-
-    Task<Dictionary<string, ChatMetric>> GetChatMetrics(string accountId, CancellationToken cancellationToken = default);
 
     Task<Chat> GetIndividualChatByAccountIdsAsync(IEnumerable<string> accountIds, CancellationToken cancellationToken = default);
 

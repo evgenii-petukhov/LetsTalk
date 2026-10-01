@@ -1,6 +1,5 @@
 ﻿using LetsTalk.Server.Persistence.CosmosDB.Models;
 using LetsTalk.Server.Persistence.CosmosDB.Repository.Abstractions;
-using LetsTalk.Server.Persistence.CosmosDB.Repository.Abstractions.Models;
 using Microsoft.Azure.Cosmos;
 using Microsoft.Extensions.DependencyInjection;
 using System.Net;
@@ -17,7 +16,9 @@ public class ChatRepository(
         ArgumentException.ThrowIfNullOrWhiteSpace(accountId);
 
         var query = new QueryDefinition(
-            "SELECT * FROM c WHERE ARRAY_CONTAINS(c.accountIds, @accountId)")
+            "SELECT * " +
+            "FROM c " +
+            "WHERE ARRAY_CONTAINS(c.accountIds, @accountId)")
             .WithParameter("@accountId", accountId);
 
         using var iterator = _container.GetItemQueryIterator<Chat>(
@@ -36,32 +37,6 @@ public class ChatRepository(
         }
 
         return chats;
-    }
-
-    public async Task<Dictionary<string, ChatMetric>> GetChatMetrics(string accountId, CancellationToken cancellationToken = default)
-    {
-        ArgumentException.ThrowIfNullOrWhiteSpace(accountId);
-
-        var query = new QueryDefinition(
-            "SELECT * FROM c WHERE ARRAY_CONTAINS(c.accountIds, @accountId)")
-            .WithParameter("@accountId", accountId);
-
-        using var iterator = _container.GetItemQueryIterator<Chat>(
-            query,
-            requestOptions: new QueryRequestOptions
-            {
-                MaxItemCount = 100
-            });
-
-        var chats = new List<Chat>();
-
-        while (iterator.HasMoreResults)
-        {
-            var page = await iterator.ReadNextAsync(cancellationToken);
-            chats.AddRange(page);
-        }
-
-        return chats.ToDictionary(x => x.Id!, x => new ChatMetric());
     }
 
     public async Task<Chat> GetIndividualChatByAccountIdsAsync(IEnumerable<string> accountIds, CancellationToken cancellationToken = default)
@@ -151,11 +126,6 @@ public class ChatRepository(
         }
     }
 
-    private static bool IsValidObjectId(string? id)
-    {
-        return !string.IsNullOrWhiteSpace(id) && Guid.TryParse(id, out _);
-    }
-
     public async Task<List<string>> GetChatMemberAccountIdsAsync(string chatId, CancellationToken cancellationToken = default)
     {
         try
@@ -179,7 +149,9 @@ public class ChatRepository(
         ArgumentException.ThrowIfNullOrWhiteSpace(accountId);
 
         var query = new QueryDefinition(
-            "SELECT * FROM c WHERE c.id = @chatId AND ARRAY_CONTAINS(c.accountIds, @accountId)")
+            "SELECT * " +
+            "FROM c " +
+            "WHERE c.id = @chatId AND ARRAY_CONTAINS(c.accountIds, @accountId)")
             .WithParameter("@chatId", chatId)
             .WithParameter("@accountId", accountId);
 
@@ -193,12 +165,16 @@ public class ChatRepository(
         return iterator.HasMoreResults;
     }
 
-    public async Task<List<string>> GetAccountIdsInIndividualChatsAsync(string accountId, CancellationToken cancellationToken = default)
+    public async Task<List<string>> GetAccountIdsInIndividualChatsAsync(
+        string accountId,
+        CancellationToken cancellationToken = default)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(accountId);
 
         var query = new QueryDefinition(
-            "SELECT * FROM c WHERE c.isIndividual = true AND ARRAY_CONTAINS(c.accountIds, @accountId)")
+            "SELECT * " +
+            "FROM c " +
+            "WHERE c.isIndividual = true AND ARRAY_CONTAINS(c.accountIds, @accountId)")
             .WithParameter("@accountId", accountId);
 
         using var iterator = _container.GetItemQueryIterator<Chat>(
@@ -213,9 +189,19 @@ public class ChatRepository(
         while (iterator.HasMoreResults)
         {
             var page = await iterator.ReadNextAsync(cancellationToken);
-            accountIds.AddRange(page.Select(p => p.Id!).Where(id => !string.Equals(id, accountId, StringComparison.OrdinalIgnoreCase)));
+
+            var accountIdsToAdd = page
+                .Select(p => p.Id!)
+                .Where(id => !string.Equals(id, accountId, StringComparison.OrdinalIgnoreCase));
+
+            accountIds.AddRange(accountIdsToAdd);
         }
 
         return accountIds;
+    }
+
+    private static bool IsValidObjectId(string? id)
+    {
+        return !string.IsNullOrWhiteSpace(id) && Guid.TryParse(id, out _);
     }
 }

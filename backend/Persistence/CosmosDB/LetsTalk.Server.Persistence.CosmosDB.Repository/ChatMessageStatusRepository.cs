@@ -22,7 +22,9 @@ public class ChatMessageStatusRepository(
         ArgumentException.ThrowIfNullOrWhiteSpace(messageId);
 
         var query = new QueryDefinition(
-            "SELECT TOP 1 * FROM c WHERE c.chatId = @chatId AND c.accountId = @accountId AND c.messageId = @messageId")
+            "SELECT TOP 1 * " +
+            "FROM c " +
+            "WHERE c.chatId = @chatId AND c.accountId = @accountId AND c.messageId = @messageId")
             .WithParameter("@chatId", chatId)
             .WithParameter("@accountId", accountId)
             .WithParameter("@messageId", messageId);
@@ -53,5 +55,32 @@ public class ChatMessageStatusRepository(
         };
 
         await _container.UpsertItemAsync(item, new PartitionKey(chatId), cancellationToken: cancellationToken);
+    }
+
+    public async Task<List<ChatMessageStatus>> GetStatusesByAccountIdAndChatIdsAsync(
+        string accountId,
+        IReadOnlyList<string> chatIds,
+        CancellationToken cancellationToken = default)
+    {
+        var inClause = string.Join(",", chatIds.Select((_, i) => $"@C{i}"));
+        var query = new QueryDefinition(
+            "SELECT c.messageId, c.dateReadUnix " +
+            "FROM c " +
+            $"WHERE c.accountId = @accountId AND c.chatId IN ({inClause})")
+            .WithParameter("@accountId", accountId);
+
+        for (int i = 0; i < chatIds.Count; i++)
+        {
+            query = query.WithParameter($"@C{i}", chatIds[i]);
+        }
+
+        using var iterator = _container.GetItemQueryIterator<ChatMessageStatus>(query);
+        var statuses = new List<ChatMessageStatus>();
+        while (iterator.HasMoreResults)
+        {
+            var page = await iterator.ReadNextAsync(cancellationToken);
+            statuses.AddRange(page);
+        }
+        return statuses;
     }
 }
