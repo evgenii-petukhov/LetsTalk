@@ -12,7 +12,10 @@ public class AccountRepository(
 {
     private readonly Container _container = container;
 
-    public async Task<Account> CreateAccountAsync(AccountTypes accountType, string email, CancellationToken cancellationToken)
+    public async Task<Account> CreateAccountAsync(
+        AccountTypes accountType,
+        string email,
+        CancellationToken cancellationToken = default)
     {
         var account = new Account
         {
@@ -29,7 +32,10 @@ public class AccountRepository(
         return response.Resource;
     }
 
-    public async Task<Account> GetByEmailAsync(string email, AccountTypes accountType, CancellationToken cancellationToken = default)
+    public async Task<Account> GetByEmailAsync(
+        string email,
+        AccountTypes accountType,
+        CancellationToken cancellationToken = default)
     {
         var query = new QueryDefinition(
             "SELECT TOP 1 * " +
@@ -55,7 +61,9 @@ public class AccountRepository(
         return page.FirstOrDefault()!;
     }
 
-    public async Task<Account> GetByIdAsync(string id, CancellationToken cancellationToken = default)
+    public async Task<Account> GetByIdAsync(
+        string id,
+        CancellationToken cancellationToken = default)
     {
         try
         {
@@ -73,7 +81,11 @@ public class AccountRepository(
         }
     }
 
-    public async Task<Account> UpdateProfileAsync(string id, string firstName, string lastName, CancellationToken cancellationToken = default)
+    public async Task<Account> UpdateProfileAsync(
+        string id,
+        string firstName,
+        string lastName,
+        CancellationToken cancellationToken = default)
     {
         var patchOperations = new List<PatchOperation>
         {
@@ -128,7 +140,10 @@ public class AccountRepository(
         return response.Resource;
     }
 
-    public async Task<List<Account>> GetAccountsByChatsAsync(IEnumerable<Chat> chats, string accountId, CancellationToken cancellationToken = default)
+    public async Task<List<Account>> GetAccountsByChatsAsync(
+        IEnumerable<Chat> chats,
+        string accountId,
+        CancellationToken cancellationToken = default)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(accountId);
 
@@ -186,7 +201,10 @@ public class AccountRepository(
 
         try
         {
-            var page = await _container.ReadItemAsync<Account>(id, new PartitionKey(id), cancellationToken: cancellationToken);
+            var page = await _container.ReadItemAsync<Account>(
+                id,
+                new PartitionKey(id),
+                cancellationToken: cancellationToken);
 
             return page.StatusCode == HttpStatusCode.OK;
         }

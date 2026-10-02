@@ -10,7 +10,9 @@ public class LinkPreviewRepository(
 {
     private readonly Container _container = container;
 
-    public async Task<string?> GetIdByUrlAsync(string url, CancellationToken cancellationToken = default)
+    public async Task<string?> GetIdByUrlAsync(
+        string url,
+        CancellationToken cancellationToken = default)
     {
         var query = new QueryDefinition(
             "SELECT TOP 1 id " +

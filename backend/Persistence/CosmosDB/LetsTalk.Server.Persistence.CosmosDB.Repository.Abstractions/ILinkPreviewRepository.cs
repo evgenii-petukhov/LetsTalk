@@ -4,7 +4,9 @@ namespace LetsTalk.Server.Persistence.CosmosDB.Repository.Abstractions;
 
 public interface ILinkPreviewRepository
 {
-    Task<string?> GetIdByUrlAsync(string url, CancellationToken cancellationToken = default);
+    Task<string?> GetIdByUrlAsync(
+        string url, 
+        CancellationToken cancellationToken = default);
 
     Task<LinkPreview> GetByIdAsync(
         string id,
@@ -17,6 +19,6 @@ public interface ILinkPreviewRepository
         CancellationToken cancellationToken = default);
 
     Task<Dictionary<string, LinkPreview>> GetLinkPreviewsByIdAsync(
-            IEnumerable<string> linkPreviewIds,
-            CancellationToken cancellationToken = default);
+        IEnumerable<string> linkPreviewIds,
+        CancellationToken cancellationToken = default);
 }

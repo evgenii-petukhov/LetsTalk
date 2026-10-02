@@ -11,7 +11,9 @@ public class ChatRepository(
 {
     private readonly Container _container = container;
 
-    public async Task<List<Chat>> GetChatsByAccountIdAsync(string accountId, CancellationToken cancellationToken = default)
+    public async Task<List<Chat>> GetChatsByAccountIdAsync(
+        string accountId,
+        CancellationToken cancellationToken = default)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(accountId);
 
@@ -39,7 +41,9 @@ public class ChatRepository(
         return chats;
     }
 
-    public async Task<Chat> GetIndividualChatByAccountIdsAsync(IEnumerable<string> accountIds, CancellationToken cancellationToken = default)
+    public async Task<Chat> GetIndividualChatByAccountIdsAsync(
+        IEnumerable<string> accountIds,
+        CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(accountIds);
 
@@ -53,15 +57,14 @@ public class ChatRepository(
             return null!;
         }
 
-        var memberPredicates = ids
-            .Select((_, index) => $"ARRAY_CONTAINS(c.accountIds, @A{index})");
+        var whereClause = string.Join(
+            " AND ",
+            ids.Select((_, index) => $"ARRAY_CONTAINS(c.accountIds, @A{index})"));
 
         var query = new QueryDefinition(
             "SELECT TOP 1 * " +
             "FROM c " +
-            "WHERE c.isIndividual = true " +
-            "AND ARRAY_LENGTH(c.accountIds) = @accountCount " +
-            $"AND {string.Join(" AND ", memberPredicates)}")
+            $"WHERE c.isIndividual = true AND ARRAY_LENGTH(c.accountIds) = @accountCount AND {whereClause}")
             .WithParameter("@accountCount", ids.Length);
 
         for (int index = 0; index < ids.Length; index++)
@@ -87,7 +90,9 @@ public class ChatRepository(
         return page.FirstOrDefault()!;
     }
 
-    public async Task<Chat> CreateIndividualChatAsync(IEnumerable<string> accountIds, CancellationToken cancellationToken = default)
+    public async Task<Chat> CreateIndividualChatAsync(
+        IEnumerable<string> accountIds,
+        CancellationToken cancellationToken = default)
     {
         var chat = new Chat
         {
@@ -104,7 +109,9 @@ public class ChatRepository(
         return response.Resource;
     }
 
-    public async Task<bool> IsChatIdValidAsync(string id, CancellationToken cancellationToken = default)
+    public async Task<bool> IsChatIdValidAsync(
+        string id,
+        CancellationToken cancellationToken = default)
     {
         if (!IsValidObjectId(id))
         {
@@ -127,7 +134,9 @@ public class ChatRepository(
         }
     }
 
-    public async Task<List<string>> GetChatMemberAccountIdsAsync(string chatId, CancellationToken cancellationToken = default)
+    public async Task<List<string>> GetChatMemberAccountIdsAsync(
+        string chatId,
+        CancellationToken cancellationToken = default)
     {
         try
         {
@@ -145,7 +154,10 @@ public class ChatRepository(
         }
     }
 
-    public async Task<bool> IsAccountChatMemberAsync(string chatId, string accountId, CancellationToken cancellationToken = default)
+    public async Task<bool> IsAccountChatMemberAsync(
+        string chatId,
+        string accountId,
+        CancellationToken cancellationToken = default)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(accountId);
 

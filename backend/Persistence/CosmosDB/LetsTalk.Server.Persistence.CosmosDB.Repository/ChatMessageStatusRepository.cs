@@ -54,7 +54,10 @@ public class ChatMessageStatusRepository(
             DateReadUnix = DateHelper.GetUnixTimestamp()
         };
 
-        await _container.UpsertItemAsync(item, new PartitionKey(chatId), cancellationToken: cancellationToken);
+        await _container.UpsertItemAsync(
+            item,
+            new PartitionKey(chatId),
+            cancellationToken: cancellationToken);
     }
 
     public async Task<List<ChatMessageStatus>> GetStatusesByAccountIdAndChatIdsAsync(

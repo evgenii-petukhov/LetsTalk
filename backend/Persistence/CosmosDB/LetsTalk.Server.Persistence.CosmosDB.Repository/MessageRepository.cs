@@ -82,7 +82,10 @@ public class MessageRepository(
         return response.Resource;
     }
 
-    public async Task<Message> GetByIdAsync(string messageId, string chatId, CancellationToken cancellationToken = default)
+    public async Task<Message> GetByIdAsync(
+        string messageId,
+        string chatId,
+        CancellationToken cancellationToken = default)
     {
         try
         {
