@@ -4,7 +4,7 @@ using MediatR;
 
 namespace LetsTalk.Server.API.Core.Features.VideoCall.Commands.LogConnectionEstablished;
 
-internal class LogConnectionEstablishedCommandHandler(
+internal sealed class LogConnectionEstablishedCommandHandler(
     ITelemetryService telemetryService) : IRequestHandler<LogConnectionEstablishedCommand, Unit>
 {
     private readonly ITelemetryService _telemetryService = telemetryService;

@@ -25,21 +25,30 @@ public static class EmailServiceRegistration
                 x.UsingAmazonSqs((context, configure) =>
                 {
                     var awsSettings = ConfigurationHelper.GetAwsSettings(configuration);
-                    var queueSettings = ConfigurationHelper.GetQueueSettings(configuration);
-                    configure.Host(awsSettings.Region, h =>
+                    if (!string.IsNullOrWhiteSpace(awsSettings.Region) &&
+                        !string.IsNullOrWhiteSpace(awsSettings.AccessKey) &&
+                        !string.IsNullOrWhiteSpace(awsSettings.SecretKey))
                     {
-                        h.AccessKey(awsSettings.AccessKey);
-                        h.SecretKey(awsSettings.SecretKey);
-                    });
+                        configure.Host(awsSettings.Region, h =>
+                        {
+                            h.AccessKey(awsSettings.AccessKey);
+                            h.SecretKey(awsSettings.SecretKey);
+                        });
+                    }
+
                     configure.WaitTimeSeconds = 20;
-                    configure.ReceiveEndpoint(queueSettings.SendEmailRequest!, e =>
+                    var queueSettings = ConfigurationHelper.GetQueueSettings(configuration);
+                    if (!string.IsNullOrWhiteSpace(queueSettings.SendEmailRequest))
                     {
-                        e.WaitTimeSeconds = 20;
-                        e.DefaultContentType = new ContentType("application/json");
-                        e.UseRawJsonDeserializer();
-                        e.ConfigureConsumeTopology = false;
-                        e.ConfigureConsumer<SendEmailRequestConsumer>(context);
-                    });
+                        configure.ReceiveEndpoint(queueSettings.SendEmailRequest, e =>
+                        {
+                            e.WaitTimeSeconds = 20;
+                            e.DefaultContentType = new ContentType("application/json");
+                            e.UseRawJsonDeserializer();
+                            e.ConfigureConsumeTopology = false;
+                            e.ConfigureConsumer<SendEmailRequestConsumer>(context);
+                        });
+                    }
                 });
             }
             else
@@ -54,7 +63,7 @@ public static class EmailServiceRegistration
                         var topicSettings = ConfigurationHelper.GetTopicSettings(configuration);
                         k.Host(kafkaSettings.Url);
                         k.TopicEndpoint<SendEmailRequest>(
-                            topicSettings.SendEmailRequest!,
+                            topicSettings.SendEmailRequest,
                             kafkaSettings.GroupId,
                             e =>
                             {
