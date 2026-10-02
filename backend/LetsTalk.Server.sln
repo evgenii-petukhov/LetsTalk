@@ -189,6 +189,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LetsTalk.Server.Persistence
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LetsTalk.Server.Persistence.CosmosDB.Models", "Persistence\CosmosDB\LetsTalk.Server.Persistence.CosmosDB.Models\LetsTalk.Server.Persistence.CosmosDB.Models.csproj", "{D1832F38-B4C7-4EF3-87E6-B9E1729991EC}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LetsTalk.Server.Persistence.CosmosDB.Services.Tests", "Persistence\CosmosDB\LetsTalk.Server.Persistence.CosmosDB.Services.Tests\LetsTalk.Server.Persistence.CosmosDB.Services.Tests.csproj", "{AAF187E3-5A93-2B85-0929-9EC0D2C48CE5}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -491,6 +493,10 @@ Global
 		{D1832F38-B4C7-4EF3-87E6-B9E1729991EC}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{D1832F38-B4C7-4EF3-87E6-B9E1729991EC}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{D1832F38-B4C7-4EF3-87E6-B9E1729991EC}.Release|Any CPU.Build.0 = Release|Any CPU
+		{AAF187E3-5A93-2B85-0929-9EC0D2C48CE5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AAF187E3-5A93-2B85-0929-9EC0D2C48CE5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AAF187E3-5A93-2B85-0929-9EC0D2C48CE5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AAF187E3-5A93-2B85-0929-9EC0D2C48CE5}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -588,6 +594,7 @@ Global
 		{156D47F1-D542-4D1A-B196-218C4DF81A3F} = {1DA41D82-BF24-44CB-A165-3BED0D319BBC}
 		{25BD3569-8E3A-4EDE-8FDA-96F4C85C7B5E} = {1DA41D82-BF24-44CB-A165-3BED0D319BBC}
 		{D1832F38-B4C7-4EF3-87E6-B9E1729991EC} = {1DA41D82-BF24-44CB-A165-3BED0D319BBC}
+		{AAF187E3-5A93-2B85-0929-9EC0D2C48CE5} = {1DA41D82-BF24-44CB-A165-3BED0D319BBC}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {3787FEEA-6175-4B41-A979-51B2D1E11B8D}

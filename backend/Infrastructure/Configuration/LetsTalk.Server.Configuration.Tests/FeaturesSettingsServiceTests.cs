@@ -17,7 +17,6 @@ public class FeaturesSettingsServiceTests
     public void SetUp()
     {
         _optionsMock = new Mock<IOptions<FeaturesSettings>>();
-        _service = new FeaturesSettingsService(_optionsMock.Object);
     }
 
     [Test]
@@ -29,6 +28,7 @@ public class FeaturesSettingsServiceTests
         // Arrange
         var settings = new FeaturesSettings { FileStorage = fileStorage };
         _optionsMock.Setup(x => x.Value).Returns(settings);
+        _service = new FeaturesSettingsService(_optionsMock.Object);
 
         // Act
         var result = _service.GetFileStorageType();
@@ -46,6 +46,7 @@ public class FeaturesSettingsServiceTests
         // Arrange
         var settings = new FeaturesSettings { FileStorage = fileStorage };
         _optionsMock.Setup(x => x.Value).Returns(settings);
+        _service = new FeaturesSettingsService(_optionsMock.Object);
 
         // Act
         var result = _service.GetFileStorageType();
@@ -63,6 +64,7 @@ public class FeaturesSettingsServiceTests
         // Arrange
         var settings = new FeaturesSettings { FileStorage = fileStorage };
         _optionsMock.Setup(x => x.Value).Returns(settings);
+        _service = new FeaturesSettingsService(_optionsMock.Object);
 
         // Act
         var result = _service.GetFileStorageType();
@@ -80,6 +82,7 @@ public class FeaturesSettingsServiceTests
         // Arrange
         var settings = new FeaturesSettings { FileStorage = fileStorage };
         _optionsMock.Setup(x => x.Value).Returns(settings);
+        _service = new FeaturesSettingsService(_optionsMock.Object);
 
         // Act
         var result = _service.GetFileStorageType();
