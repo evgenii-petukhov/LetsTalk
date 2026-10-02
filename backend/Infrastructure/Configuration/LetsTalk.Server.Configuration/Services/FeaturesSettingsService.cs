@@ -7,11 +7,18 @@ namespace LetsTalk.Server.Configuration.Services;
 
 public class FeaturesSettingsService(IOptions<FeaturesSettings> options) : IFeaturesSettingsService
 {
-    private readonly FeaturesSettings _featuresSettings = options.Value;
+    private readonly IOptions<FeaturesSettings> _options = options ?? throw new ArgumentNullException(nameof(options));
 
     public FileStorageTypes GetFileStorageType()
     {
-        return Enum.TryParse<FileStorageTypes>(_featuresSettings.FileStorage, out var fileStorageType)
+        var fileStorage = _options.Value?.FileStorage;
+
+        if (string.IsNullOrWhiteSpace(fileStorage))
+        {
+            return FileStorageTypes.Local;
+        }
+
+        return Enum.TryParse<FileStorageTypes>(fileStorage, out var fileStorageType)
             ? fileStorageType
             : FileStorageTypes.Local;
     }
