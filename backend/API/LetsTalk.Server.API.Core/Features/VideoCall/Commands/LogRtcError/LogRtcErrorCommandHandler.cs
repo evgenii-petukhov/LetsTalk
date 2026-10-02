@@ -4,7 +4,7 @@ using MediatR;
 
 namespace LetsTalk.Server.API.Core.Features.VideoCall.Commands.LogRtcError;
 
-internal class LogRtcErrorCommandHandler(
+internal sealed class LogRtcErrorCommandHandler(
     ITelemetryService telemetryService) : IRequestHandler<LogRtcErrorCommand, Unit>
 {
     private readonly ITelemetryService _telemetryService = telemetryService;
