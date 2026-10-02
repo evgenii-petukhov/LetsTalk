@@ -10,12 +10,12 @@ public class ChatCosmosDBService(
     IChatRepository chatRepository,
     IAccountRepository accountRepository,
     IMessageRepository messageRepository,
-    ChatMessageStatusRepository chatMessageStatusRepository) : IChatAgnosticService
+    IChatMessageStatusRepository chatMessageStatusRepository) : IChatAgnosticService
 {
     private readonly IChatRepository _chatRepository = chatRepository;
     private readonly IAccountRepository _accountRepository = accountRepository;
     private readonly IMessageRepository _messageRepository = messageRepository;
-    private readonly ChatMessageStatusRepository _chatMessageStatusRepository = chatMessageStatusRepository;
+    private readonly IChatMessageStatusRepository _chatMessageStatusRepository = chatMessageStatusRepository;
 
     public async Task<string> CreateIndividualChatAsync(IEnumerable<string> accountIds, CancellationToken cancellationToken = default)
     {

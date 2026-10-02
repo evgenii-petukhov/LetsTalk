@@ -15,7 +15,7 @@ public class LinkPreviewRepository(
         CancellationToken cancellationToken = default)
     {
         var query = new QueryDefinition(
-            "SELECT TOP 1 id " +
+            "SELECT TOP 1 * " +
             "FROM c " +
             "WHERE c.url = @url")
             .WithParameter("@url", url);
