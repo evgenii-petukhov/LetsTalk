@@ -159,23 +159,23 @@ public class ChatRepository(
         string accountId,
         CancellationToken cancellationToken = default)
     {
+        ArgumentException.ThrowIfNullOrWhiteSpace(chatId);
         ArgumentException.ThrowIfNullOrWhiteSpace(accountId);
 
-        var query = new QueryDefinition(
-            "SELECT * " +
-            "FROM c " +
-            "WHERE c.id = @chatId AND ARRAY_CONTAINS(c.accountIds, @accountId)")
-            .WithParameter("@chatId", chatId)
-            .WithParameter("@accountId", accountId);
+        try
+        {
+            var response = await _container.ReadItemAsync<Chat>(
+                chatId,
+                new PartitionKey(chatId),
+                cancellationToken: cancellationToken);
 
-        using var iterator = _container.GetItemQueryIterator<Chat>(
-            query,
-            requestOptions: new QueryRequestOptions
-            {
-                MaxItemCount = 1
-            });
-
-        return iterator.HasMoreResults;
+            return response.Resource.AccountIds?.Contains(accountId) == true;
+        }
+        catch (CosmosException exception)
+            when (exception.StatusCode == HttpStatusCode.NotFound)
+        {
+            return false;
+        }
     }
 
     public async Task<List<string>> GetAccountIdsInIndividualChatsAsync(
@@ -185,12 +185,12 @@ public class ChatRepository(
         ArgumentException.ThrowIfNullOrWhiteSpace(accountId);
 
         var query = new QueryDefinition(
-            "SELECT id " +
+            "SELECT VALUE c.id " +
             "FROM c " +
             "WHERE c.isIndividual = true AND ARRAY_CONTAINS(c.accountIds, @accountId)")
             .WithParameter("@accountId", accountId);
 
-        using var iterator = _container.GetItemQueryIterator<Chat>(
+        using var iterator = _container.GetItemQueryIterator<string>(
             query,
             requestOptions: new QueryRequestOptions
             {
@@ -204,7 +204,6 @@ public class ChatRepository(
             var page = await iterator.ReadNextAsync(cancellationToken);
 
             var accountIdsToAdd = page
-                .Select(p => p.Id!)
                 .Where(id => !string.Equals(id, accountId, StringComparison.OrdinalIgnoreCase));
 
             accountIds.AddRange(accountIdsToAdd);

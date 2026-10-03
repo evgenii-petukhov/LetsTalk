@@ -15,12 +15,12 @@ public class LinkPreviewRepository(
         CancellationToken cancellationToken = default)
     {
         var query = new QueryDefinition(
-            "SELECT TOP 1 * " +
+            "SELECT TOP 1 VALUE c.id " +
             "FROM c " +
             "WHERE c.url = @url")
             .WithParameter("@url", url);
 
-        using var iterator = _container.GetItemQueryIterator<LinkPreview>(
+        using var iterator = _container.GetItemQueryIterator<string>(
             query,
             requestOptions: new QueryRequestOptions
             {
@@ -34,7 +34,7 @@ public class LinkPreviewRepository(
 
         var page = await iterator.ReadNextAsync(cancellationToken);
 
-        return page.FirstOrDefault()?.Id;
+        return page.FirstOrDefault();
     }
 
     public async Task<LinkPreview> CreateLinkPreviewAsync(
