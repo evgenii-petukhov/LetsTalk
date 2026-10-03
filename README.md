@@ -38,10 +38,10 @@ This project showcases my technical skills for potential employers and IT recrui
 - C#, .NET 10, ASP.NET Core
 - Communication: REST, gRPC, SignalR, WebRTC (Cloudflare TURN)
 - CQRS: MediatR
-- Databases: MySQL (Entity Framework Core), MongoDB, Redis
+- Databases: MySQL (Entity Framework Core), MongoDB, Azure CosmosDB, and Redis
 - Event messaging: Apache Kafka, AWS SNS/SQS (via MassTransit)
-- Cloud: AWS S3, AWS Lambda, Azure CosmosDB
-- Telemetry: Azure AppInsights
+- AWS: S3, Lambda, SNS, SQS, CloudWatch
+- Azure: AppInsights, CosmosDB
 
 **Front end**
 - TypeScript, Angular 21, NgRx
