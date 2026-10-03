@@ -33,7 +33,8 @@ public class ChatMessageStatusRepository(
             query,
             requestOptions: new QueryRequestOptions
             {
-                MaxItemCount = 1
+                MaxItemCount = 1,
+                PartitionKey = new PartitionKey(chatId)
             });
 
         ChatMessageStatus? item = null;
@@ -65,16 +66,29 @@ public class ChatMessageStatusRepository(
         IReadOnlyList<string> chatIds,
         CancellationToken cancellationToken = default)
     {
-        var inClause = string.Join(",", chatIds.Select((_, i) => $"@C{i}"));
+        ArgumentException.ThrowIfNullOrWhiteSpace(accountId);
+        ArgumentNullException.ThrowIfNull(chatIds);
+
+        if (chatIds.Count == 0)
+        {
+            return [];
+        }
+
+        var distinctChatIds = chatIds
+            .Where(id => !string.IsNullOrWhiteSpace(id))
+            .Distinct(StringComparer.Ordinal)
+            .ToArray();
+
+        var inClause = string.Join(",", distinctChatIds.Select((_, i) => $"@C{i}"));
         var query = new QueryDefinition(
             "SELECT c.messageId, c.dateReadUnix " +
             "FROM c " +
             $"WHERE c.accountId = @accountId AND c.chatId IN ({inClause})")
             .WithParameter("@accountId", accountId);
 
-        for (int i = 0; i < chatIds.Count; i++)
+        for (int i = 0; i < distinctChatIds.Length; i++)
         {
-            query = query.WithParameter($"@C{i}", chatIds[i]);
+            query = query.WithParameter($"@C{i}", distinctChatIds[i]);
         }
 
         using var iterator = _container.GetItemQueryIterator<ChatMessageStatus>(query);

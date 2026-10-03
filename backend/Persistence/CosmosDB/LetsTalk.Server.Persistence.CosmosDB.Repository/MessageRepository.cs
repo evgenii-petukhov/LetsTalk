@@ -23,6 +23,11 @@ public class MessageRepository(
         string linkPreviewId,
         CancellationToken cancellationToken = default)
     {
+        ArgumentException.ThrowIfNullOrWhiteSpace(senderId);
+        ArgumentException.ThrowIfNullOrWhiteSpace(chatId);
+        ArgumentException.ThrowIfNullOrWhiteSpace(text);
+        ArgumentException.ThrowIfNullOrWhiteSpace(textHtml);
+
         var message = new Message
         {
             Id = Guid.CreateVersion7().ToString("N"),
@@ -56,6 +61,10 @@ public class MessageRepository(
         FileStorageTypes fileStorageType,
         CancellationToken cancellationToken = default)
     {
+        ArgumentException.ThrowIfNullOrWhiteSpace(senderId);
+        ArgumentException.ThrowIfNullOrWhiteSpace(chatId);
+        ArgumentException.ThrowIfNullOrWhiteSpace(imageId);
+
         var message = new Message
         {
             Id = Guid.CreateVersion7().ToString("N"),
@@ -87,6 +96,9 @@ public class MessageRepository(
         string chatId,
         CancellationToken cancellationToken = default)
     {
+        ArgumentException.ThrowIfNullOrWhiteSpace(messageId);
+        ArgumentException.ThrowIfNullOrWhiteSpace(chatId);
+
         try
         {
             var response = await _messageContainer.ReadItemAsync<Message>(
@@ -110,9 +122,7 @@ public class MessageRepository(
         CancellationToken cancellationToken = default)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(chatId);
-
         ArgumentOutOfRangeException.ThrowIfNegative(pageIndex);
-
         ArgumentOutOfRangeException.ThrowIfNegativeOrZero(messagesPerPage);
 
         var messageQuery = new QueryDefinition(
@@ -154,6 +164,10 @@ public class MessageRepository(
         FileStorageTypes fileStorageType,
         CancellationToken cancellationToken = default)
     {
+        ArgumentException.ThrowIfNullOrWhiteSpace(messageId);
+        ArgumentException.ThrowIfNullOrWhiteSpace(chatId);
+        ArgumentException.ThrowIfNullOrWhiteSpace(filename);
+
         var patchOperations = new List<PatchOperation>
         {
             PatchOperation.Set("/imagePreview", new Image
@@ -181,6 +195,10 @@ public class MessageRepository(
         string linkPreviewId,
         CancellationToken cancellationToken = default)
     {
+        ArgumentException.ThrowIfNullOrWhiteSpace(messageId);
+        ArgumentException.ThrowIfNullOrWhiteSpace(chatId);
+        ArgumentException.ThrowIfNullOrWhiteSpace(linkPreviewId);
+
         var patchOperations = new List<PatchOperation>
         {
             PatchOperation.Set("/linkPreviewId", linkPreviewId)
@@ -197,16 +215,28 @@ public class MessageRepository(
 
     public async Task<List<Message>> GetMessagesByChatIdsAsync(
         IReadOnlyList<string> chatIds,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken = default)
     {
-        var inClause = string.Join(",", chatIds.Select((_, i) => $"@C{i}"));
+        ArgumentNullException.ThrowIfNull(chatIds);
+
+        var ids = chatIds
+            .Where(id => !string.IsNullOrWhiteSpace(id))
+            .Distinct(StringComparer.Ordinal)
+            .ToArray();
+
+        if (ids.Length == 0)
+        {
+            return [];
+        }
+
+        var inClause = string.Join(",", ids.Select((_, i) => $"@C{i}"));
         var query = new QueryDefinition(
             "SELECT c.id, c.chatId, c.senderId, c.dateCreatedUnix " +
             "FROM c " +
             $"WHERE c.chatId IN ({inClause})");
-        for (int i = 0; i < chatIds.Count; i++)
+        for (int i = 0; i < ids.Length; i++)
         {
-            query = query.WithParameter($"@C{i}", chatIds[i]);
+            query = query.WithParameter($"@C{i}", ids[i]);
         }    
 
         using var iterator = _messageContainer.GetItemQueryIterator<Message>(query);

@@ -17,6 +17,8 @@ public class AccountRepository(
         string email,
         CancellationToken cancellationToken = default)
     {
+        ArgumentException.ThrowIfNullOrWhiteSpace(email);
+
         var account = new Account
         {
             Id = Guid.CreateVersion7().ToString("N"),
@@ -26,7 +28,7 @@ public class AccountRepository(
 
         var response = await _container.CreateItemAsync(
             account,
-            new PartitionKey(account.Id!),
+            new PartitionKey(account.Id),
             cancellationToken: cancellationToken);
 
         return response.Resource;
@@ -37,6 +39,8 @@ public class AccountRepository(
         AccountTypes accountType,
         CancellationToken cancellationToken = default)
     {
+        ArgumentException.ThrowIfNullOrWhiteSpace(email);
+
         var query = new QueryDefinition(
             "SELECT TOP 1 * " +
             "FROM c " +
@@ -51,11 +55,6 @@ public class AccountRepository(
                 MaxItemCount = 1
             });
 
-        if (!iterator.HasMoreResults)
-        {
-            return null!;
-        }
-
         var page = await iterator.ReadNextAsync(cancellationToken);
 
         return page.FirstOrDefault()!;
@@ -65,6 +64,8 @@ public class AccountRepository(
         string id,
         CancellationToken cancellationToken = default)
     {
+        ArgumentException.ThrowIfNullOrWhiteSpace(id);
+
         try
         {
             var response = await _container.ReadItemAsync<Account>(
@@ -87,6 +88,10 @@ public class AccountRepository(
         string lastName,
         CancellationToken cancellationToken = default)
     {
+        ArgumentException.ThrowIfNullOrWhiteSpace(id);
+        ArgumentException.ThrowIfNullOrWhiteSpace(firstName);
+        ArgumentException.ThrowIfNullOrWhiteSpace(lastName);
+
         var patchOperations = new List<PatchOperation>
         {
             PatchOperation.Set("/firstName", firstName),
@@ -113,6 +118,10 @@ public class AccountRepository(
         FileStorageTypes fileStorageType,
         CancellationToken cancellationToken = default)
     {
+        ArgumentException.ThrowIfNullOrWhiteSpace(id);
+        ArgumentException.ThrowIfNullOrWhiteSpace(firstName);
+        ArgumentException.ThrowIfNullOrWhiteSpace(lastName);
+
         var patchOperations = new List<PatchOperation>
         {
             PatchOperation.Set("/firstName", firstName),
@@ -145,6 +154,7 @@ public class AccountRepository(
         string accountId,
         CancellationToken cancellationToken = default)
     {
+        ArgumentNullException.ThrowIfNull(chats);
         ArgumentException.ThrowIfNullOrWhiteSpace(accountId);
 
         var accountIds = chats
@@ -201,12 +211,12 @@ public class AccountRepository(
 
         try
         {
-            var page = await _container.ReadItemAsync<Account>(
+            var response = await _container.ReadItemAsync<Account>(
                 id,
                 new PartitionKey(id),
                 cancellationToken: cancellationToken);
 
-            return page.StatusCode == HttpStatusCode.OK;
+            return response.StatusCode == HttpStatusCode.OK;
         }
         catch (CosmosException exception)
             when (exception.StatusCode == HttpStatusCode.NotFound)

@@ -79,12 +79,6 @@ public class ChatRepository(
                 MaxItemCount = 1
             });
 
-
-        if (!iterator.HasMoreResults)
-        {
-            return null!;
-        }
-
         var page = await iterator.ReadNextAsync(cancellationToken);
 
         return page.FirstOrDefault()!;

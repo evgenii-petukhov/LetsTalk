@@ -14,6 +14,8 @@ public class LinkPreviewRepository(
         string url,
         CancellationToken cancellationToken = default)
     {
+        ArgumentException.ThrowIfNullOrWhiteSpace(url);
+
         var query = new QueryDefinition(
             "SELECT TOP 1 VALUE c.id " +
             "FROM c " +
@@ -24,13 +26,9 @@ public class LinkPreviewRepository(
             query,
             requestOptions: new QueryRequestOptions
             {
-                MaxItemCount = 1
+                MaxItemCount = 1,
+                PartitionKey = new PartitionKey(url)
             });
-
-        if (!iterator.HasMoreResults)
-        {
-            return null;
-        }
 
         var page = await iterator.ReadNextAsync(cancellationToken);
 
@@ -74,11 +72,6 @@ public class LinkPreviewRepository(
                 MaxItemCount = 1
             });
 
-        if (!iterator.HasMoreResults)
-        {
-            return null!;
-        }
-
         var page = await iterator.ReadNextAsync(cancellationToken);
 
         return page.FirstOrDefault()!;
@@ -88,6 +81,16 @@ public class LinkPreviewRepository(
         IEnumerable<string> linkPreviewIds,
         CancellationToken cancellationToken = default)
     {
+        var ids = linkPreviewIds
+            .Where(id => !string.IsNullOrWhiteSpace(id))
+            .Distinct(StringComparer.Ordinal)
+            .ToArray();
+
+        if (ids.Length == 0)
+        {
+            return [];
+        }
+
         var linkPreviewIdArray = linkPreviewIds.ToArray();
 
         var linkPreviewQuery = new QueryDefinition(

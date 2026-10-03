@@ -56,5 +56,5 @@ public interface IMessageRepository
 
     Task<List<Message>> GetMessagesByChatIdsAsync(
         IReadOnlyList<string> chatIds,
-        CancellationToken cancellationToken);
+        CancellationToken cancellationToken = default);
 }
