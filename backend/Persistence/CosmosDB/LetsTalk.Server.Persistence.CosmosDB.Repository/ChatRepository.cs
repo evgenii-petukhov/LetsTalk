@@ -41,35 +41,35 @@ public class ChatRepository(
         return chats;
     }
 
-    public async Task<Chat> GetIndividualChatByAccountIdsAsync(
+    public async Task<Chat?> GetIndividualChatByAccountIdsAsync(
         IEnumerable<string> accountIds,
         CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(accountIds);
 
-        var ids = accountIds
+        var distinctAccountIds = accountIds
             .Where(id => !string.IsNullOrWhiteSpace(id))
             .Distinct(StringComparer.Ordinal)
             .ToArray();
 
-        if (ids.Length == 0)
+        if (distinctAccountIds.Length == 0)
         {
-            return null!;
+            return null;
         }
 
         var whereClause = string.Join(
             " AND ",
-            ids.Select((_, index) => $"ARRAY_CONTAINS(c.accountIds, @A{index})"));
+            distinctAccountIds.Select((_, index) => $"ARRAY_CONTAINS(c.accountIds, @A{index})"));
 
         var query = new QueryDefinition(
             "SELECT TOP 1 * " +
             "FROM c " +
             $"WHERE c.isIndividual = true AND ARRAY_LENGTH(c.accountIds) = @accountCount AND {whereClause}")
-            .WithParameter("@accountCount", ids.Length);
+            .WithParameter("@accountCount", distinctAccountIds.Length);
 
-        for (int index = 0; index < ids.Length; index++)
+        for (int index = 0; index < distinctAccountIds.Length; index++)
         {
-            query = query.WithParameter($"@A{index}", ids[index]);
+            query = query.WithParameter($"@A{index}", distinctAccountIds[index]);
         }
 
         using var iterator = _container.GetItemQueryIterator<Chat>(
@@ -81,23 +81,28 @@ public class ChatRepository(
 
         var page = await iterator.ReadNextAsync(cancellationToken);
 
-        return page.FirstOrDefault()!;
+        return page.FirstOrDefault();
     }
 
     public async Task<Chat> CreateIndividualChatAsync(
         IEnumerable<string> accountIds,
         CancellationToken cancellationToken = default)
     {
+        var distinctAccountIds = accountIds
+            .Where(id => !string.IsNullOrWhiteSpace(id))
+            .Distinct(StringComparer.Ordinal)
+            .ToArray();
+
         var chat = new Chat
         {
             Id = Guid.CreateVersion7().ToString("N"),
             IsIndividual = true,
-            AccountIds = [.. accountIds]
+            AccountIds = [.. distinctAccountIds]
         };
 
         var response = await _container.CreateItemAsync(
             chat,
-            new PartitionKey(chat.Id!),
+            new PartitionKey(chat.Id),
             cancellationToken: cancellationToken);
 
         return response.Resource;
@@ -112,26 +117,27 @@ public class ChatRepository(
             return false;
         }
 
-        try
-        {
-            var response = await _container.ReadItemAsync<Chat>(
-                id,
-                new PartitionKey(id),
-                cancellationToken: cancellationToken);
+        using var response = await _container.ReadItemStreamAsync(
+            id,
+            new PartitionKey(id),
+            cancellationToken: cancellationToken);
 
-            return response.StatusCode == HttpStatusCode.OK;
-        }
-        catch (CosmosException exception)
-            when (exception.StatusCode == HttpStatusCode.NotFound)
+        if (response.StatusCode == HttpStatusCode.NotFound)
         {
             return false;
         }
+
+        response.EnsureSuccessStatusCode();
+
+        return true;
     }
 
     public async Task<List<string>> GetChatMemberAccountIdsAsync(
         string chatId,
         CancellationToken cancellationToken = default)
     {
+        ArgumentException.ThrowIfNullOrWhiteSpace(chatId);
+
         try
         {
             var response = await _container.ReadItemAsync<Chat>(
@@ -179,12 +185,12 @@ public class ChatRepository(
         ArgumentException.ThrowIfNullOrWhiteSpace(accountId);
 
         var query = new QueryDefinition(
-            "SELECT VALUE c.id " +
+            "SELECT VALUE c.accountIds " +
             "FROM c " +
             "WHERE c.isIndividual = true AND ARRAY_CONTAINS(c.accountIds, @accountId)")
             .WithParameter("@accountId", accountId);
 
-        using var iterator = _container.GetItemQueryIterator<string>(
+        using var iterator = _container.GetItemQueryIterator<List<string>>(
             query,
             requestOptions: new QueryRequestOptions
             {
@@ -198,12 +204,13 @@ public class ChatRepository(
             var page = await iterator.ReadNextAsync(cancellationToken);
 
             var accountIdsToAdd = page
-                .Where(id => !string.Equals(id, accountId, StringComparison.OrdinalIgnoreCase));
+                .SelectMany(ids => ids)
+                .Where(id => !string.Equals(id, accountId, StringComparison.Ordinal));
 
             accountIds.AddRange(accountIdsToAdd);
         }
 
-        return accountIds;
+        return [.. accountIds.Distinct(StringComparer.Ordinal)];
     }
 
     private static bool IsValidObjectId(string? id)

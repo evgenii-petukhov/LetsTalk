@@ -5,11 +5,11 @@ namespace LetsTalk.Server.Persistence.CosmosDB.Repository.Abstractions;
 
 public interface IAccountRepository
 {
-    Task<Account> GetByIdAsync(
+    Task<Account?> GetByIdAsync(
         string id,
         CancellationToken cancellationToken = default);
 
-    Task<Account> GetByEmailAsync(
+    Task<Account?> GetByEmailAsync(
         string email,
         AccountTypes accountType,
         CancellationToken cancellationToken = default);

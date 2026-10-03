@@ -40,7 +40,8 @@ public class AccountCosmosDBService(
         }
         catch
         {
-            return (await _accountRepository.GetByEmailAsync(email, accountType, cancellationToken)).Id!;
+            account = await _accountRepository.GetByEmailAsync(email, accountType, cancellationToken);
+            return account?.Id!;
         }
     }
 

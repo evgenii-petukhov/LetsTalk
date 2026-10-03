@@ -34,7 +34,7 @@ public class AccountRepository(
         return response.Resource;
     }
 
-    public async Task<Account> GetByEmailAsync(
+    public async Task<Account?> GetByEmailAsync(
         string email,
         AccountTypes accountType,
         CancellationToken cancellationToken = default)
@@ -57,10 +57,10 @@ public class AccountRepository(
 
         var page = await iterator.ReadNextAsync(cancellationToken);
 
-        return page.FirstOrDefault()!;
+        return page.FirstOrDefault();
     }
 
-    public async Task<Account> GetByIdAsync(
+    public async Task<Account?> GetByIdAsync(
         string id,
         CancellationToken cancellationToken = default)
     {
@@ -78,7 +78,7 @@ public class AccountRepository(
         catch (CosmosException exception)
             when (exception.StatusCode == HttpStatusCode.NotFound)
         {
-            return null!;
+            return null;
         }
     }
 
@@ -209,19 +209,18 @@ public class AccountRepository(
             return false;
         }
 
-        try
-        {
-            var response = await _container.ReadItemAsync<Account>(
-                id,
-                new PartitionKey(id),
-                cancellationToken: cancellationToken);
+        using var response = await _container.ReadItemStreamAsync(
+            id,
+            new PartitionKey(id),
+            cancellationToken: cancellationToken);
 
-            return response.StatusCode == HttpStatusCode.OK;
-        }
-        catch (CosmosException exception)
-            when (exception.StatusCode == HttpStatusCode.NotFound)
+        if (response.StatusCode == HttpStatusCode.NotFound)
         {
             return false;
         }
+
+        response.EnsureSuccessStatusCode();
+
+        return true;
     }
 }

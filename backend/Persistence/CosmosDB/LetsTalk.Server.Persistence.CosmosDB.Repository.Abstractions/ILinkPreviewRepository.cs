@@ -8,7 +8,7 @@ public interface ILinkPreviewRepository
         string url, 
         CancellationToken cancellationToken = default);
 
-    Task<LinkPreview> GetByIdAsync(
+    Task<LinkPreview?> GetByIdAsync(
         string id,
         CancellationToken cancellationToken = default);
 

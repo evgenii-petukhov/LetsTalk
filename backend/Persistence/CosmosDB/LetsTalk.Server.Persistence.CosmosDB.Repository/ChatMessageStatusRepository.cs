@@ -69,15 +69,15 @@ public class ChatMessageStatusRepository(
         ArgumentException.ThrowIfNullOrWhiteSpace(accountId);
         ArgumentNullException.ThrowIfNull(chatIds);
 
-        if (chatIds.Count == 0)
-        {
-            return [];
-        }
-
         var distinctChatIds = chatIds
             .Where(id => !string.IsNullOrWhiteSpace(id))
             .Distinct(StringComparer.Ordinal)
             .ToArray();
+
+        if (distinctChatIds.Length == 0)
+        {
+            return [];
+        }
 
         var inClause = string.Join(",", distinctChatIds.Select((_, i) => $"@C{i}"));
         var query = new QueryDefinition(

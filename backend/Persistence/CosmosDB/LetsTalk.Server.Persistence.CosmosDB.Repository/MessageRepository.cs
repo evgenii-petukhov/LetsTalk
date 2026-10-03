@@ -91,30 +91,6 @@ public class MessageRepository(
         return response.Resource;
     }
 
-    public async Task<Message> GetByIdAsync(
-        string messageId,
-        string chatId,
-        CancellationToken cancellationToken = default)
-    {
-        ArgumentException.ThrowIfNullOrWhiteSpace(messageId);
-        ArgumentException.ThrowIfNullOrWhiteSpace(chatId);
-
-        try
-        {
-            var response = await _messageContainer.ReadItemAsync<Message>(
-                messageId,
-                new PartitionKey(chatId),
-                cancellationToken: cancellationToken);
-
-            return response.Resource;
-        }
-        catch (CosmosException exception)
-            when (exception.StatusCode == HttpStatusCode.NotFound)
-        {
-            return null!;
-        }
-    }
-
     public async Task<List<Message>> GetPagedAsync(
         string chatId,
         int pageIndex,
@@ -135,7 +111,8 @@ public class MessageRepository(
             .WithParameter("@offset", messagesPerPage * pageIndex)
             .WithParameter("@limit", messagesPerPage);
 
-        using FeedIterator<Message> messageIterator = _messageContainer.GetItemQueryIterator<Message>(
+        using FeedIterator<Message> messageIterator = 
+            _messageContainer.GetItemQueryIterator<Message>(
                 messageQuery,
                 requestOptions: new QueryRequestOptions
                 {

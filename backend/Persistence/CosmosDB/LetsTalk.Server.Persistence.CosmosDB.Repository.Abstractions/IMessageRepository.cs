@@ -27,11 +27,6 @@ public interface IMessageRepository
         FileStorageTypes fileStorageType,
         CancellationToken cancellationToken = default);
 
-    Task<Message> GetByIdAsync(
-        string messageId,
-        string chatId,
-        CancellationToken cancellationToken = default);
-
     Task<List<Message>> GetPagedAsync(
         string chatId,
         int pageIndex,

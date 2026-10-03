@@ -8,7 +8,7 @@ public interface IChatRepository
         string accountId,
         CancellationToken cancellationToken = default);
 
-    Task<Chat> GetIndividualChatByAccountIdsAsync(
+    Task<Chat?> GetIndividualChatByAccountIdsAsync(
         IEnumerable<string> accountIds,
         CancellationToken cancellationToken = default);
 
