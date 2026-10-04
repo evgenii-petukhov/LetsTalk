@@ -20,7 +20,7 @@ export class AutoResizeTextAreaComponent {
     @Output() textChange = new EventEmitter<string>();
 
     @ViewChild('textarea')
-    textareaRef: ElementRef<HTMLTextAreaElement>;
+    textareaRef!: ElementRef<HTMLTextAreaElement>;
 
     @Output() submitted = new EventEmitter<string>();
 

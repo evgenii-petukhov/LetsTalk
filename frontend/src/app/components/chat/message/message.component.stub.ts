@@ -7,5 +7,5 @@ import { Message } from '../../../models/message';
     standalone: false,
 })
 export class MessageStubComponent {
-    @Input() message: Message;
+    @Input() message: Message | undefined;
 }

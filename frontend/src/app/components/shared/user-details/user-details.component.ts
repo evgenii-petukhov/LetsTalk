@@ -12,5 +12,5 @@ import {
     changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class UserDetailsComponent {
-    @Input() value: string;
+    @Input() value: string | undefined;
 }

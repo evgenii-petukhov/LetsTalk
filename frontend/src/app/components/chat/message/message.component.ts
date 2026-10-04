@@ -14,7 +14,7 @@ import { Message } from '../../../models/message';
     changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class MessageComponent {
-    @Input() message: Message;
+    @Input() message: Message | undefined;
 
     isImageError = signal(false);
 

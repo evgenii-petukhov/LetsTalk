@@ -45,8 +45,8 @@ export class SignalrService {
 
     private isInitialized = false;
     private notificationEventName = 'SendNotificationAsync';
-    private connectionTimerId: number;
-    private handlerMapping: {
+    private connectionTimerId!: number;
+    private handlerMapping!: {
         [K in TypeNames]: (dto: TypeDtoMap[K]) => void;
     };
 

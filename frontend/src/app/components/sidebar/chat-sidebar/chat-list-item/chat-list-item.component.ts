@@ -13,5 +13,5 @@ import { IChatDto } from '../../../../api-client/api-client';
     changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ChatListItemComponent {
-    @Input() chat: IChatDto;
+    @Input() chat: IChatDto | undefined;
 }

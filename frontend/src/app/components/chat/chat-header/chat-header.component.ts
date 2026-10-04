@@ -28,7 +28,7 @@ import { selectIsAnyCallInProgress } from '../../../state/video-call/video-call.
 })
 export class ChatHeaderComponent {
     faPhone = faPhone;
-    @Input() backButton: BackButtonStatus;
+    @Input() backButton: BackButtonStatus | undefined;
 
     private readonly store = inject(Store);
     private readonly storeService = inject(StoreService);

@@ -17,7 +17,7 @@ import { faPhone } from '@fortawesome/free-solid-svg-icons';
 export class CallButtonComponent {
     faPhone = faPhone;
     @Input() mode: 'start-call' | 'accept-call' | 'end-call' = 'start-call';
-    @Input() text: string;
+    @Input() text: string | undefined;
     @Output() buttonClick = new EventEmitter<MouseEvent>();
 
     onButtonClicked(event: MouseEvent): void {

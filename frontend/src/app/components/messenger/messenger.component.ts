@@ -62,7 +62,9 @@ export class MessengerComponent implements OnInit, OnDestroy {
     @HostListener('document:visibilitychange', ['$event'])
     onVisibilityChange(event: Event): void {
         this.isWindowActive = !(event.target as Document).hidden;
-        this.storeService.markAllAsRead(this.selectedChat);
+        if (this.selectedChat) {
+            this.storeService.markAllAsRead(this.selectedChat);
+        }
     }
 
     isOngoingCallPanelVisible = toSignal(
@@ -118,8 +120,8 @@ export class MessengerComponent implements OnInit, OnDestroy {
         this.signalrHandlerService.removeHandlers();
     }
 
-    handleMessageNotification(dto: IMessageDto): void {
-        this.signalrHandlerService.handleMessageNotification(
+    handleMessageNotification(dto: IMessageDto): Promise<void> {
+        return this.signalrHandlerService.handleMessageNotification(
             dto,
             this.selectedChat?.id,
             this.chats,

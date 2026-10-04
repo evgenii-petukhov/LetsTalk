@@ -21,9 +21,9 @@ import { environment } from '../../../../environments/environment';
     changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ImageComponent implements OnInit {
-    @Input() imagePreview: ImagePreview;
-    @Input() imageKey: IImageDto;
-    @Input() chatId: string;
+    @Input() imagePreview: ImagePreview | undefined;
+    @Input() imageKey: IImageDto | undefined;
+    @Input() chatId: string | undefined;
     url = signal<string | null>(null);
     isLoading = signal(true);
     isSizeUnknown = signal(false);
@@ -47,15 +47,15 @@ export class ImageComponent implements OnInit {
                 return;
             }
 
-            this.setSize(this.imagePreview.width, this.imagePreview.height);
+            this.setSize(this.imagePreview.width ?? 0, this.imagePreview.height ?? 0);
 
             if (this.imagePreview.id) {
                 const image = await this.storeService.getImageContent(
                     this.imagePreview,
                 );
                 if (image) {
-                    this.url.set(image.content);
-                    this.setSize(image.width, image.height);
+                    this.url.set(image.content ?? null);
+                    this.setSize(image.width ?? 0, image.height ?? 0);
                     this.isLoading.set(false);
                 }
             }

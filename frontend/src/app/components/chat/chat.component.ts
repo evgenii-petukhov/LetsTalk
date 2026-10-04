@@ -19,7 +19,7 @@ import {
     selectIsNotFoundVisible,
     selectIsErrorVisible,
     selectIsOngoingCallScreenVisible,
-} from 'src/app/state/selected-chat/selected-chat.selector';
+} from '../../state/selected-chat/selected-chat.selector';
 
 @Component({
     selector: 'app-chat',

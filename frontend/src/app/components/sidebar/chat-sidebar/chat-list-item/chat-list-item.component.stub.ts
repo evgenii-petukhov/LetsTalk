@@ -7,5 +7,5 @@ import { IChatDto } from '../../../../api-client/api-client';
     standalone: false,
 })
 export class ChatListItemStubComponent {
-    @Input() chat: IChatDto;
+    @Input() chat: IChatDto | undefined;
 }

@@ -16,7 +16,7 @@ import {
     changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class InlineCountdownComponent implements OnInit, OnDestroy {
-    @Input() startValue: number;
+    @Input() startValue!: number;
     value = signal(0);
     @Output() expired = new EventEmitter<void>();
     private timerId = 0;

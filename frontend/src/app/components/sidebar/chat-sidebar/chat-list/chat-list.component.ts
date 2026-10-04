@@ -21,7 +21,7 @@ import { selectChats } from '../../../../state/chats/chats.selector';
 })
 export class ChatListComponent implements OnInit, OnDestroy {
     chats = signal<readonly IChatDto[]>([]);
-    selectedChatId = signal<string>(null);
+    selectedChatId = signal<string | null>(null);
 
     private readonly store = inject(Store);
     private readonly unsubscribe$: Subject<void> = new Subject<void>();

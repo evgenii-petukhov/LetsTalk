@@ -7,5 +7,5 @@ import { BackButtonStatus } from '../../../models/back-button-status';
     standalone: false,
 })
 export class TopPanelStubComponent {
-    @Input() backButton: BackButtonStatus;
+    @Input() backButton: BackButtonStatus | undefined;
 }

@@ -8,7 +8,7 @@ import { ImagePreview } from '../../../models/image-preview';
     standalone: false,
 })
 export class ImageStubComponent {
-    @Input() imagePreview: ImagePreview;
-    @Input() imageKey: IImageDto;
-    @Input() chatId: string;
+    @Input() imagePreview: ImagePreview | undefined;
+    @Input() imageKey: IImageDto | undefined;
+    @Input() chatId: string | undefined;
 }

@@ -2,7 +2,7 @@ import { createReducer, on } from '@ngrx/store';
 import { VideoCall } from '../../models/video-call';
 import { videoCallActions } from './video-call.actions';
 
-export const initialState: VideoCall | null = null;
+export const initialState: VideoCall | null = null as VideoCall | null;
 
 export const videoCallReducer = createReducer(
     initialState,
@@ -34,10 +34,10 @@ export const videoCallReducer = createReducer(
             status: 'incoming-active',
         };
     }),
-    on(videoCallActions.setCallId, (state, { callId }) => ({
+    on(videoCallActions.setCallId, (state, { callId }) => (state ? {
         ...state,
         callId,
-    })),
+    } : null)),
     on(videoCallActions.toggleCaptureVideo, (state) => {
         if (!state) return state;
         return {

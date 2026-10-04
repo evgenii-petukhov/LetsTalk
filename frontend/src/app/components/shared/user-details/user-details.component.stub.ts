@@ -6,5 +6,5 @@ import { Component, Input } from '@angular/core';
     standalone: false,
 })
 export class UserDetailsStubComponent {
-    @Input() value: string;
+    @Input() value: string | undefined;
 }

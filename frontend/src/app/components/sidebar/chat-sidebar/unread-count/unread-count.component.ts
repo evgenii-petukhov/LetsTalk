@@ -12,5 +12,5 @@ import {
     changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class UnreadCountComponent {
-    @Input() value: number;
+    @Input() value: number | undefined;
 }

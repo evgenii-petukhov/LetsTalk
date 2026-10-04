@@ -7,5 +7,5 @@ import { IImageDto } from '../../../api-client/api-client';
     standalone: false,
 })
 export class AvatarStubComponent {
-    @Input() urlOptions:(string | IImageDto)[];
+    @Input() urlOptions: (string | IImageDto)[] | undefined;
 }

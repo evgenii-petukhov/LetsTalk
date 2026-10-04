@@ -1,5 +1,5 @@
 export class Timer {
-    private timerId: number = null;
+    private timerId: number | null = null;
     private isTimerExpired = false;
 
     constructor(

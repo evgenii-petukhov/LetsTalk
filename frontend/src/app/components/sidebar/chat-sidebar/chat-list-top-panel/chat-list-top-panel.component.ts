@@ -19,7 +19,7 @@ import { IProfileDto } from '../../../../api-client/api-client';
     changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ChatListTopPanelComponent implements OnInit {
-    account = signal<IProfileDto>(null);
+    account = signal<IProfileDto | null>(null);
     @Input()
     @HostBinding('class.navigation-active')
     isNavigationActive: boolean = false;

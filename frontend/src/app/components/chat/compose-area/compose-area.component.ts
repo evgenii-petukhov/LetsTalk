@@ -38,7 +38,7 @@ export class ComposeAreaComponent implements OnInit, OnDestroy {
     isDisabled = computed(() => this.isSending() || !this.hasMessage());
 
     @ViewChild(AutoResizeTextAreaComponent)
-    textareaRef: AutoResizeTextAreaComponent;
+    textareaRef!: AutoResizeTextAreaComponent;
 
     private chat: IChatDto | null = null;
 

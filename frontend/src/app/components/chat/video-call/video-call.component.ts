@@ -19,7 +19,7 @@ import {
     selectVideoCall,
 } from '../../../state/video-call/video-call.selectors';
 import { toSignal } from '@angular/core/rxjs-interop';
-import { VideoCall } from 'src/app/models/video-call';
+import { VideoCall } from '../../../models/video-call';
 
 @Component({
     selector: 'app-video-call',

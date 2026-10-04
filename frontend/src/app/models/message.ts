@@ -19,7 +19,7 @@ export class Message {
     emojisOnly?: boolean;
     emojiCount?: number;
 
-    constructor(...inits: Partial<Message | IMessageDto>[]) {
+    constructor(...inits: (Partial<Message | IMessageDto> | undefined)[]) {
         inits
             .filter((init) => init)
             .forEach((init) => {

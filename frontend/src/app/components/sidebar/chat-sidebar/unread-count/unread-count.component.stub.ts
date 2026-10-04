@@ -6,5 +6,5 @@ import { Component, Input } from '@angular/core';
     standalone: false,
 })
 export class UnreadCountStubComponent {
-    @Input() value: number;
+    @Input() value: number | undefined;
 }

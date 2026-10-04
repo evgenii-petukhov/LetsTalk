@@ -15,7 +15,7 @@ import { IAccountDto } from '../../../../api-client/api-client';
     changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class AccountListItemComponent {
-    @Input() account: IAccountDto;
+    @Input() account: IAccountDto | undefined;
     @Output() accountSelected = new EventEmitter<IAccountDto>();
 
     onAccountSelected(): boolean {

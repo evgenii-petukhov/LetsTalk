@@ -15,7 +15,7 @@ import { BackButtonStatus } from '../../../models/back-button-status';
     changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class TopPanelComponent {
-    @Input() backButton: BackButtonStatus;
+    @Input() backButton: BackButtonStatus | undefined;
     private readonly location = inject(Location);
 
     onClick(): void {
