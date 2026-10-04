@@ -118,7 +118,7 @@
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
   <data name="LoginCodeEmailSubject" xml:space="preserve">
-    <value>LetsTalk: login code</value>
+    <value>Your LetsTalk verification code</value>
   </data>
   <data name="LoginCodeEmailTemplate" xml:space="preserve">
     <value>Your LetsTalk verification code is:

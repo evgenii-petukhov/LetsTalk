@@ -61,7 +61,7 @@ namespace LetsTalk.Server.API.Core {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to LetsTalk: login code.
+        ///   Looks up a localized string similar to Your LetsTalk verification code.
         /// </summary>
         internal static string LoginCodeEmailSubject {
             get {
