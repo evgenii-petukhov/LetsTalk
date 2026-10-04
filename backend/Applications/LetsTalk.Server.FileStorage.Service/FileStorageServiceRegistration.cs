@@ -58,21 +58,30 @@ public static class FileStorageServiceRegistration
                 x.UsingAmazonSqs((context, configure) =>
                 {
                     var awsSettings = ConfigurationHelper.GetAwsSettings(configuration);
-                    var queueSettings = ConfigurationHelper.GetQueueSettings(configuration);
-                    configure.Host(awsSettings.Region, h =>
+                    if (!string.IsNullOrWhiteSpace(awsSettings.Region) &&
+                        !string.IsNullOrWhiteSpace(awsSettings.AccessKey) &&
+                        !string.IsNullOrWhiteSpace(awsSettings.SecretKey))
                     {
-                        h.AccessKey(awsSettings.AccessKey);
-                        h.SecretKey(awsSettings.SecretKey);
-                    });
+                        configure.Host(awsSettings.Region, h =>
+                        {
+                            h.AccessKey(awsSettings.AccessKey);
+                            h.SecretKey(awsSettings.SecretKey);
+                        });
+                    }
+
                     configure.WaitTimeSeconds = 20;
-                    configure.ReceiveEndpoint(queueSettings.RemoveImageRequest!, e =>
+                    var queueSettings = ConfigurationHelper.GetQueueSettings(configuration);
+                    if (!string.IsNullOrWhiteSpace(queueSettings.RemoveImageRequest))
                     {
-                        e.WaitTimeSeconds = 20;
-                        e.DefaultContentType = new ContentType("application/json");
-                        e.UseRawJsonDeserializer();
-                        e.ConfigureConsumeTopology = false;
-                        e.ConfigureConsumer<RemoveImageRequestConsumer>(context);
-                    });
+                        configure.ReceiveEndpoint(queueSettings.RemoveImageRequest, e =>
+                        {
+                            e.WaitTimeSeconds = 20;
+                            e.DefaultContentType = new ContentType("application/json");
+                            e.UseRawJsonDeserializer();
+                            e.ConfigureConsumeTopology = false;
+                            e.ConfigureConsumer<RemoveImageRequestConsumer>(context);
+                        });
+                    }
                 });
             }
             else

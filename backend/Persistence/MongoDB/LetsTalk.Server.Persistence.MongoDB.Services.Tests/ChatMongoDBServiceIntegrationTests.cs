@@ -26,6 +26,7 @@ public class ChatMongoDBServiceIntegrationTests
 
     private ChatMongoDBService _service;
     private ChatRepository _chatRepository;
+    private AccountRepository _accountRepository;
 
     private Account NeilJohnston;
     private Account BobPettit;
@@ -64,7 +65,11 @@ public class ChatMongoDBServiceIntegrationTests
         {
             DatabaseName = "LetsTalk"
         }));
-        _service = new ChatMongoDBService(_chatRepository);
+        _accountRepository = new AccountRepository(client, Options.Create(new MongoDBSettings
+        {
+            DatabaseName = "LetsTalk"
+        }));
+        _service = new ChatMongoDBService(_chatRepository, _accountRepository);
     }
 
     [TearDown]

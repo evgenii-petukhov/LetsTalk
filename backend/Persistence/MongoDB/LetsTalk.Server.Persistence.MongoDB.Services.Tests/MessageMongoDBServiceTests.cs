@@ -12,6 +12,8 @@ namespace LetsTalk.Server.Persistence.MongoDB.Services.Tests;
 public class MessageMongoDBServiceTests
 {
     private Mock<IMessageRepository> _mockMessageRepository;
+    private Mock<IChatMessageStatusRepository> _mockChatMessageStatusRepository;
+    private Mock<ILinkPreviewRepository> _mockLinkPreviewRepository;
     private Mock<IMapper> _mockMapper;
     private MessageMongoDBService _service;
 
@@ -19,8 +21,14 @@ public class MessageMongoDBServiceTests
     public void SetUp()
     {
         _mockMessageRepository = new Mock<IMessageRepository>();
+        _mockChatMessageStatusRepository = new Mock<IChatMessageStatusRepository>();
+        _mockLinkPreviewRepository = new Mock<ILinkPreviewRepository>();
         _mockMapper = new Mock<IMapper>();
-        _service = new MessageMongoDBService(_mockMessageRepository.Object, _mockMapper.Object);
+        _service = new MessageMongoDBService(
+            _mockMessageRepository.Object,
+            _mockChatMessageStatusRepository.Object,
+            _mockLinkPreviewRepository.Object,
+            _mockMapper.Object);
     }
 
     [TestFixture]
@@ -637,6 +645,7 @@ public class MessageMongoDBServiceTests
         {
             // Arrange
             const string messageId = "507f1f77bcf86cd799439011";
+            const string chatId = "507f1f77bcf86cd799439012";
             const string linkPreviewId = "507f1f77bcf86cd799439012";
             var cancellationToken = new CancellationToken();
 
@@ -662,7 +671,7 @@ public class MessageMongoDBServiceTests
                 .Returns(expectedServiceModel);
 
             // Act
-            var result = await _service.SetLinkPreviewAsync(messageId, linkPreviewId, cancellationToken);
+            var result = await _service.SetLinkPreviewAsync(messageId, chatId, linkPreviewId, cancellationToken);
 
             // Assert
             result.Should().BeEquivalentTo(expectedServiceModel);
@@ -675,6 +684,7 @@ public class MessageMongoDBServiceTests
         {
             // Arrange
             string messageId = null!;
+            string chatId = null!;
             string linkPreviewId = null!;
 
             var updatedMessage = new Message { Id = "507f1f77bcf86cd799439013" };
@@ -689,7 +699,7 @@ public class MessageMongoDBServiceTests
                 .Returns(expectedServiceModel);
 
             // Act
-            var result = await _service.SetLinkPreviewAsync(messageId, linkPreviewId);
+            var result = await _service.SetLinkPreviewAsync(messageId, chatId, linkPreviewId);
 
             // Assert
             result.Should().BeEquivalentTo(expectedServiceModel);
@@ -701,6 +711,7 @@ public class MessageMongoDBServiceTests
         {
             // Arrange
             const string messageId = "";
+            const string chatId = "";
             const string linkPreviewId = "";
 
             var updatedMessage = new Message { Id = "507f1f77bcf86cd799439014" };
@@ -715,7 +726,7 @@ public class MessageMongoDBServiceTests
                 .Returns(expectedServiceModel);
 
             // Act
-            var result = await _service.SetLinkPreviewAsync(messageId, linkPreviewId);
+            var result = await _service.SetLinkPreviewAsync(messageId, chatId, linkPreviewId);
 
             // Assert
             result.Should().BeEquivalentTo(expectedServiceModel);
@@ -723,144 +734,6 @@ public class MessageMongoDBServiceTests
         }
     }
 
-    [TestFixture]
-    public class SetLinkPreviewAsyncWithDetailsTests : MessageMongoDBServiceTests
-    {
-        [Test]
-        public async Task SetLinkPreviewAsync_WithMessageIdAndLinkDetails_ShouldReturnMappedMessage()
-        {
-            // Arrange
-            const string messageId = "507f1f77bcf86cd799439011";
-            const string url = "https://example.com/article";
-            const string title = "Example Article";
-            const string imageUrl = "https://example.com/image.jpg";
-            var cancellationToken = new CancellationToken();
-
-            var updatedMessage = new Message
-            {
-                Id = messageId,
-                Text = "Message with link preview details",
-                LinkPreview = new LinkPreview
-                {
-                    Url = url,
-                    Title = title,
-                    ImageUrl = imageUrl
-                }
-            };
-
-            var expectedServiceModel = new MessageServiceModel
-            {
-                Id = messageId,
-                Text = "Message with link preview details",
-                LinkPreview = new LinkPreviewServiceModel
-                {
-                    Url = url,
-                    Title = title,
-                    ImageUrl = imageUrl
-                }
-            };
-
-            _mockMessageRepository
-                .Setup(x => x.SetLinkPreviewAsync(messageId, url, title, imageUrl, cancellationToken))
-                .ReturnsAsync(updatedMessage);
-
-            _mockMapper
-                .Setup(x => x.Map<MessageServiceModel>(updatedMessage))
-                .Returns(expectedServiceModel);
-
-            // Act
-            var result = await _service.SetLinkPreviewAsync(messageId, url, title, imageUrl, cancellationToken);
-
-            // Assert
-            result.Should().BeEquivalentTo(expectedServiceModel);
-            _mockMessageRepository.Verify(x => x.SetLinkPreviewAsync(messageId, url, title, imageUrl, cancellationToken), Times.Once);
-            _mockMapper.Verify(x => x.Map<MessageServiceModel>(updatedMessage), Times.Once);
-        }
-
-        [Test]
-        public async Task SetLinkPreviewAsync_WithNullLinkDetails_ShouldPassNullsToRepository()
-        {
-            // Arrange
-            const string messageId = "507f1f77bcf86cd799439012";
-            string url = null!;
-            string title = null!;
-            string imageUrl = null!;
-
-            var updatedMessage = new Message { Id = messageId };
-            var expectedServiceModel = new MessageServiceModel { Id = messageId };
-
-            _mockMessageRepository
-                .Setup(x => x.SetLinkPreviewAsync(messageId, url, title, imageUrl, It.IsAny<CancellationToken>()))
-                .ReturnsAsync(updatedMessage);
-
-            _mockMapper
-                .Setup(x => x.Map<MessageServiceModel>(updatedMessage))
-                .Returns(expectedServiceModel);
-
-            // Act
-            var result = await _service.SetLinkPreviewAsync(messageId, url, title, imageUrl);
-
-            // Assert
-            result.Should().BeEquivalentTo(expectedServiceModel);
-            _mockMessageRepository.Verify(x => x.SetLinkPreviewAsync(messageId, url, title, imageUrl, It.IsAny<CancellationToken>()), Times.Once);
-        }
-
-        [Test]
-        public async Task SetLinkPreviewAsync_WithEmptyLinkDetails_ShouldPassEmptyStringsToRepository()
-        {
-            // Arrange
-            const string messageId = "507f1f77bcf86cd799439013";
-            const string url = "";
-            const string title = "";
-            const string imageUrl = "";
-
-            var updatedMessage = new Message { Id = messageId };
-            var expectedServiceModel = new MessageServiceModel { Id = messageId };
-
-            _mockMessageRepository
-                .Setup(x => x.SetLinkPreviewAsync(messageId, url, title, imageUrl, It.IsAny<CancellationToken>()))
-                .ReturnsAsync(updatedMessage);
-
-            _mockMapper
-                .Setup(x => x.Map<MessageServiceModel>(updatedMessage))
-                .Returns(expectedServiceModel);
-
-            // Act
-            var result = await _service.SetLinkPreviewAsync(messageId, url, title, imageUrl);
-
-            // Assert
-            result.Should().BeEquivalentTo(expectedServiceModel);
-            _mockMessageRepository.Verify(x => x.SetLinkPreviewAsync(messageId, url, title, imageUrl, It.IsAny<CancellationToken>()), Times.Once);
-        }
-
-        [Test]
-        public async Task SetLinkPreviewAsync_WithLongUrl_ShouldPassLongUrlToRepository()
-        {
-            // Arrange
-            const string messageId = "507f1f77bcf86cd799439014";
-            var url = "https://example.com/" + new string('a', 1000) + "/article";
-            const string title = "Very Long URL Article";
-            const string imageUrl = "https://example.com/long-url-image.jpg";
-
-            var updatedMessage = new Message { Id = messageId };
-            var expectedServiceModel = new MessageServiceModel { Id = messageId };
-
-            _mockMessageRepository
-                .Setup(x => x.SetLinkPreviewAsync(messageId, url, title, imageUrl, It.IsAny<CancellationToken>()))
-                .ReturnsAsync(updatedMessage);
-
-            _mockMapper
-                .Setup(x => x.Map<MessageServiceModel>(updatedMessage))
-                .Returns(expectedServiceModel);
-
-            // Act
-            var result = await _service.SetLinkPreviewAsync(messageId, url, title, imageUrl);
-
-            // Assert
-            result.Should().BeEquivalentTo(expectedServiceModel);
-            _mockMessageRepository.Verify(x => x.SetLinkPreviewAsync(messageId, url, title, imageUrl, It.IsAny<CancellationToken>()), Times.Once);
-        }
-    }
     [TestFixture]
     public class MarkAsReadAsyncTests : MessageMongoDBServiceTests
     {
@@ -873,7 +746,7 @@ public class MessageMongoDBServiceTests
             const string messageId = "507f1f77bcf86cd799439013";
             var cancellationToken = new CancellationToken();
 
-            _mockMessageRepository
+            _mockChatMessageStatusRepository
                 .Setup(x => x.MarkAsReadAsync(chatId, accountId, messageId, cancellationToken))
                 .Returns(Task.CompletedTask);
 
@@ -881,7 +754,7 @@ public class MessageMongoDBServiceTests
             await _service.MarkAsReadAsync(chatId, accountId, messageId, cancellationToken);
 
             // Assert
-            _mockMessageRepository.Verify(x => x.MarkAsReadAsync(chatId, accountId, messageId, cancellationToken), Times.Once);
+            _mockChatMessageStatusRepository.Verify(x => x.MarkAsReadAsync(chatId, accountId, messageId, cancellationToken), Times.Once);
         }
 
         [Test]
@@ -893,7 +766,7 @@ public class MessageMongoDBServiceTests
             string messageId = null!;
             var cancellationToken = new CancellationToken();
 
-            _mockMessageRepository
+            _mockChatMessageStatusRepository
                 .Setup(x => x.MarkAsReadAsync(chatId, accountId, messageId, cancellationToken))
                 .Returns(Task.CompletedTask);
 
@@ -901,7 +774,7 @@ public class MessageMongoDBServiceTests
             await _service.MarkAsReadAsync(chatId, accountId, messageId, cancellationToken);
 
             // Assert
-            _mockMessageRepository.Verify(x => x.MarkAsReadAsync(chatId, accountId, messageId, cancellationToken), Times.Once);
+            _mockChatMessageStatusRepository.Verify(x => x.MarkAsReadAsync(chatId, accountId, messageId, cancellationToken), Times.Once);
         }
 
         [Test]
@@ -913,7 +786,7 @@ public class MessageMongoDBServiceTests
             const string messageId = "";
             var cancellationToken = new CancellationToken();
 
-            _mockMessageRepository
+            _mockChatMessageStatusRepository
                 .Setup(x => x.MarkAsReadAsync(chatId, accountId, messageId, cancellationToken))
                 .Returns(Task.CompletedTask);
 
@@ -921,7 +794,7 @@ public class MessageMongoDBServiceTests
             await _service.MarkAsReadAsync(chatId, accountId, messageId, cancellationToken);
 
             // Assert
-            _mockMessageRepository.Verify(x => x.MarkAsReadAsync(chatId, accountId, messageId, cancellationToken), Times.Once);
+            _mockChatMessageStatusRepository.Verify(x => x.MarkAsReadAsync(chatId, accountId, messageId, cancellationToken), Times.Once);
         }
 
         [Test]
@@ -934,7 +807,7 @@ public class MessageMongoDBServiceTests
             var cancellationToken = new CancellationToken();
             var expectedException = new InvalidOperationException("Mark as read failed");
 
-            _mockMessageRepository
+            _mockChatMessageStatusRepository
                 .Setup(x => x.MarkAsReadAsync(chatId, accountId, messageId, cancellationToken))
                 .ThrowsAsync(expectedException);
 
@@ -943,7 +816,7 @@ public class MessageMongoDBServiceTests
             await act.Should().ThrowAsync<InvalidOperationException>()
                 .WithMessage("Mark as read failed");
 
-            _mockMessageRepository.Verify(x => x.MarkAsReadAsync(chatId, accountId, messageId, cancellationToken), Times.Once);
+            _mockChatMessageStatusRepository.Verify(x => x.MarkAsReadAsync(chatId, accountId, messageId, cancellationToken), Times.Once);
         }
 
         [Test]
@@ -957,7 +830,7 @@ public class MessageMongoDBServiceTests
             cancellationTokenSource.Cancel();
             var cancellationToken = cancellationTokenSource.Token;
 
-            _mockMessageRepository
+            _mockChatMessageStatusRepository
                 .Setup(x => x.MarkAsReadAsync(chatId, accountId, messageId, cancellationToken))
                 .ThrowsAsync(new OperationCanceledException());
 
@@ -965,7 +838,7 @@ public class MessageMongoDBServiceTests
             var act = async () => await _service.MarkAsReadAsync(chatId, accountId, messageId, cancellationToken);
             await act.Should().ThrowAsync<OperationCanceledException>();
 
-            _mockMessageRepository.Verify(x => x.MarkAsReadAsync(chatId, accountId, messageId, cancellationToken), Times.Once);
+            _mockChatMessageStatusRepository.Verify(x => x.MarkAsReadAsync(chatId, accountId, messageId, cancellationToken), Times.Once);
         }
     }
 
@@ -977,6 +850,7 @@ public class MessageMongoDBServiceTests
         {
             // Arrange
             const string messageId = "507f1f77bcf86cd799439011";
+            const string chatId = "68293554efeb42ffac97edbf";
             const string filename = "preview.jpg";
             const ImageFormats imageFormat = ImageFormats.Jpeg;
             const int width = 300;
@@ -1020,7 +894,7 @@ public class MessageMongoDBServiceTests
                 .Returns(expectedServiceModel);
 
             // Act
-            var result = await _service.SaveImagePreviewAsync(messageId, filename, imageFormat, width, height, fileStorageType, cancellationToken);
+            var result = await _service.SaveImagePreviewAsync(messageId, chatId, filename, imageFormat, width, height, fileStorageType, cancellationToken);
 
             // Assert
             result.Should().BeEquivalentTo(expectedServiceModel);
@@ -1033,6 +907,7 @@ public class MessageMongoDBServiceTests
         {
             // Arrange
             const string messageId = "507f1f77bcf86cd799439012";
+            const string chatId = "68293554efeb42ffac97edbf";
             const string filename = "preview.png";
             const ImageFormats imageFormat = ImageFormats.Png;
             const int width = 400;
@@ -1051,7 +926,7 @@ public class MessageMongoDBServiceTests
                 .Returns(expectedServiceModel);
 
             // Act
-            var result = await _service.SaveImagePreviewAsync(messageId, filename, imageFormat, width, height, fileStorageType);
+            var result = await _service.SaveImagePreviewAsync(messageId, chatId, filename, imageFormat, width, height, fileStorageType);
 
             // Assert
             result.Should().BeEquivalentTo(expectedServiceModel);
@@ -1063,6 +938,7 @@ public class MessageMongoDBServiceTests
         {
             // Arrange
             const string messageId = "507f1f77bcf86cd799439013";
+            const string chatId = "68293554efeb42ffac97edbf";
             const string filename = "small.gif";
             const ImageFormats imageFormat = ImageFormats.Gif;
             const int width = 0;
@@ -1081,7 +957,7 @@ public class MessageMongoDBServiceTests
                 .Returns(expectedServiceModel);
 
             // Act
-            var result = await _service.SaveImagePreviewAsync(messageId, filename, imageFormat, width, height, fileStorageType);
+            var result = await _service.SaveImagePreviewAsync(messageId, chatId, filename, imageFormat, width, height, fileStorageType);
 
             // Assert
             result.Should().BeEquivalentTo(expectedServiceModel);
@@ -1093,6 +969,7 @@ public class MessageMongoDBServiceTests
         {
             // Arrange
             const string messageId = "507f1f77bcf86cd799439014";
+            const string chatId = "68293554efeb42ffac97edbf";
             string filename = null!;
             const ImageFormats imageFormat = ImageFormats.Webp;
             const int width = 100;
@@ -1111,7 +988,7 @@ public class MessageMongoDBServiceTests
                 .Returns(expectedServiceModel);
 
             // Act
-            var result = await _service.SaveImagePreviewAsync(messageId, filename, imageFormat, width, height, fileStorageType);
+            var result = await _service.SaveImagePreviewAsync(messageId, chatId, filename, imageFormat, width, height, fileStorageType);
 
             // Assert
             result.Should().BeEquivalentTo(expectedServiceModel);
@@ -1123,6 +1000,7 @@ public class MessageMongoDBServiceTests
         {
             // Arrange
             const string messageId = "507f1f77bcf86cd799439015";
+            const string chatId = "68293554efeb42ffac97edbf";
             const string filename = "";
             const ImageFormats imageFormat = ImageFormats.Unknown;
             const int width = 50;
@@ -1141,7 +1019,7 @@ public class MessageMongoDBServiceTests
                 .Returns(expectedServiceModel);
 
             // Act
-            var result = await _service.SaveImagePreviewAsync(messageId, filename, imageFormat, width, height, fileStorageType);
+            var result = await _service.SaveImagePreviewAsync(messageId, chatId, filename, imageFormat, width, height, fileStorageType);
 
             // Assert
             result.Should().BeEquivalentTo(expectedServiceModel);
@@ -1153,6 +1031,7 @@ public class MessageMongoDBServiceTests
         {
             // Arrange
             const string messageId = "507f1f77bcf86cd799439016";
+            const string chatId = "68293554efeb42ffac97edbf";
             const string filename = "invalid.jpg";
             const ImageFormats imageFormat = ImageFormats.Jpeg;
             const int width = -100;
@@ -1171,7 +1050,7 @@ public class MessageMongoDBServiceTests
                 .Returns(expectedServiceModel);
 
             // Act
-            var result = await _service.SaveImagePreviewAsync(messageId, filename, imageFormat, width, height, fileStorageType);
+            var result = await _service.SaveImagePreviewAsync(messageId, chatId, filename, imageFormat, width, height, fileStorageType);
 
             // Assert
             result.Should().BeEquivalentTo(expectedServiceModel);
@@ -1183,6 +1062,7 @@ public class MessageMongoDBServiceTests
         {
             // Arrange
             const string messageId = "507f1f77bcf86cd799439017";
+            const string chatId = "68293554efeb42ffac97edbf";
             var filename = new string('a', 500) + ".jpg";
             const ImageFormats imageFormat = ImageFormats.Jpeg;
             const int width = 800;
@@ -1201,7 +1081,7 @@ public class MessageMongoDBServiceTests
                 .Returns(expectedServiceModel);
 
             // Act
-            var result = await _service.SaveImagePreviewAsync(messageId, filename, imageFormat, width, height, fileStorageType);
+            var result = await _service.SaveImagePreviewAsync(messageId, chatId, filename, imageFormat, width, height, fileStorageType);
 
             // Assert
             result.Should().BeEquivalentTo(expectedServiceModel);
@@ -1213,6 +1093,7 @@ public class MessageMongoDBServiceTests
         {
             // Arrange
             const string messageId = "507f1f77bcf86cd799439018";
+            const string chatId = "68293554efeb42ffac97edbf";
             const string filename = "azure.png";
             const ImageFormats imageFormat = ImageFormats.Png;
             const int width = 500;
@@ -1231,7 +1112,7 @@ public class MessageMongoDBServiceTests
                 .Returns(expectedServiceModel);
 
             // Act
-            var result = await _service.SaveImagePreviewAsync(messageId, filename, imageFormat, width, height, fileStorageType);
+            var result = await _service.SaveImagePreviewAsync(messageId, chatId, filename, imageFormat, width, height, fileStorageType);
 
             // Assert
             result.Should().BeEquivalentTo(expectedServiceModel);

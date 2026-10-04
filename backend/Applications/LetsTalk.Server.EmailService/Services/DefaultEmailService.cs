@@ -23,12 +23,12 @@ public class DefaultEmailService(IOptions<EmailServiceSettings> options) : IEmai
             Body = emailBodyBuilder.ToMessageBody()
         };
 
-        message.From.Add(new MailboxAddress(_settings.SenderName, _settings.SenderEmail));
+        message.From.Add(new MailboxAddress(_settings.SenderName, _settings.SenderEmail!));
         message.To.Add(new MailboxAddress(recipientName, recipientEmail));
 
         using var mailClient = new SmtpClient();
-        await mailClient.ConnectAsync(_settings.Server, _settings.Port, MailKit.Security.SecureSocketOptions.StartTls);
-        await mailClient.AuthenticateAsync(_settings.UserName, _settings.Password);
+        await mailClient.ConnectAsync(_settings.Server!, _settings.Port, MailKit.Security.SecureSocketOptions.StartTls);
+        await mailClient.AuthenticateAsync(_settings.UserName!, _settings.Password!);
         await mailClient.SendAsync(message);
         await mailClient.DisconnectAsync(true);
     }

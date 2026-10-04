@@ -9,13 +9,17 @@ namespace LetsTalk.Server.Persistence.MongoDB.Services.Tests;
 public class ChatMongoDBServiceTests
 {
     private Mock<IChatRepository> _mockChatRepository;
+    private Mock<IAccountRepository> _mockAccountRepository;
     private ChatMongoDBService _service;
 
     [SetUp]
     public void SetUp()
     {
         _mockChatRepository = new Mock<IChatRepository>();
-        _service = new ChatMongoDBService(_mockChatRepository.Object);
+        _mockAccountRepository = new Mock<IAccountRepository>();
+        _service = new ChatMongoDBService(
+            _mockChatRepository.Object,
+            _mockAccountRepository.Object);
     }
 
     [TestFixture]

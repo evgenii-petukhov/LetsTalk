@@ -11,13 +11,8 @@ namespace LetsTalk.Server.Persistence.MongoDB.Repository;
 
 public class MessageRepository : IMessageRepository
 {
-    private static readonly ReplaceOptions UpsertReplaceOptions = new()
-    {
-        IsUpsert = true
-    };
-
     private readonly IMongoCollection<Message> _messageCollection;
-    private readonly IMongoCollection<ChatMessageStatus> _chatMessageStatusCollection;
+    
     private readonly IMongoCollection<LinkPreview> _linkPreviewCollection;
 
     public MessageRepository(
@@ -27,7 +22,6 @@ public class MessageRepository : IMessageRepository
         var mongoDatabase = mongoClient.GetDatabase(mongoDBSettings.Value.DatabaseName);
 
         _messageCollection = mongoDatabase.GetCollection<Message>(nameof(Message));
-        _chatMessageStatusCollection = mongoDatabase.GetCollection<ChatMessageStatus>(nameof(ChatMessageStatus));
         _linkPreviewCollection = mongoDatabase.GetCollection<LinkPreview>(nameof(LinkPreview));
     }
 
@@ -139,28 +133,12 @@ public class MessageRepository : IMessageRepository
             .FirstOrDefaultAsync(cancellationToken);
     }
 
-    public Task MarkAsReadAsync(string chatId, string accountId, string messageId, CancellationToken cancellationToken = default)
+    public Task<Message> SetLinkPreviewAsync(
+        string messageId,
+        string linkPreviewId,
+        CancellationToken cancellationToken = default)
     {
-        var filter = Builders<ChatMessageStatus>.Filter.And(
-            Builders<ChatMessageStatus>.Filter.Eq(x => x.ChatId, chatId),
-            Builders<ChatMessageStatus>.Filter.Eq(x => x.AccountId, accountId),
-            Builders<ChatMessageStatus>.Filter.Eq(x => x.MessageId, messageId)
-        );
-
-        var chatMessageStatus = new ChatMessageStatus
-        {
-            ChatId = chatId,
-            AccountId = accountId,
-            MessageId = messageId,
-            DateReadUnix = DateHelper.GetUnixTimestamp()
-        };
-
-        return _chatMessageStatusCollection.ReplaceOneAsync(filter, chatMessageStatus, UpsertReplaceOptions, cancellationToken);
-    }
-
-    public async Task<Message> SetLinkPreviewAsync(string messageId, string linkPreviewId, CancellationToken cancellationToken = default)
-    {
-        var message = await _messageCollection.FindOneAndUpdateAsync(
+        return _messageCollection.FindOneAndUpdateAsync(
             Builders<Message>.Filter.Eq(x => x.Id, messageId),
             Builders<Message>.Update.Set(x => x.LinkPreviewId, linkPreviewId),
             new FindOneAndUpdateOptions<Message, Message>
@@ -168,42 +146,6 @@ public class MessageRepository : IMessageRepository
                 ReturnDocument = ReturnDocument.After
             },
             cancellationToken: cancellationToken);
-
-        message.LinkPreview = await _linkPreviewCollection
-            .Find(Builders<LinkPreview>.Filter.Eq(x => x.Id, linkPreviewId))
-            .FirstOrDefaultAsync(cancellationToken);
-
-        return message;
-    }
-
-    public async Task<Message> SetLinkPreviewAsync(
-        string messageId,
-        string url,
-        string title,
-        string imageUrl,
-        CancellationToken cancellationToken = default)
-    {
-        var linkPreview = new LinkPreview
-        {
-            Url = url,
-            Title = title,
-            ImageUrl = imageUrl
-        };
-
-        await _linkPreviewCollection.InsertOneAsync(linkPreview, cancellationToken: cancellationToken);
-
-        var message = await _messageCollection.FindOneAndUpdateAsync(
-            Builders<Message>.Filter.Eq(x => x.Id, messageId),
-            Builders<Message>.Update.Set(x => x.LinkPreviewId, linkPreview.Id),
-            new FindOneAndUpdateOptions<Message, Message>
-            {
-                ReturnDocument = ReturnDocument.After
-            },
-            cancellationToken: cancellationToken);
-
-        message.LinkPreview = linkPreview;
-
-        return message;
     }
 
     public Task<Message> SetImagePreviewAsync(

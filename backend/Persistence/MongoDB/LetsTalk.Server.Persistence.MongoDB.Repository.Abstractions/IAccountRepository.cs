@@ -39,4 +39,6 @@ public interface IAccountRepository
     Task<List<Account>> GetAccountsAsync(CancellationToken cancellationToken = default);
 
     Task<bool> IsAccountIdValidAsync(string id, CancellationToken cancellationToken = default);
+
+    Task<List<Account>> GetAccountsByChatsAsync(IEnumerable<Chat> chats, string accountId, CancellationToken cancellationToken = default);
 }

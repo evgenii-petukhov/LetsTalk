@@ -35,9 +35,10 @@ public interface IMessageRepository
 
     Task<Message> GetByIdAsync(string id, CancellationToken cancellationToken = default);
 
-    Task MarkAsReadAsync(string chatId, string accountId, string messageId, CancellationToken cancellationToken = default);
-
-    Task<Message> SetLinkPreviewAsync(string messageId, string linkPreviewId, CancellationToken cancellationToken = default);
+    Task<Message> SetLinkPreviewAsync(
+        string messageId,
+        string linkPreviewId,
+        CancellationToken cancellationToken = default);
 
     Task<Message> SetImagePreviewAsync(
         string messageId,
@@ -46,12 +47,5 @@ public interface IMessageRepository
         int width,
         int height,
         FileStorageTypes fileStorageType,
-        CancellationToken cancellationToken = default);
-
-    Task<Message> SetLinkPreviewAsync(
-        string messageId,
-        string url,
-        string title,
-        string imageUrl,
         CancellationToken cancellationToken = default);
 }

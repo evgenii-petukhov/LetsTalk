@@ -5,9 +5,11 @@ using LetsTalk.Server.Persistence.MongoDB.Repository.Abstractions;
 namespace LetsTalk.Server.Persistence.MongoDB.Services;
 
 public class ChatMongoDBService(
-    IChatRepository chatRepository) : IChatAgnosticService
+    IChatRepository chatRepository,
+    IAccountRepository accountRepository) : IChatAgnosticService
 {
     private readonly IChatRepository _chatRepository = chatRepository;
+    private readonly IAccountRepository _accountRepository = accountRepository;
 
     public Task<List<string>> GetChatMemberAccountIdsAsync(string chatId, CancellationToken cancellationToken = default)
     {
@@ -18,7 +20,7 @@ public class ChatMongoDBService(
     {
         var chats = await _chatRepository.GetChatsByAccountIdAsync(accountId, cancellationToken);
 
-        var accounts = await _chatRepository.GetAccountsByChatsAsync(chats, accountId, cancellationToken);
+        var accounts = await _accountRepository.GetAccountsByChatsAsync(chats, accountId, cancellationToken);
 
         var chatMetrics = _chatRepository.GetChatMetrics(accountId, cancellationToken);
 

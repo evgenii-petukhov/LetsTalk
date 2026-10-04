@@ -25,6 +25,7 @@ public class SetImagePreviewCommandHandler(
     {
         var message = await _messageAgnosticService.SaveImagePreviewAsync(
             request.MessageId!,
+            request.ChatId!,
             request.Filename!,
             request.ImageFormat,
             request.Width,

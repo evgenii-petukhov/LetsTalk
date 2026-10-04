@@ -75,6 +75,7 @@ public class SetLinkPreviewCommandHandlerTests
         _messageAgnosticServiceMock
             .Setup(x => x.SetLinkPreviewAsync(
                 "message-123",
+                "chat-456",
                 "https://example.com",
                 "Example Title",
                 "https://example.com/image.jpg",
@@ -100,6 +101,7 @@ public class SetLinkPreviewCommandHandlerTests
         _messageAgnosticServiceMock.Verify(
             x => x.SetLinkPreviewAsync(
                 "message-123",
+                "chat-456",
                 "https://example.com",
                 "Example Title",
                 "https://example.com/image.jpg",
@@ -112,7 +114,7 @@ public class SetLinkPreviewCommandHandlerTests
             Times.Never);
 
         _messageAgnosticServiceMock.Verify(
-            x => x.SetLinkPreviewAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()),
+            x => x.SetLinkPreviewAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()),
             Times.Never);
 
         VerifyCommonOperations(accountIds, linkPreviewDto, messageServiceModel, cancellationToken);
@@ -152,6 +154,7 @@ public class SetLinkPreviewCommandHandlerTests
         _messageAgnosticServiceMock
             .Setup(x => x.SetLinkPreviewAsync(
                 "message-123",
+                "chat-456",
                 "https://example.com",
                 "Example Title",
                 "https://example.com/image.jpg",
@@ -164,7 +167,7 @@ public class SetLinkPreviewCommandHandlerTests
             .ReturnsAsync(linkPreviewId);
 
         _messageAgnosticServiceMock
-            .Setup(x => x.SetLinkPreviewAsync("message-123", linkPreviewId, cancellationToken))
+            .Setup(x => x.SetLinkPreviewAsync("message-123", "chat-456", linkPreviewId, cancellationToken))
             .ReturnsAsync(messageServiceModel);
 
         _chatAgnosticServiceMock
@@ -187,6 +190,7 @@ public class SetLinkPreviewCommandHandlerTests
         _messageAgnosticServiceMock.Verify(
             x => x.SetLinkPreviewAsync(
                 "message-123",
+                "chat-456",
                 "https://example.com",
                 "Example Title",
                 "https://example.com/image.jpg",
@@ -198,7 +202,7 @@ public class SetLinkPreviewCommandHandlerTests
             Times.Once);
 
         _messageAgnosticServiceMock.Verify(
-            x => x.SetLinkPreviewAsync("message-123", linkPreviewId, cancellationToken),
+            x => x.SetLinkPreviewAsync("message-123", "chat-456", linkPreviewId, cancellationToken),
             Times.Once);
 
         VerifyCommonOperations(accountIds, linkPreviewDto, messageServiceModel, cancellationToken);
@@ -298,7 +302,7 @@ public class SetLinkPreviewCommandHandlerTests
         var accountIds = new List<string> { "account-1" };
 
         _messageAgnosticServiceMock
-            .Setup(x => x.SetLinkPreviewAsync(null!, null!, null!, null!, cancellationToken))
+            .Setup(x => x.SetLinkPreviewAsync(null!, null!, null!, null!, null!, cancellationToken))
             .ReturnsAsync(messageServiceModel);
 
         _chatAgnosticServiceMock
@@ -318,7 +322,7 @@ public class SetLinkPreviewCommandHandlerTests
         result.Should().Be(Unit.Value);
 
         _messageAgnosticServiceMock.Verify(
-            x => x.SetLinkPreviewAsync(null!, null!, null!, null!, cancellationToken),
+            x => x.SetLinkPreviewAsync(null!, null!, null!, null!, null!, cancellationToken),
             Times.Once);
 
         _messageCacheManagerMock.Verify(
@@ -343,6 +347,7 @@ public class SetLinkPreviewCommandHandlerTests
         _messageAgnosticServiceMock
             .Setup(x => x.SetLinkPreviewAsync(
                 "message-123",
+                "chat-456",
                 "https://example.com",
                 "Example Title",
                 "https://example.com/image.jpg",
@@ -360,6 +365,7 @@ public class SetLinkPreviewCommandHandlerTests
         _messageAgnosticServiceMock.Verify(
             x => x.SetLinkPreviewAsync(
                 "message-123",
+                "chat-456",
                 "https://example.com",
                 "Example Title",
                 "https://example.com/image.jpg",
@@ -395,6 +401,7 @@ public class SetLinkPreviewCommandHandlerTests
         _messageAgnosticServiceMock
             .Setup(x => x.SetLinkPreviewAsync(
                 "message-123",
+                "chat-456",
                 "https://example.com",
                 "Example Title",
                 "https://example.com/image.jpg",
@@ -406,7 +413,7 @@ public class SetLinkPreviewCommandHandlerTests
             .ReturnsAsync(linkPreviewId);
 
         _messageAgnosticServiceMock
-            .Setup(x => x.SetLinkPreviewAsync("message-123", linkPreviewId, cancellationToken))
+            .Setup(x => x.SetLinkPreviewAsync("message-123", "chat-456", linkPreviewId, cancellationToken))
             .ThrowsAsync(new InvalidOperationException("Fallback SetLinkPreview failed"));
 
         // Act & Assert
@@ -414,7 +421,7 @@ public class SetLinkPreviewCommandHandlerTests
             () => _handler.Handle(command, cancellationToken));
 
         _messageAgnosticServiceMock.Verify(
-            x => x.SetLinkPreviewAsync("message-123", linkPreviewId, cancellationToken),
+            x => x.SetLinkPreviewAsync("message-123", "chat-456", linkPreviewId, cancellationToken),
             Times.Once);
 
         // Should not proceed to other operations
@@ -442,6 +449,7 @@ public class SetLinkPreviewCommandHandlerTests
         _messageAgnosticServiceMock
             .Setup(x => x.SetLinkPreviewAsync(
                 "message-123",
+                "chat-456",
                 "https://example.com",
                 "Example Title",
                 "https://example.com/image.jpg",
@@ -459,6 +467,7 @@ public class SetLinkPreviewCommandHandlerTests
         _messageAgnosticServiceMock.Verify(
             x => x.SetLinkPreviewAsync(
                 "message-123",
+                "chat-456",
                 "https://example.com",
                 "Example Title",
                 "https://example.com/image.jpg",
@@ -498,6 +507,7 @@ public class SetLinkPreviewCommandHandlerTests
         _messageAgnosticServiceMock
             .Setup(x => x.SetLinkPreviewAsync(
                 "message-123",
+                "chat-456",
                 "https://example.com",
                 "Example Title",
                 "https://example.com/image.jpg",
@@ -519,6 +529,7 @@ public class SetLinkPreviewCommandHandlerTests
         _messageAgnosticServiceMock.Verify(
             x => x.SetLinkPreviewAsync(
                 "message-123",
+                "chat-456",
                 "https://example.com",
                 "Example Title",
                 "https://example.com/image.jpg",
@@ -559,6 +570,7 @@ public class SetLinkPreviewCommandHandlerTests
         _messageAgnosticServiceMock
             .Setup(x => x.SetLinkPreviewAsync(
                 "message-123",
+                "chat-456",
                 "https://example.com",
                 "Example Title",
                 "https://example.com/image.jpg",
@@ -607,6 +619,7 @@ public class SetLinkPreviewCommandHandlerTests
         _messageAgnosticServiceMock
             .Setup(x => x.SetLinkPreviewAsync(
                 "message-123",
+                "chat-456",
                 "https://example.com",
                 "Example Title",
                 "https://example.com/image.jpg",
@@ -661,6 +674,7 @@ public class SetLinkPreviewCommandHandlerTests
         _messageAgnosticServiceMock.Verify(
             x => x.SetLinkPreviewAsync(
                 "message-123",
+                "chat-456",
                 "https://example.com",
                 "Example Title",
                 "https://example.com/image.jpg",
@@ -705,6 +719,7 @@ public class SetLinkPreviewCommandHandlerTests
         _messageAgnosticServiceMock.Verify(
             x => x.SetLinkPreviewAsync(
                 "message-123",
+                "chat-456",
                 "https://example.com/path?param=value&other=test",
                 "Title with special chars: !@#$%^&*()",
                 "https://example.com/image.jpg?size=large&format=webp",
@@ -741,6 +756,7 @@ public class SetLinkPreviewCommandHandlerTests
         _messageAgnosticServiceMock.Verify(
             x => x.SetLinkPreviewAsync(
                 "message-123",
+                "chat-456",
                 "https://example.com/中文/العربية",
                 "标题 - عنوان - 🌟 Title",
                 "https://example.com/图片.jpg",
@@ -767,7 +783,7 @@ public class SetLinkPreviewCommandHandlerTests
         var accountIds = new List<string> { "account-1" };
 
         _messageAgnosticServiceMock
-            .Setup(x => x.SetLinkPreviewAsync("", "", "", "", cancellationToken))
+            .Setup(x => x.SetLinkPreviewAsync("", "", "", "", "", cancellationToken))
             .ReturnsAsync(messageServiceModel);
 
         _chatAgnosticServiceMock
@@ -787,7 +803,7 @@ public class SetLinkPreviewCommandHandlerTests
         result.Should().Be(Unit.Value);
 
         _messageAgnosticServiceMock.Verify(
-            x => x.SetLinkPreviewAsync("", "", "", "", cancellationToken),
+            x => x.SetLinkPreviewAsync("", "", "", "", "", cancellationToken),
             Times.Once);
 
         _messageCacheManagerMock.Verify(
@@ -817,6 +833,7 @@ public class SetLinkPreviewCommandHandlerTests
         _messageAgnosticServiceMock
             .Setup(x => x.SetLinkPreviewAsync(
                 "message-123",
+                "chat-456",
                 "https://example.com",
                 "Example Title",
                 "https://example.com/image.jpg",
@@ -830,7 +847,7 @@ public class SetLinkPreviewCommandHandlerTests
 
         // Fallback method with null linkPreviewId
         _messageAgnosticServiceMock
-            .Setup(x => x.SetLinkPreviewAsync("message-123", null!, cancellationToken))
+            .Setup(x => x.SetLinkPreviewAsync("message-123", "chat-456", null!, cancellationToken))
             .ReturnsAsync(messageServiceModel);
 
         _chatAgnosticServiceMock
@@ -850,7 +867,7 @@ public class SetLinkPreviewCommandHandlerTests
         result.Should().Be(Unit.Value);
 
         _messageAgnosticServiceMock.Verify(
-            x => x.SetLinkPreviewAsync("message-123", null!, cancellationToken),
+            x => x.SetLinkPreviewAsync("message-123", "chat-456", null!, cancellationToken),
             Times.Once);
 
         VerifyCommonOperations(accountIds, linkPreviewDto, messageServiceModel, cancellationToken);
@@ -889,6 +906,7 @@ public class SetLinkPreviewCommandHandlerTests
         _messageAgnosticServiceMock.Verify(
             x => x.SetLinkPreviewAsync(
                 "message-123",
+                "chat-456",
                 longUrl,
                 longTitle,
                 longImageUrl,
@@ -901,6 +919,7 @@ public class SetLinkPreviewCommandHandlerTests
         _messageAgnosticServiceMock
             .Setup(x => x.SetLinkPreviewAsync(
                 command.MessageId!,
+                command.ChatId!,
                 command.Url!,
                 command.Title!,
                 command.ImageUrl!,

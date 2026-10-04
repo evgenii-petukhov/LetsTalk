@@ -45,11 +45,16 @@ public static class CoreServicesRegistration
                 x.UsingAmazonSqs((_, configure) =>
                 {
                     var awsSettings = ConfigurationHelper.GetAwsSettings(configuration);
-                    configure.Host(awsSettings.Region, h =>
+                    if (!string.IsNullOrWhiteSpace(awsSettings.Region) &&
+                        !string.IsNullOrWhiteSpace(awsSettings.AccessKey) &&
+                        !string.IsNullOrWhiteSpace(awsSettings.SecretKey))
                     {
-                        h.AccessKey(awsSettings.AccessKey);
-                        h.SecretKey(awsSettings.SecretKey);
-                    });
+                        configure.Host(awsSettings.Region, h =>
+                        {
+                            h.AccessKey(awsSettings.AccessKey);
+                            h.SecretKey(awsSettings.SecretKey);
+                        });
+                    }
 
                     configure.Message<Notification>(x => x.SetEntityName(topicSettings.Notification!));
                     configure.Message<LinkPreviewRequest>(x => x.SetEntityName(topicSettings.LinkPreviewRequest!));

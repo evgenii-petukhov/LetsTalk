@@ -10,7 +10,6 @@ namespace LetsTalk.Server.Persistence.MongoDB.Repository;
 public class AccountRepository : IAccountRepository
 {
     private readonly IMongoCollection<Account> _accountCollection;
-    private readonly IMongoCollection<Message> _messageCollection;
 
     public AccountRepository(
         IMongoClient mongoClient,
@@ -19,7 +18,6 @@ public class AccountRepository : IAccountRepository
         var mongoDatabase = mongoClient.GetDatabase(mongoDBSettings.Value.DatabaseName);
 
         _accountCollection = mongoDatabase.GetCollection<Account>(nameof(Account));
-        _messageCollection = mongoDatabase.GetCollection<Message>(nameof(Message));
     }
 
     public Task<Account> GetByExternalIdAsync(
@@ -128,5 +126,18 @@ public class AccountRepository : IAccountRepository
         await _accountCollection.InsertOneAsync(account, cancellationToken: cancellationToken);
 
         return account;
+    }
+
+    public Task<List<Account>> GetAccountsByChatsAsync(IEnumerable<Chat> chats, string accountId, CancellationToken cancellationToken = default)
+    {
+        var accountIds = chats
+            .SelectMany(x => x.AccountIds!)
+            .Where(x => !string.Equals(x, accountId, StringComparison.Ordinal))
+            .Distinct(StringComparer.Ordinal)
+            .ToHashSet();
+
+        return _accountCollection
+            .Find(Builders<Account>.Filter.In(x => x.Id, accountIds))
+            .ToListAsync(cancellationToken);
     }
 }

@@ -6,8 +6,6 @@ public interface IChatRepository
 {
     Task<List<Chat>> GetChatsByAccountIdAsync(string accountId, CancellationToken cancellationToken = default);
 
-    Task<List<Account>> GetAccountsByChatsAsync(IEnumerable<Chat> chats, string accountId, CancellationToken cancellationToken = default);
-
     Dictionary<string, ChatMetric> GetChatMetrics(string accountId, CancellationToken cancellationToken = default);
 
     Task<List<string>> GetChatMemberAccountIdsAsync(string chatId, CancellationToken cancellationToken = default);

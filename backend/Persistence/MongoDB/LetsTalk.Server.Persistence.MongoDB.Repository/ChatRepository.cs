@@ -11,7 +11,6 @@ namespace LetsTalk.Server.Persistence.MongoDB.Repository;
 public class ChatRepository : IChatRepository
 {
     private readonly IMongoCollection<Chat> _chatCollection;
-    private readonly IMongoCollection<Account> _accountCollection;
     private readonly IMongoCollection<Message> _messageCollection;
     private readonly IMongoCollection<ChatMessageStatus> _chatMessageStatusCollection;
 
@@ -21,7 +20,6 @@ public class ChatRepository : IChatRepository
     {
         var mongoDatabase = mongoClient.GetDatabase(mongoDBSettings.Value.DatabaseName);
         _chatCollection = mongoDatabase.GetCollection<Chat>(nameof(Chat));
-        _accountCollection = mongoDatabase.GetCollection<Account>(nameof(Account));
         _messageCollection = mongoDatabase.GetCollection<Message>(nameof(Message));
         _chatMessageStatusCollection = mongoDatabase.GetCollection<ChatMessageStatus>(nameof(ChatMessageStatus));
     }
@@ -30,19 +28,6 @@ public class ChatRepository : IChatRepository
     {
         return _chatCollection
             .Find(Builders<Chat>.Filter.Where(x => x.AccountIds!.Contains(accountId)))
-            .ToListAsync(cancellationToken);
-    }
-
-    public Task<List<Account>> GetAccountsByChatsAsync(IEnumerable<Chat> chats, string accountId, CancellationToken cancellationToken = default)
-    {
-        var accountIds = chats
-            .SelectMany(x => x.AccountIds!)
-            .Where(x => !string.Equals(x, accountId, StringComparison.Ordinal))
-            .Distinct()
-            .ToHashSet();
-
-        return _accountCollection
-            .Find(Builders<Account>.Filter.In(x => x.Id, accountIds))
             .ToListAsync(cancellationToken);
     }
 
@@ -144,7 +129,7 @@ public class ChatRepository : IChatRepository
 
         return [.. chats.SelectMany(x => x.AccountIds!)
             .Where(x => !string.Equals(x, accountId, StringComparison.Ordinal))
-            .Distinct()];
+            .Distinct(StringComparer.Ordinal)];
     }
 
     public Task<bool> IsAccountChatMemberAsync(string chatId, string accountId, CancellationToken cancellationToken = default)
