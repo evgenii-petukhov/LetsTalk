@@ -1,6 +1,9 @@
-﻿namespace LetsTalk.Server.Models.Dtos;
+﻿using System.ComponentModel.DataAnnotations;
+
+namespace LetsTalk.Server.Models.Dtos;
 
 public class StartOutgoingCallDto
 {
-    public string? CallId { get; set; }
+    [Required]
+    public required string CallId { get; set; }
 }

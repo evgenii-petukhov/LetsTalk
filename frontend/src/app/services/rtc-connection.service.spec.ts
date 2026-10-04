@@ -14,7 +14,7 @@ import { RtcConnectionService } from './rtc-connection.service';
 import { ApiService } from './api.service';
 import { RtcPeerConnectionManager } from './rtc-peer-connection-manager';
 import { StoreService } from './store.service';
-import { DebugService } from './debug.service';
+import { RtcErrorLoggingService } from './rtc-error-logging.service';
 import {
     CallSettingsDto,
     RtcErrorType,
@@ -24,10 +24,11 @@ import {
 describe('RtcConnectionService', () => {
     let service: RtcConnectionService;
     let apiService: MockedObject<ApiService>;
-    let connectionManager: Partial<MockedObject<RtcPeerConnectionManager>>;
+    let connectionManager: MockedObject<RtcPeerConnectionManager>;
+    // cast needed because the mock only implements the subset used by RtcConnectionService
     let storeService: MockedObject<StoreService>;
     let mockStore: MockedObject<Store>;
-    let debugService: MockedObject<DebugService>;
+    let errorLoggingService: MockedObject<RtcErrorLoggingService>;
 
     const mockCallSettings = {
         iceServerConfiguration: JSON.stringify({
@@ -115,8 +116,9 @@ describe('RtcConnectionService', () => {
             onGatheringCompleted: null,
             onConnected: null,
             onConnectionError: null,
+            onIceServerError: null,
             onDisconnected: null,
-        };
+        } as unknown as MockedObject<RtcPeerConnectionManager>;
 
         storeService = {
             resetCall: vi.fn().mockName('StoreService.resetCall'),
@@ -128,9 +130,16 @@ describe('RtcConnectionService', () => {
             select: vi.fn().mockName('Store.select').mockReturnValue(of(mockVideoCallState)),
         } as MockedObject<Store>;
 
-        debugService = {
-            getStackTrace: vi.fn().mockName('DebugService.getStackTrace').mockReturnValue('mock-stack-trace'),
-        } as MockedObject<DebugService>;
+        errorLoggingService = {
+            logConnectionError: vi
+                .fn()
+                .mockName('RtcErrorLoggingService.logConnectionError')
+                .mockResolvedValue(undefined),
+            logIceServerError: vi
+                .fn()
+                .mockName('RtcErrorLoggingService.logIceServerError')
+                .mockResolvedValue(undefined),
+        } as MockedObject<RtcErrorLoggingService>;
 
         TestBed.configureTestingModule({
             providers: [
@@ -142,7 +151,7 @@ describe('RtcConnectionService', () => {
                 },
                 { provide: StoreService, useValue: storeService },
                 { provide: Store, useValue: mockStore },
-                { provide: DebugService, useValue: debugService },
+                { provide: RtcErrorLoggingService, useValue: errorLoggingService },
             ],
         });
 
@@ -195,7 +204,7 @@ describe('RtcConnectionService', () => {
             // Assert
             expect(apiService.getCallSettings).toHaveBeenCalled();
             expect(connectionManager.initiateOffer).toHaveBeenCalledWith(
-                JSON.parse(mockCallSettings.iceServerConfiguration),
+                JSON.parse(mockCallSettings.iceServerConfiguration!),
             );
             expect(apiService.startOutgoingCall).toHaveBeenCalledWith(
                 accountId,
@@ -279,7 +288,7 @@ describe('RtcConnectionService', () => {
             expect(
                 connectionManager.handleOfferAndCreateAnswer,
             ).toHaveBeenCalledWith(
-                JSON.parse(mockCallSettings.iceServerConfiguration),
+                JSON.parse(mockCallSettings.iceServerConfiguration!),
                 mockOffer.desc,
                 mockOffer.candidates,
             );
@@ -557,12 +566,12 @@ describe('RtcConnectionService', () => {
     });
 
     describe('onConnectionStateChange', () => {
-        it('should call processEndCall when disconnected', () => {
+        it('should call processEndCall when disconnected', async () => {
             // Arrange
             vi.spyOn(service as any, 'processEndCall');
 
             // Act
-            service['onDisconnected']();
+            await service['onDisconnected']();
 
             // Assert
             expect(service['processEndCall']).toHaveBeenCalled();
@@ -582,20 +591,16 @@ describe('RtcConnectionService', () => {
 
         it('should log connection failure', async () => {
             // Arrange
+            const error = new Error('Connection failed');
             const errorMessage = 'Connection failed';
-            const error = new Error(errorMessage);
 
             // Act
-            await service['onConnectionError'](errorMessage, error);
+            await service['onConnectionError'](error, errorMessage);
 
             // Assert
-            expect(apiService.logWebRtcError).toHaveBeenCalledWith(
-                mockVideoCallState.callId,
-                mockVideoCallState.chatId,
-                undefined,
-                RtcErrorType.Connection,
+            expect(errorLoggingService.logConnectionError).toHaveBeenCalledWith(
+                error,
                 errorMessage,
-                'mock-stack-trace',
             );
         });
     });
@@ -775,12 +780,12 @@ describe('RtcConnectionService', () => {
             expect(connectionManager.onDisconnected).toBeDefined();
         });
 
-        it('should trigger onDisconnected callback correctly', () => {
+        it('should trigger onDisconnected callback correctly', async () => {
             // Arrange
             vi.spyOn(service as any, 'processEndCall');
 
             // Act - Simulate callback from connection manager by calling the bound method directly
-            service['onDisconnected']();
+            await service['onDisconnected']();
 
             // Assert
             expect(service['processEndCall']).toHaveBeenCalled();
@@ -827,9 +832,9 @@ describe('RtcConnectionService', () => {
             await expect(service.startOutgoingCall(accountId)).rejects.toThrow(
                 'API Error',
             );
-            
+
             // Should have attempted to log the failure
-            expect(apiService.logWebRtcError).toHaveBeenCalled();
+            expect(errorLoggingService.logConnectionError).toHaveBeenCalled();
         });
 
         it('should handle API errors in handleIncomingCall', async () => {
@@ -844,9 +849,9 @@ describe('RtcConnectionService', () => {
             await expect(
                 service.handleIncomingCall(callId, chatId, offerString),
             ).rejects.toThrow('API Error');
-            
+
             // Should have attempted to log the failure
-            expect(apiService.logWebRtcError).toHaveBeenCalled();
+            expect(errorLoggingService.logConnectionError).toHaveBeenCalled();
         });
 
         it('should handle connection manager errors', async () => {
@@ -864,9 +869,9 @@ describe('RtcConnectionService', () => {
             await expect(service.startOutgoingCall(accountId)).rejects.toThrow(
                 'Connection Manager Error',
             );
-            
+
             // Should have attempted to log the failure
-            expect(apiService.logWebRtcError).toHaveBeenCalled();
+            expect(errorLoggingService.logConnectionError).toHaveBeenCalled();
         });
     });
 });

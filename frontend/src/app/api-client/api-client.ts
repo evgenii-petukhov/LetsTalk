@@ -1744,6 +1744,7 @@ export class LogRtcErrorRequest implements ILogRtcErrorRequest {
     connectionDiagnostics?: ConnectionDiagnostics;
     errorType?: RtcErrorType;
     error?: string | undefined;
+    errorMessage?: string | undefined;
     stackTrace?: string | undefined;
 
     constructor(data?: ILogRtcErrorRequest) {
@@ -1762,6 +1763,7 @@ export class LogRtcErrorRequest implements ILogRtcErrorRequest {
             this.connectionDiagnostics = _data["connectionDiagnostics"] ? ConnectionDiagnostics.fromJS(_data["connectionDiagnostics"]) : undefined as any;
             this.errorType = _data["errorType"];
             this.error = _data["error"];
+            this.errorMessage = _data["errorMessage"];
             this.stackTrace = _data["stackTrace"];
         }
     }
@@ -1780,6 +1782,7 @@ export class LogRtcErrorRequest implements ILogRtcErrorRequest {
         data["connectionDiagnostics"] = this.connectionDiagnostics ? this.connectionDiagnostics.toJSON() : undefined as any;
         data["errorType"] = this.errorType;
         data["error"] = this.error;
+        data["errorMessage"] = this.errorMessage;
         data["stackTrace"] = this.stackTrace;
         return data;
     }
@@ -1791,6 +1794,7 @@ export interface ILogRtcErrorRequest {
     connectionDiagnostics?: ConnectionDiagnostics;
     errorType?: RtcErrorType;
     error?: string | undefined;
+    errorMessage?: string | undefined;
     stackTrace?: string | undefined;
 }
 
@@ -2158,7 +2162,7 @@ export interface ISetLinkPreviewRequest {
 }
 
 export class StartOutgoingCallDto implements IStartOutgoingCallDto {
-    callId?: string | undefined;
+    callId!: string;
 
     constructor(data?: IStartOutgoingCallDto) {
         if (data) {
@@ -2190,7 +2194,7 @@ export class StartOutgoingCallDto implements IStartOutgoingCallDto {
 }
 
 export interface IStartOutgoingCallDto {
-    callId?: string | undefined;
+    callId: string;
 }
 
 export class StartOutgoingCallRequest implements IStartOutgoingCallRequest {

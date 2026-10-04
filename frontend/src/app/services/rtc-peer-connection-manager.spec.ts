@@ -56,8 +56,8 @@ describe('RtcPeerConnectionManager', () => {
         );
 
         iceCandidateMetricsService = {
-            hasMinimumCandidateCount: vi.fn(),
-            hasSufficientServers: vi.fn(),
+            hasMinimumCandidateCount: vi.fn().mockReturnValue(false),
+            hasSufficientServers: vi.fn().mockReturnValue(false),
         };
 
         rtcConnectionDiagnosticsService = {
@@ -141,7 +141,7 @@ describe('RtcPeerConnectionManager', () => {
             await service.handleOfferAndCreateAnswer(
                 mockConfig,
                 mockOffer,
-                null,
+                null as any,
             );
 
             // Assert
@@ -243,7 +243,7 @@ describe('RtcPeerConnectionManager', () => {
             mockConnection.signalingState = 'have-local-offer';
 
             // Act
-            await service.setRemoteAnswerAndCandidates(mockAnswer, null);
+            await service.setRemoteAnswerAndCandidates(mockAnswer, null as any);
 
             // Assert
             expect(mockConnection.setRemoteDescription).toHaveBeenCalled();
@@ -283,7 +283,7 @@ describe('RtcPeerConnectionManager', () => {
             (navigator.mediaDevices.getUserMedia as Mock).mockRejectedValue(
                 error,
             );
-            vi.spyOn(console, 'error');
+            vi.spyOn(console, 'error').mockImplementation(() => {});
 
             // Act
             await service.startMediaCapture(mockLocalVideo, mockRemoteVideo, 'user');
@@ -672,6 +672,7 @@ describe('RtcPeerConnectionManager', () => {
             // Arrange
             service['isGathering'] = true;
             service.onCandidatesReceived = undefined as any;
+            // hasMinimumCandidateCount already defaults to false — requestCompleteGathering returns early
             const mockRTCCandidate = mockCandidate as RTCIceCandidate;
             const mockEvent = {
                 candidate: mockRTCCandidate,
@@ -880,8 +881,8 @@ describe('RtcPeerConnectionManager', () => {
             service['onIceConnectionStateChange']();
 
             // Assert
+            // Implementation: onIceServerError?.(new Error()) — one arg, an Error instance
             expect(service.onIceServerError).toHaveBeenCalledWith(
-                undefined,
                 expect.any(Error),
             );
         });
@@ -900,28 +901,59 @@ describe('RtcPeerConnectionManager', () => {
     });
 
     describe('onIceCandidateError', () => {
-        it('should call onIceServerError with error text', () => {
+        it('should call onIceServerError with errorInfo object and error text', () => {
             // Arrange
             service.onIceServerError = vi.fn();
-            const mockEvent = { errorText: 'STUN error' } as RTCPeerConnectionIceErrorEvent;
+            const mockEvent = {
+                errorText: 'STUN error',
+                errorCode: 400,
+                url: 'stun:stun.example.com',
+                address: '192.168.1.1',
+                port: 3478,
+            } as RTCPeerConnectionIceErrorEvent;
 
             // Act
             service['onIceCandidateError'](mockEvent);
 
             // Assert
+            // Implementation: onIceServerError?.(errorInfo, event.errorText)
+            // First arg is an errorInfo object, second is the error text string
             expect(service.onIceServerError).toHaveBeenCalledWith(
+                expect.objectContaining({ errorText: 'STUN error' }),
                 'STUN error',
-                expect.any(Error),
             );
         });
 
         it('should not throw when onIceServerError is undefined', () => {
             // Arrange
             service.onIceServerError = undefined as any;
-            const mockEvent = { errorText: 'STUN error' } as RTCPeerConnectionIceErrorEvent;
+            const mockEvent = {
+                errorText: 'STUN error',
+                errorCode: 400,
+                url: 'stun:stun.example.com',
+                address: '192.168.1.1',
+                port: 3478,
+            } as RTCPeerConnectionIceErrorEvent;
 
             // Act & Assert
             expect(() => service['onIceCandidateError'](mockEvent)).not.toThrow();
+        });
+
+        it('should not throw for error code 701', () => {
+            // Arrange
+            service.onIceServerError = vi.fn();
+            const mockEvent = {
+                errorText: 'TURN timeout',
+                errorCode: 701,
+                url: 'turn:turn.example.com',
+                address: '192.168.1.1',
+                port: 3478,
+            } as RTCPeerConnectionIceErrorEvent;
+
+            // Act & Assert — error 701 is treated as non-fatal: it returns early
+            // without calling onIceServerError
+            expect(() => service['onIceCandidateError'](mockEvent)).not.toThrow();
+            expect(service.onIceServerError).not.toHaveBeenCalled();
         });
     });
 });

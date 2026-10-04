@@ -18,6 +18,7 @@ internal sealed class LogRtcErrorCommandHandler(
             request.ConnectionDiagnostics,
             request.ErrorType,
             request.Error,
+            request.ErrorMessage,
             request.StackTrace);
 
         return Unit.Value;

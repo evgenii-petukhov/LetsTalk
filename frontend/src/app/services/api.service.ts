@@ -78,7 +78,7 @@ export class ApiService {
                       fileStorageTypeId: image.getFileStorageTypeId(),
                       signature: image.getSignature(),
                   })
-                : null,
+                : undefined,
         });
         return firstValueFrom(this.client.profilePUT(request));
     }
@@ -100,7 +100,7 @@ export class ApiService {
                       fileStorageTypeId: image.getFileStorageTypeId(),
                       signature: image.getSignature(),
                   })
-                : null,
+                : undefined,
         });
 
         return firstValueFrom(this.client.message(request));
@@ -174,8 +174,8 @@ export class ApiService {
     }
 
     logConnectionEstablished(
-        callId: string,
-        chatId: string,
+        callId: string | undefined,
+        chatId: string | undefined,
         diagnostics: ConnectionDiagnostics,
     ): Promise<void> {
         const request = new LogConnectionEstablishedRequest({
@@ -197,6 +197,7 @@ export class ApiService {
         diagnostics: ConnectionDiagnostics,
         errorType: RtcErrorType,
         error: any,
+        errorMessage: string | undefined,
         stackTrace: any
     ): Promise<void> {
         const request = new LogRtcErrorRequest({
@@ -209,6 +210,7 @@ export class ApiService {
             }),
             errorType,
             error: JSON.stringify(error),
+            errorMessage,
             stackTrace: JSON.stringify(stackTrace)
         });
 

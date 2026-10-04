@@ -1,6 +1,6 @@
 export interface VideoCall {
     callId?: string;
-    chatId?: string;
+    chatId: string;
     offer?: string;
     status: 'outgoing' | 'incoming-awaiting' | 'incoming-active';
     captureVideo: boolean;

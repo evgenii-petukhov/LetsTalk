@@ -14,5 +14,7 @@ public class LogRtcErrorRequest
 
     public string? Error { get; set; }
 
+    public string? ErrorMessage { get; set; }
+
     public string? StackTrace { get; set; }
 }

@@ -70,11 +70,13 @@ export class VideoCallComponent implements OnDestroy, AfterViewInit {
                                 currentState.facingMode,
                             );
                             if (currentState.status === 'incoming-active') {
-                                await this.rtcConnectionService.handleIncomingCall(
-                                    currentState.callId,
-                                    currentState.chatId,
-                                    currentState.offer,
-                                );
+                                if (currentState.callId && currentState.offer) {
+                                    await this.rtcConnectionService.handleIncomingCall(
+                                        currentState.callId,
+                                        currentState.chatId,
+                                        currentState.offer,
+                                    );
+                                }
                             } else if (currentState.status === 'outgoing') {
                                 await this.rtcConnectionService.startOutgoingCall(
                                     currentState.chatId,
@@ -123,7 +125,7 @@ export class VideoCallComponent implements OnDestroy, AfterViewInit {
         return this.connectionManager.switchCamera(
             this.localVideo.nativeElement,
             this.remoteVideo.nativeElement,
-            this.facingMode(),
+            this.facingMode() ?? 'user',
         );
     }
 
