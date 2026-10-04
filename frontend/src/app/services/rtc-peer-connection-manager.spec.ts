@@ -950,9 +950,10 @@ describe('RtcPeerConnectionManager', () => {
                 port: 3478,
             } as RTCPeerConnectionIceErrorEvent;
 
-            // Act & Assert
+            // Act & Assert — error 701 is treated as non-fatal: it returns early
+            // without calling onIceServerError
             expect(() => service['onIceCandidateError'](mockEvent)).not.toThrow();
-            expect(service.onIceServerError).toHaveBeenCalled();
+            expect(service.onIceServerError).not.toHaveBeenCalled();
         });
     });
 });

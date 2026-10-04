@@ -292,17 +292,7 @@ export class RtcPeerConnectionManager {
     }
 
     private onIceCandidateError(event: RTCPeerConnectionIceErrorEvent): void {
-        const errorInfo = {
-            errorText: event.errorText,
-            errorCode: event.errorCode,
-            url: event.url,
-            address: event.address,
-            port: event.port,
-        };
-        console.error('ICE Candidate Error:', errorInfo);
-
-        this.onIceServerError?.(errorInfo, event.errorText);
-        
+       
         // Error 701 is often non-fatal - it means a candidate failed but others might work
         // Common errors:
         // - Network interface mismatch
@@ -310,8 +300,16 @@ export class RtcPeerConnectionManager {
         // Only report as critical if we have NO successful candidates at all
         if (event.errorCode === 701) {
             console.warn(`Error 701: ${event.errorText} - this candidate will be skipped, others may work`);
-            // Don't fail the entire connection for this error
-            return;
+        } else {
+            const errorInfo = {
+                errorText: event.errorText,
+                errorCode: event.errorCode,
+                url: event.url,
+                address: event.address,
+                port: event.port,
+            };
+            console.error('ICE Candidate Error:', errorInfo);
+            this.onIceServerError?.(errorInfo, event.errorText);
         }
     }
 }
