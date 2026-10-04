@@ -69,7 +69,7 @@
       "templateDirectory": null,
       "serviceHost": null,
       "serviceSchemes": null,
-      "output": "api-client.ts",
+      "output": "frontend/src/app/api-client/api-client.ts",
       "newLineBehavior": "Auto"
     },
     "openApiToCSharpClient": {
@@ -162,7 +162,7 @@
       "templateDirectory": null,
       "serviceHost": null,
       "serviceSchemes": null,
-      "output": "../../../../backend/API/LetsTalk.Server.API.Client/ApiClient.cs",
+      "output": "backend/API/LetsTalk.Server.API.Client/ApiClient.cs",
       "newLineBehavior": "Auto"
     }
   }
