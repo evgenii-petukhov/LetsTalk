@@ -14,6 +14,7 @@ public class SendEmailRequestConsumer(IEmailService emailService) : IConsumer<Se
             context.Message.Address!,
             null!,
             context.Message.Subject!,
-            context.Message.Body!);
+            context.Message.PlainText!,
+            context.Message.Html!);
     }
 }

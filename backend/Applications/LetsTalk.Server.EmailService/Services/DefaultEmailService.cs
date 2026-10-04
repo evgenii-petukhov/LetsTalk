@@ -10,11 +10,17 @@ public class DefaultEmailService(IOptions<EmailServiceSettings> options) : IEmai
 {
     private readonly EmailServiceSettings _settings = options.Value;
 
-    public async Task SendAsync(string recipientEmail, string recipientName, string subject, string text)
+    public async Task SendAsync(
+        string recipientEmail,
+        string recipientName,
+        string subject,
+        string plainText,
+        string html)
     {
         var emailBodyBuilder = new BodyBuilder
         {
-            TextBody = text
+            TextBody = plainText,
+            HtmlBody = html
         };
 
         using var message = new MimeMessage

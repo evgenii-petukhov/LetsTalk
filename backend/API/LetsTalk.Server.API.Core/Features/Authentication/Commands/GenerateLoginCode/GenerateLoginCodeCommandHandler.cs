@@ -14,7 +14,8 @@ public class GenerateLoginCodeCommandHandler(
     IProducer<SendEmailRequest> producer
 ) : IRequestHandler<GenerateLoginCodeCommand, GenerateLoginCodeResponseDto>
 {
-    private static readonly CompositeFormat MessageTemplate = CompositeFormat.Parse(Localization.LoginCodeEmailTemplate);
+    private static readonly CompositeFormat PlainTextTemplate = CompositeFormat.Parse(Localization.LoginCodeEmailPlainText);
+    private static readonly CompositeFormat HtmlTemplate = CompositeFormat.Parse(Localization.LoginCodeEmailHtml);
 
     private readonly IAuthenticationClient _authenticationClient = authenticationClient;
     private readonly IProducer<SendEmailRequest> _producer = producer;
@@ -32,7 +33,8 @@ public class GenerateLoginCodeCommandHandler(
                 {
                     Address = email,
                     Subject = Localization.LoginCodeEmailSubject,
-                    Body = string.Format(CultureInfo.InvariantCulture, MessageTemplate, code)
+                    PlainText = string.Format(CultureInfo.InvariantCulture, PlainTextTemplate, code),
+                    Html = string.Format(CultureInfo.InvariantCulture, HtmlTemplate, code)
                 }, cancellationToken);
         }
 
