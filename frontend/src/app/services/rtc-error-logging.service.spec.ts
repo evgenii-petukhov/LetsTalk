@@ -20,18 +20,20 @@ describe('RtcErrorLoggingService', () => {
         chatId: 'test-chat-id',
     };
 
+    const mockDiagnostics = {
+        connectionState: 'connected',
+        localCandidateTypes: {},
+        remoteCandidateTypes: {},
+        browser: 'Chrome',
+        platform: 'Win32',
+    };
+
     beforeEach(() => {
         connectionManager = {
             getDiagnostics: vi
                 .fn()
                 .mockName('RtcPeerConnectionManager.getDiagnostics')
-                .mockResolvedValue({
-                    connectionState: 'connected',
-                    localCandidateTypes: {},
-                    remoteCandidateTypes: {},
-                    browser: 'Chrome',
-                    platform: 'Win32',
-                }),
+                .mockResolvedValue(mockDiagnostics),
         };
 
         mockStore = {
@@ -77,39 +79,41 @@ describe('RtcErrorLoggingService', () => {
     });
 
     describe('logConnectionError', () => {
-        it('should log connection error with error message', async () => {
+        it('should log connection error with error object and message', async () => {
             // Arrange
             const errorMessage = 'Connection failed';
             const error = new Error(errorMessage);
 
             // Act
-            await service.logConnectionError(errorMessage, error);
+            await service.logConnectionError(error, errorMessage);
 
             // Assert
             expect(apiService.logWebRtcError).toHaveBeenCalledWith(
                 mockVideoCallState.callId,
                 mockVideoCallState.chatId,
-                expect.any(Object),
+                mockDiagnostics,
                 RtcErrorType.Connection,
+                error,
                 errorMessage,
                 'mock-stack-trace',
             );
         });
 
-        it('should log connection error without error object', async () => {
+        it('should log connection error without error message', async () => {
             // Arrange
-            const errorMessage = 'Connection timeout';
+            const error = new Error('Connection timeout');
 
             // Act
-            await service.logConnectionError(errorMessage);
+            await service.logConnectionError(error);
 
             // Assert
             expect(apiService.logWebRtcError).toHaveBeenCalledWith(
                 mockVideoCallState.callId,
                 mockVideoCallState.chatId,
-                expect.any(Object),
+                mockDiagnostics,
                 RtcErrorType.Connection,
-                errorMessage,
+                error,
+                undefined,
                 'mock-stack-trace',
             );
         });
@@ -122,35 +126,15 @@ describe('RtcErrorLoggingService', () => {
             const error = new Error(errorMessage);
 
             // Act
-            await service.logIceServerError(errorMessage, error);
+            await service.logIceServerError(error, errorMessage);
 
             // Assert
             expect(apiService.logWebRtcError).toHaveBeenCalledWith(
                 mockVideoCallState.callId,
                 mockVideoCallState.chatId,
-                expect.any(Object),
+                mockDiagnostics,
                 RtcErrorType.IceServer,
-                errorMessage,
-                'mock-stack-trace',
-            );
-        });
-    });
-
-    describe('logMediaStreamError', () => {
-        it('should log media stream error', async () => {
-            // Arrange
-            const errorMessage = 'Camera permission denied';
-            const error = new Error(errorMessage);
-
-            // Act
-            await service.logMediaStreamError(errorMessage, error);
-
-            // Assert
-            expect(apiService.logWebRtcError).toHaveBeenCalledWith(
-                mockVideoCallState.callId,
-                mockVideoCallState.chatId,
-                expect.any(Object),
-                RtcErrorType.Media,
+                error,
                 errorMessage,
                 'mock-stack-trace',
             );
@@ -160,7 +144,7 @@ describe('RtcErrorLoggingService', () => {
     describe('error handling', () => {
         it('should get diagnostics from connection manager', async () => {
             // Act
-            await service.logConnectionError('Test error');
+            await service.logConnectionError(new Error('Test error'));
 
             // Assert
             expect(connectionManager.getDiagnostics).toHaveBeenCalled();
@@ -168,7 +152,7 @@ describe('RtcErrorLoggingService', () => {
 
         it('should get call settings from store', async () => {
             // Act
-            await service.logConnectionError('Test error');
+            await service.logConnectionError(new Error('Test error'));
 
             // Assert
             expect(mockStore.select).toHaveBeenCalled();
@@ -179,10 +163,21 @@ describe('RtcErrorLoggingService', () => {
             const error = new Error('Test error');
 
             // Act
-            await service.logConnectionError('Test error', error);
+            await service.logConnectionError(error);
 
             // Assert
             expect(debugService.getStackTrace).toHaveBeenCalledWith(error);
+        });
+
+        it('should not call logWebRtcError when callId is absent', async () => {
+            // Arrange
+            mockStore.select.mockReturnValue(of({ callId: null, chatId: null }));
+
+            // Act
+            await service.logConnectionError(new Error('Test error'));
+
+            // Assert
+            expect(apiService.logWebRtcError).not.toHaveBeenCalled();
         });
     });
 });

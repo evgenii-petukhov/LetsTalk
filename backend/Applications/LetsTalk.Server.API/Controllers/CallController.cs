@@ -14,7 +14,8 @@ public class CallController(
     private readonly IMediator _mediator = mediator;
 
     [HttpGet("CallSettings")]
-    public async Task<ActionResult<CallSettingsDto>> GetCallSettingsAsync(CancellationToken cancellationToken)
+    public async Task<ActionResult<CallSettingsDto>> GetCallSettingsAsync(
+        CancellationToken cancellationToken)
     {
         var query = new GetCallSettingsQuery();
         var settings = await _mediator.Send(query, cancellationToken);
@@ -22,7 +23,9 @@ public class CallController(
     }
 
     [HttpPost("StartOutgoingCall")]
-    public async Task<ActionResult<StartOutgoingCallDto>> StartOutgoingCallAsync(StartOutgoingCallRequest request, CancellationToken cancellationToken)
+    public async Task<ActionResult<StartOutgoingCallDto>> StartOutgoingCallAsync(
+        StartOutgoingCallRequest request,
+        CancellationToken cancellationToken)
     {
         var cmd = new StartOutgoingCallCommand(
             GetAccountId(),
@@ -36,7 +39,9 @@ public class CallController(
     }
 
     [HttpPost("HandleIncomingCall")]
-    public async Task<ActionResult> HandleIncomingCallAsync(HandleIncomingCallRequest request, CancellationToken cancellationToken)
+    public async Task<ActionResult> HandleIncomingCallAsync(
+        HandleIncomingCallRequest request,
+        CancellationToken cancellationToken)
     {
         var cmd = new HandleIncomingCallCommand(
             request.CallId!,
@@ -51,7 +56,9 @@ public class CallController(
     }
 
     [HttpPost("LogConnectionEstablished")]
-    public async Task<ActionResult> LogConnectionEstablishedAsync(LogConnectionEstablishedRequest request, CancellationToken cancellationToken)
+    public async Task<ActionResult> LogConnectionEstablishedAsync(
+        LogConnectionEstablishedRequest request,
+        CancellationToken cancellationToken)
     {
         var cmd = new LogConnectionEstablishedCommand(
             request.CallId!,
@@ -63,7 +70,9 @@ public class CallController(
     }
 
     [HttpPost("LogRtcError")]
-    public async Task<ActionResult> LogRtcErrorAsync(LogRtcErrorRequest request, CancellationToken cancellationToken)
+    public async Task<ActionResult> LogRtcErrorAsync(
+        LogRtcErrorRequest request,
+        CancellationToken cancellationToken)
     {
         var cmd = new LogRtcErrorCommand(
             request.CallId!,
@@ -72,6 +81,7 @@ public class CallController(
             request.ConnectionDiagnostics!,
             request.ErrorType,
             request.Error!,
+            request.ErrorMessage!,
             request.StackTrace!);
         await _mediator.Send(cmd, cancellationToken);
         return Ok();

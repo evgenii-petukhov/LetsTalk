@@ -32,6 +32,7 @@ public interface ITelemetryService
         string accountId,
         ConnectionDiagnostics connectionDiagnostics,
         RtcErrorType errorType,
+        string error,
         string errorMessage,
         string stackTrace);
 }

@@ -10,4 +10,5 @@ public record LogRtcErrorCommand(
     ConnectionDiagnostics ConnectionDiagnostics,
     RtcErrorType ErrorType,
     string Error,
+    string ErrorMessage,
     string StackTrace) : IRequest<Unit>;

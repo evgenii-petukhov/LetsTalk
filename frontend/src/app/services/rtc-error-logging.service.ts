@@ -16,34 +16,31 @@ export class RtcErrorLoggingService {
     private readonly apiService = inject(ApiService);
     private readonly debugService = inject(DebugService);
 
-    logConnectionError(errorMessage: string, error?: any): Promise<void> {
-        return this.logError(RtcErrorType.Connection, errorMessage, error);
+    logConnectionError(error: any, errorMessage?: string): Promise<void> {
+        return this.logError(RtcErrorType.Connection, error, errorMessage);
     }
 
-    logIceServerError(errorMessage: string, error?: any): Promise<void> {
-        return this.logError(RtcErrorType.IceServer, errorMessage, error);
-    }
-
-    logMediaStreamError(errorMessage: string, error?: any): Promise<void> {
-        return this.logError(RtcErrorType.Media, errorMessage, error);
+    logIceServerError(error: any, errorMessage?: string): Promise<void> {
+        return this.logError(RtcErrorType.IceServer, error, errorMessage);
     }
 
     private async logError(
         errorType: RtcErrorType,
-        errorMessage: string,
         error?: any,
+        errorMessage?: string
     ): Promise<void> {
         const callSettings = await firstValueFrom(
             this.store.select(selectVideoCall),
         );
-        if (callSettings.callId) {
+        if (callSettings?.callId) {
             const diagnostics = await this.connectionManager.getDiagnostics();
             await this.apiService.logWebRtcError(
                 callSettings.callId,
                 callSettings.chatId,
                 diagnostics,
                 errorType,
-                errorMessage || error,
+                error,
+                errorMessage,
                 this.debugService.getStackTrace(error),
             );
         }

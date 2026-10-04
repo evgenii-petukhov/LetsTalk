@@ -25,6 +25,7 @@ public class TelemetryService(
     private const string Browser = "browser";
     private const string Platform = "platform";
     private const string Error = "error";
+    private const string ErrorMessage = "errorMessage";
     private const string ErrorType = "errorType";
     private const string StackTrace = "stackTrace";
 
@@ -109,6 +110,7 @@ public class TelemetryService(
         string accountId,
         ConnectionDiagnostics connectionDiagnostics,
         RtcErrorType errorType,
+        string error,
         string errorMessage,
         string stackTrace)
     {
@@ -123,7 +125,8 @@ public class TelemetryService(
             [RemoteCandidateTypes] = connectionDiagnostics.RemoteCandidateTypes!,
             [Browser] = connectionDiagnostics.Browser!,
             [Platform] = connectionDiagnostics.Platform!,
-            [Error] = errorMessage!,
+            [Error] = error!,
+            [ErrorMessage] = errorMessage!,
             [ErrorType] = errorType.ToString(),
             [StackTrace] = stackTrace,
         });

@@ -9,12 +9,12 @@ import { VideoCall } from '../models/video-call';
     providedIn: 'root',
 })
 export class RtcPeerConnectionManager {
-    onCandidatesReceived: (data: string) => void;
-    onGatheringCompleted: (timeElapsed: number, collectedAll: boolean) => void;
-    onConnected: () => void;
-    onConnectionError: (errorMessage?: string, error?: any) => void;
-    onIceServerError: (errorMessage?: string, error?: any) => void;
-    onDisconnected: () => void;
+    onCandidatesReceived: ((data: string) => void) | null = null;
+    onGatheringCompleted: ((timeElapsed: number, collectedAll: boolean) => void) | null = null;
+    onConnected: (() => void) | null = null;
+    onConnectionError: ((error?: any, errorMessage?: string) => void) | null = null;
+    onIceServerError: ((error?: any, errorMessage?: string) => void) | null = null;
+    onDisconnected: (() => void) | null = null;
     isMediaCaptured = false;
     private connection = new RTCPeerConnection();
     private localCandidates: RTCIceCandidate[] = [];
@@ -27,7 +27,7 @@ export class RtcPeerConnectionManager {
     private isGathering = true;
     private localMediaStream: MediaStream | null = null;
     private remoteMediaStream: MediaStream | null = null;
-    private iceCandidateGatheringStarted: number;
+    private iceCandidateGatheringStarted: number = 0;
 
     constructor() {
         this.connection.onicecandidate = this.onIceCandidateReceived.bind(this);
@@ -112,16 +112,16 @@ export class RtcPeerConnectionManager {
                     typeof constraints.video === 'object'
                         ? { ...constraints.video, facingMode }
                         : { facingMode };
-                this.localMediaStream =
-                    await navigator.mediaDevices.getUserMedia({
-                        ...constraints,
-                        video: videoConstraint,
-                    });
+                const stream = await navigator.mediaDevices.getUserMedia({
+                    ...constraints,
+                    video: videoConstraint,
+                });
+                this.localMediaStream = stream;
                 this.connectLocalVideo(localVideo);
-                this.localMediaStream
+                stream
                     .getTracks()
                     .forEach((track) =>
-                        this.connection.addTrack(track, this.localMediaStream),
+                        this.connection.addTrack(track, stream),
                     );
                 this.connection.ontrack = (e) => {
                     this.remoteMediaStream = e.streams[0];
@@ -130,7 +130,7 @@ export class RtcPeerConnectionManager {
                 this.isMediaCaptured = true;
                 return;
             } catch (error) {
-                this.onConnectionError?.(undefined, error);
+                this.onConnectionError?.(error);
                 console.error(error);
             }
         }
@@ -204,7 +204,7 @@ export class RtcPeerConnectionManager {
         this.stopMediaCapture();
         await this.startMediaCapture(localVideo, remoteVideo, facingMode);
 
-        const newVideoTrack = this.localMediaStream.getVideoTracks()[0];
+        const newVideoTrack = this.localMediaStream?.getVideoTracks()[0] ?? null;
         const sender = this.connection
             .getSenders()
             .find((s) => s.track?.kind === 'video');
@@ -257,12 +257,29 @@ export class RtcPeerConnectionManager {
     private _onConnectionStateChange(): void {
         switch (this.connection.connectionState) {
             case 'connected':
+                console.log('Connection established successfully');
                 this.onConnected?.();
                 break;
-            case 'failed':
-                this.onConnectionError?.();
+            case 'failed': {
+                const candidateDetails = this.localCandidates.map((c, i) => ({
+                    index: i,
+                    type: c.type,
+                    protocol: c.protocol,
+                    address: c.address,
+                    port: c.port,
+                }));
+                const errorInfo = {
+                    connectionState: this.connection.connectionState,
+                    iceConnectionState: this.connection.iceConnectionState,
+                    signalingState: this.connection.signalingState,
+                    candidates: candidateDetails,
+                };
+                console.error('Connection failed', errorInfo);
+                this.onConnectionError?.(errorInfo, 'Connection failed');
                 break;
+            }
             case 'disconnected':
+                console.warn('Connection disconnected');
                 this.onDisconnected?.();
                 break;
         }
@@ -270,11 +287,31 @@ export class RtcPeerConnectionManager {
 
     private onIceConnectionStateChange(): void {
         if (this.connection.iceConnectionState === 'failed') {
-            this.onIceServerError?.(undefined, new Error());
+            this.onIceServerError?.(new Error());
         }
     }
 
     private onIceCandidateError(event: RTCPeerConnectionIceErrorEvent): void {
-        this.onIceServerError?.(event.errorText, new Error());
+        const errorInfo = {
+            errorText: event.errorText,
+            errorCode: event.errorCode,
+            url: event.url,
+            address: event.address,
+            port: event.port,
+        };
+        console.error('ICE Candidate Error:', errorInfo);
+
+        this.onIceServerError?.(errorInfo, event.errorText);
+        
+        // Error 701 is often non-fatal - it means a candidate failed but others might work
+        // Common errors:
+        // - Network interface mismatch
+        // - TURN allocate timeout (server unreachable or blocked by firewall)
+        // Only report as critical if we have NO successful candidates at all
+        if (event.errorCode === 701) {
+            console.warn(`Error 701: ${event.errorText} - this candidate will be skipped, others may work`);
+            // Don't fail the entire connection for this error
+            return;
+        }
     }
 }

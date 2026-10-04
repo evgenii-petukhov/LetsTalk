@@ -19,7 +19,7 @@ export class RtcConnectionService {
     private readonly errorLoggingService = inject(RtcErrorLoggingService);
     private iceCandidateSubject = new Subject<string>();
     private iceGatheringComplete = new Subject<void>();
-    private iceGatheringTimer: Timer;
+    private iceGatheringTimer: Timer | null = null;
     private iceGatheringTimeoutMs = 10000;
     private iceGatheringElapsedMs = 0;
     private iceGatheringCollectedAll = false;
@@ -40,6 +40,10 @@ export class RtcConnectionService {
     async startOutgoingCall(chatId: string): Promise<void> {
         try {
             const callSettings = await this.apiService.getCallSettings();
+            if (!callSettings.iceServerConfiguration) {
+                throw new Error('iceServerConfiguration is nul or undefined');
+            }
+
             this.connectionManager.initiateOffer(
                 JSON.parse(callSettings.iceServerConfiguration),
             );
@@ -66,7 +70,7 @@ export class RtcConnectionService {
 
             this.storeService.setCallId(callId);
         } catch (error) {
-            await this.errorLoggingService.logConnectionError(undefined, error);
+            await this.errorLoggingService.logConnectionError(error);
             throw error;
         }
     }
@@ -79,6 +83,10 @@ export class RtcConnectionService {
         try {
             const remote = JSON.parse(offer);
             const callSettings = await this.apiService.getCallSettings();
+
+            if (!callSettings.iceServerConfiguration) {
+                throw new Error('iceServerConfiguration is nul or undefined');
+            }
 
             await this.connectionManager.handleOfferAndCreateAnswer(
                 JSON.parse(callSettings.iceServerConfiguration),
@@ -107,7 +115,7 @@ export class RtcConnectionService {
                 diagnostics,
             );
         } catch (error) {
-            await this.errorLoggingService.logConnectionError(undefined, error);
+            await this.errorLoggingService.logConnectionError(error);
             throw error;
         }
     }
@@ -115,7 +123,10 @@ export class RtcConnectionService {
     async establishConnection(answer: string): Promise<void> {
         const remote = JSON.parse(answer);
 
-        if (remote.desc.type !== 'answer') return;
+        if (remote.desc.type !== 'answer') {
+            console.error('Invalid remote description type:', remote.desc.type);
+            return;
+        }
 
         await this.connectionManager.setRemoteAnswerAndCandidates(
             remote.desc,
@@ -130,7 +141,7 @@ export class RtcConnectionService {
     private onIceCandidateGenerated(data: string): void {
         this.iceCandidateSubject.next(data);
 
-        if (this.iceGatheringTimer.isExpired()) {
+        if (this.iceGatheringTimer?.isExpired()) {
             this.connectionManager.requestCompleteGathering();
         }
     }
@@ -142,7 +153,7 @@ export class RtcConnectionService {
         this.iceGatheringElapsedMs = timeElapsed;
         this.iceGatheringCollectedAll = collectedAll;
         this.iceGatheringComplete.next();
-        this.iceGatheringTimer.clear();
+        this.iceGatheringTimer?.clear();
     }
 
     private async onConnected(): Promise<void> {
@@ -167,16 +178,16 @@ export class RtcConnectionService {
     }
 
     private onConnectionError(
-        errorMessage?: string,
         error?: any,
+        errorMessage?: string,
     ): Promise<void> {
-        return this.errorLoggingService.logConnectionError(errorMessage, error);
+        return this.errorLoggingService.logConnectionError(error, errorMessage);
     }
 
     private onIceServerError(
-        errorMessage?: string,
         error?: any,
+        errorMessage?: string,
     ): Promise<void> {
-        return this.errorLoggingService.logIceServerError(errorMessage, error);
+        return this.errorLoggingService.logIceServerError(error, errorMessage);
     }
 }

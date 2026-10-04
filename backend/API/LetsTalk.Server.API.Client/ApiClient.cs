@@ -1868,6 +1868,9 @@ namespace LetsTalk.Server.API.Client
         [System.Text.Json.Serialization.JsonPropertyName("error")]
         public string Error { get; set; }
 
+        [System.Text.Json.Serialization.JsonPropertyName("errorMessage")]
+        public string ErrorMessage { get; set; }
+
         [System.Text.Json.Serialization.JsonPropertyName("stackTrace")]
         public string StackTrace { get; set; }
 
@@ -2055,6 +2058,7 @@ namespace LetsTalk.Server.API.Client
     {
 
         [System.Text.Json.Serialization.JsonPropertyName("callId")]
+        [System.ComponentModel.DataAnnotations.Required]
         public string CallId { get; set; }
 
     }
