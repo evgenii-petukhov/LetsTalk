@@ -19,7 +19,7 @@ namespace LetsTalk.Server.API.Core {
     // class via a tool like ResGen or Visual Studio.
     // To add or remove a member, edit your .ResX file then rerun ResGen
     // with the /str option, or rebuild your VS project.
-    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "17.0.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "18.0.0.0")]
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
     internal class Localization {
@@ -70,7 +70,11 @@ namespace LetsTalk.Server.API.Core {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to {0} is your new login code
+        ///   Looks up a localized string similar to Your LetsTalk verification code is:
+        ///
+        ///{0}
+        ///
+        ///Use this code to sign in to LetsTalk. If you did not request this code, you can ignore this email.
         ///
         ///All the best,
         ///LetsTalk team..
