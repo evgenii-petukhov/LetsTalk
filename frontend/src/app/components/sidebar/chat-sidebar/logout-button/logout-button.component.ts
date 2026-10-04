@@ -1,4 +1,9 @@
-import { Component, EventEmitter, Output } from '@angular/core';
+import {
+    ChangeDetectionStrategy,
+    Component,
+    EventEmitter,
+    Output
+} from '@angular/core';
 import { faRightFromBracket } from '@fortawesome/free-solid-svg-icons';
 
 @Component({
@@ -6,6 +11,7 @@ import { faRightFromBracket } from '@fortawesome/free-solid-svg-icons';
     templateUrl: './logout-button.component.html',
     styleUrl: './logout-button.component.scss',
     standalone: false,
+    changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class LogoutButtonComponent {
     faRightFromBracket = faRightFromBracket;

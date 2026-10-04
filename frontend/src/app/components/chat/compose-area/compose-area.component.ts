@@ -6,6 +6,7 @@ import {
     signal,
     computed,
     ViewChild,
+    ChangeDetectionStrategy,
 } from '@angular/core';
 import { required, validate } from '../../../decorators/required.decorator';
 import { IChatDto, IMessageDto } from '../../../api-client/api-client';
@@ -28,6 +29,7 @@ import { Router } from '@angular/router';
     templateUrl: './compose-area.component.html',
     styleUrl: './compose-area.component.scss',
     standalone: false,
+    changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ComposeAreaComponent implements OnInit, OnDestroy {
     message = signal('');

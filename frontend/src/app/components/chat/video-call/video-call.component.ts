@@ -1,5 +1,6 @@
 import {
     AfterViewInit,
+    ChangeDetectionStrategy,
     Component,
     ElementRef,
     inject,
@@ -25,6 +26,7 @@ import { VideoCall } from 'src/app/models/video-call';
     templateUrl: './video-call.component.html',
     styleUrl: './video-call.component.scss',
     standalone: false,
+    changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class VideoCallComponent implements OnDestroy, AfterViewInit {
     @ViewChild('localVideo', { static: false })

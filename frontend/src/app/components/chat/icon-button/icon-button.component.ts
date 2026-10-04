@@ -1,4 +1,10 @@
-import { Component, EventEmitter, Input, Output } from '@angular/core';
+import {
+    ChangeDetectionStrategy,
+    Component,
+    EventEmitter,
+    Input,
+    Output
+} from '@angular/core';
 import {
     faCameraRotate,
     faDownLeftAndUpRightToCenter,
@@ -9,6 +15,7 @@ import {
     templateUrl: './icon-button.component.html',
     styleUrl: './icon-button.component.scss',
     standalone: false,
+    changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class IconButtonComponent {
     private faCameraRotate = faCameraRotate;

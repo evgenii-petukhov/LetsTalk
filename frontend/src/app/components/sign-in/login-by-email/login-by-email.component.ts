@@ -1,4 +1,10 @@
-import { Component, computed, inject, signal } from '@angular/core';
+import {
+    ChangeDetectionStrategy,
+    Component,
+    computed,
+    inject,
+    signal
+} from '@angular/core';
 import { FormBuilder, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { errorMessages } from '../../../constants/errors';
@@ -11,6 +17,7 @@ import { TokenStorageService } from '../../../services/token-storage.service';
     templateUrl: './login-by-email.component.html',
     styleUrl: './login-by-email.component.scss',
     standalone: false,
+    changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class LoginByEmailComponent {
     isCodeRequested = signal(false);

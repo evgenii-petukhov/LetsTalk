@@ -1,4 +1,11 @@
-import { Component, inject, OnDestroy, OnInit, signal } from '@angular/core';
+import {
+    ChangeDetectionStrategy,
+    Component,
+    inject,
+    OnDestroy,
+    OnInit,
+    signal
+} from '@angular/core';
 import { Store } from '@ngrx/store';
 import { IChatDto } from '../../../../api-client/api-client';
 import { selectSelectedChatId } from '../../../../state/selected-chat/selected-chat-info.selectors';
@@ -10,6 +17,7 @@ import { selectChats } from '../../../../state/chats/chats.selector';
     templateUrl: './chat-list.component.html',
     styleUrls: ['./chat-list.component.scss'],
     standalone: false,
+    changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ChatListComponent implements OnInit, OnDestroy {
     chats = signal<readonly IChatDto[]>([]);

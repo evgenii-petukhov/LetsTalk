@@ -1,9 +1,13 @@
-import { Component } from '@angular/core';
+import {
+    ChangeDetectionStrategy,
+    Component
+} from '@angular/core';
 
 @Component({
     selector: 'app-account-sidebar',
     templateUrl: './account-sidebar.component.html',
     styleUrl: './account-sidebar.component.scss',
     standalone: false,
+    changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class AccountSidebarComponent {}

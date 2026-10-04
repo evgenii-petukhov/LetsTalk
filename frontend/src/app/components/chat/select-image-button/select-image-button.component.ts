@@ -1,4 +1,9 @@
-import { Component, EventEmitter, Output } from '@angular/core';
+import {
+    ChangeDetectionStrategy,
+    Component,
+    EventEmitter,
+    Output
+} from '@angular/core';
 import { faImage } from '@fortawesome/free-solid-svg-icons';
 
 @Component({
@@ -6,6 +11,7 @@ import { faImage } from '@fortawesome/free-solid-svg-icons';
     templateUrl: './select-image-button.component.html',
     styleUrl: './select-image-button.component.scss',
     standalone: false,
+    changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class SelectImageButtonComponent {
     faImage = faImage;

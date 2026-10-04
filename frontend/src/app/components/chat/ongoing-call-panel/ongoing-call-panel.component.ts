@@ -1,5 +1,6 @@
 import {
     AfterViewInit,
+    ChangeDetectionStrategy,
     Component,
     ElementRef,
     HostListener,
@@ -31,6 +32,7 @@ import {
     templateUrl: './ongoing-call-panel.component.html',
     styleUrl: './ongoing-call-panel.component.scss',
     standalone: false,
+    changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class OngoingCallComponent implements OnDestroy, AfterViewInit {
     private readonly router = inject(Router);

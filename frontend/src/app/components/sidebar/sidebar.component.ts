@@ -1,4 +1,10 @@
-import { Component, inject, OnDestroy, signal } from '@angular/core';
+import {
+    ChangeDetectionStrategy,
+    Component,
+    inject,
+    OnDestroy,
+    signal
+} from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { faCirclePlus } from '@fortawesome/free-solid-svg-icons';
 import { Subject, takeUntil } from 'rxjs';
@@ -8,6 +14,7 @@ import { Subject, takeUntil } from 'rxjs';
     templateUrl: './sidebar.component.html',
     styleUrls: ['./sidebar.component.scss'],
     standalone: false,
+    changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class SidebarComponent implements OnDestroy {
     faCirclePlus = faCirclePlus;

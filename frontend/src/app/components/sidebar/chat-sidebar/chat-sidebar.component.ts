@@ -1,4 +1,7 @@
-import { Component } from '@angular/core';
+import {
+    ChangeDetectionStrategy,
+    Component
+} from '@angular/core';
 import { faCirclePlus } from '@fortawesome/free-solid-svg-icons';
 
 @Component({
@@ -6,6 +9,7 @@ import { faCirclePlus } from '@fortawesome/free-solid-svg-icons';
     templateUrl: './chat-sidebar.component.html',
     styleUrl: './chat-sidebar.component.scss',
     standalone: false,
+    changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ChatSidebarComponent {
     faCirclePlus = faCirclePlus;

@@ -1,4 +1,11 @@
-import { Component, inject, Input, OnChanges, signal } from '@angular/core';
+import {
+    ChangeDetectionStrategy,
+    Component,
+    inject,
+    Input,
+    OnChanges,
+    signal
+} from '@angular/core';
 import { IImageDto } from '../../../api-client/api-client';
 import { errorMessages } from '../../../constants/errors';
 import { ErrorService } from '../../../services/error.service';
@@ -9,6 +16,7 @@ import { StoreService } from '../../../services/store.service';
     templateUrl: './avatar.component.html',
     styleUrls: ['./avatar.component.scss'],
     standalone: false,
+    changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class AvatarComponent implements OnChanges {
     @Input() urlOptions: (string | IImageDto)[] | null = null;

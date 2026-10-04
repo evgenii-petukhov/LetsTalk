@@ -9,6 +9,7 @@ import {
     ViewChildren,
     OnInit,
     signal,
+    ChangeDetectionStrategy,
 } from '@angular/core';
 import { ApiService } from '../../../services/api.service';
 import { Store } from '@ngrx/store';
@@ -26,6 +27,7 @@ import { MessageFetchStatus } from '../../../models/message-fetch-status';
     templateUrl: './message-list.component.html',
     styleUrl: './message-list.component.scss',
     standalone: false,
+    changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class MessageListComponent implements AfterViewInit, OnDestroy, OnInit {
     // https://pumpingco.de/blog/automatic-scrolling-only-if-a-user-already-scrolled-the-bottom-of-a-page-in-angular/

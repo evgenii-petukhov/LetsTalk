@@ -1,4 +1,10 @@
-import { Component, EventEmitter, Input, Output } from '@angular/core';
+import {
+    ChangeDetectionStrategy,
+    Component,
+    EventEmitter,
+    Input,
+    Output
+} from '@angular/core';
 import { faPhone } from '@fortawesome/free-solid-svg-icons';
 
 @Component({
@@ -6,6 +12,7 @@ import { faPhone } from '@fortawesome/free-solid-svg-icons';
     templateUrl: './call-button.component.html',
     styleUrl: './call-button.component.scss',
     standalone: false,
+    changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class CallButtonComponent {
     faPhone = faPhone;

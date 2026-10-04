@@ -1,4 +1,10 @@
-import { Component, EventEmitter, Input, Output } from '@angular/core';
+import {
+    ChangeDetectionStrategy,
+    Component,
+    EventEmitter,
+    Input,
+    Output
+} from '@angular/core';
 import { IAccountDto } from '../../../../api-client/api-client';
 
 @Component({
@@ -6,6 +12,7 @@ import { IAccountDto } from '../../../../api-client/api-client';
     templateUrl: './account-list-item.component.html',
     styleUrls: ['./account-list-item.component.scss'],
     standalone: false,
+    changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class AccountListItemComponent {
     @Input() account: IAccountDto;

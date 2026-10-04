@@ -1,4 +1,11 @@
-import { Component, inject, OnDestroy, OnInit, signal } from '@angular/core';
+import {
+    ChangeDetectionStrategy,
+    Component,
+    inject,
+    OnDestroy,
+    OnInit,
+    signal
+} from '@angular/core';
 import { ChatDto, IAccountDto, IChatDto } from '../../../../api-client/api-client';
 import { combineLatest, Subject, takeUntil } from 'rxjs';
 import { StoreService } from '../../../../services/store.service';
@@ -13,6 +20,7 @@ import { Location } from '@angular/common';
     templateUrl: './account-list.component.html',
     styleUrls: ['./account-list.component.scss'],
     standalone: false,
+    changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class AccountListComponent implements OnInit, OnDestroy {
     accounts = signal<readonly IAccountDto[]>([]);

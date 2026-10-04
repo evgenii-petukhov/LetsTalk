@@ -1,4 +1,9 @@
-import { Component, inject, Input } from '@angular/core';
+import {
+    ChangeDetectionStrategy,
+    Component,
+    inject,
+    Input
+} from '@angular/core';
 import { Location } from '@angular/common';
 import { BackButtonStatus } from '../../../models/back-button-status';
 
@@ -7,6 +12,7 @@ import { BackButtonStatus } from '../../../models/back-button-status';
     templateUrl: './top-panel.component.html',
     styleUrl: './top-panel.component.scss',
     standalone: false,
+    changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class TopPanelComponent {
     @Input() backButton: BackButtonStatus;

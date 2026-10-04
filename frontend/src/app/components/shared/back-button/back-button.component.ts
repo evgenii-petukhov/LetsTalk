@@ -1,4 +1,10 @@
-import { Component, EventEmitter, Input, Output } from '@angular/core';
+import {
+    ChangeDetectionStrategy,
+    Component,
+    EventEmitter,
+    Input,
+    Output
+} from '@angular/core';
 import { faChevronLeft } from '@fortawesome/free-solid-svg-icons';
 
 @Component({
@@ -6,6 +12,7 @@ import { faChevronLeft } from '@fortawesome/free-solid-svg-icons';
     templateUrl: './back-button.component.html',
     styleUrl: './back-button.component.scss',
     standalone: false,
+    changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class BackButtonComponent {
     faChevronLeft = faChevronLeft;

@@ -1,4 +1,5 @@
 import {
+    ChangeDetectionStrategy,
     Component,
     computed,
     inject,
@@ -29,6 +30,7 @@ import { toSignal } from '@angular/core/rxjs-interop';
     templateUrl: './profile.component.html',
     styleUrls: ['./profile.component.scss'],
     standalone: false,
+    changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ProfileComponent implements OnInit, OnDestroy {
     isSending = signal(false);

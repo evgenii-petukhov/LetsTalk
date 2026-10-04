@@ -1,4 +1,5 @@
 import {
+    ChangeDetectionStrategy,
     Component,
     HostListener,
     inject,
@@ -40,6 +41,7 @@ import { toSignal } from '@angular/core/rxjs-interop';
     templateUrl: './messenger.component.html',
     styleUrls: ['./messenger.component.scss'],
     standalone: false,
+    changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class MessengerComponent implements OnInit, OnDestroy {
     isSidebarShown = signal(false);

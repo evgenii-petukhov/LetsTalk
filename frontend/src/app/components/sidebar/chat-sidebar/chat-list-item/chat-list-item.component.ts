@@ -1,4 +1,8 @@
-import { Component, Input } from '@angular/core';
+import {
+    ChangeDetectionStrategy,
+    Component,
+    Input
+} from '@angular/core';
 import { IChatDto } from '../../../../api-client/api-client';
 
 @Component({
@@ -6,6 +10,7 @@ import { IChatDto } from '../../../../api-client/api-client';
     templateUrl: './chat-list-item.component.html',
     styleUrls: ['./chat-list-item.component.scss'],
     standalone: false,
+    changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ChatListItemComponent {
     @Input() chat: IChatDto;

@@ -1,4 +1,5 @@
 import {
+    ChangeDetectionStrategy,
     Component,
     HostBinding,
     HostListener,
@@ -20,6 +21,7 @@ import { filter, Subject, takeUntil } from 'rxjs';
     templateUrl: './image-viewer.component.html',
     styleUrls: ['./image-viewer.component.scss'],
     standalone: false,
+    changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ImageViewerComponent implements OnInit, OnDestroy {
     backgroundImage = signal<string>('');

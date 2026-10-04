@@ -1,4 +1,10 @@
-import { Component, EventEmitter, Input, Output } from '@angular/core';
+import {
+    ChangeDetectionStrategy,
+    Component,
+    EventEmitter,
+    Input,
+    Output
+} from '@angular/core';
 import {
     faMicrophone,
     faMicrophoneSlash,
@@ -11,6 +17,7 @@ import {
     templateUrl: './media-toggle-button.component.html',
     styleUrl: './media-toggle-button.component.scss',
     standalone: false,
+    changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class MediaToggleButtonComponent {
     private faMicrophoneSlash = faMicrophoneSlash;

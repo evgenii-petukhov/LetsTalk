@@ -1,10 +1,19 @@
-import { Component, ElementRef, EventEmitter, Input, Output, ViewChild } from '@angular/core';
+import {
+    ChangeDetectionStrategy,
+    Component,
+    ElementRef,
+    EventEmitter,
+    Input,
+    Output,
+    ViewChild
+} from '@angular/core';
 
 @Component({
     selector: 'app-auto-resize-text-area',
     templateUrl: './auto-resize-text-area.component.html',
     styleUrl: './auto-resize-text-area.component.scss',
     standalone: false,
+    changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class AutoResizeTextAreaComponent {
     @Input() text = '';

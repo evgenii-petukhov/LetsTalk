@@ -1,4 +1,7 @@
-import { Component } from '@angular/core';
+import {
+    ChangeDetectionStrategy,
+    Component
+} from '@angular/core';
 import { faGhost } from '@fortawesome/free-solid-svg-icons';
 
 @Component({
@@ -6,6 +9,7 @@ import { faGhost } from '@fortawesome/free-solid-svg-icons';
     templateUrl: './not-found.component.html',
     styleUrl: './not-found.component.scss',
     standalone: false,
+    changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class NotFoundComponent {
     faGhost = faGhost;

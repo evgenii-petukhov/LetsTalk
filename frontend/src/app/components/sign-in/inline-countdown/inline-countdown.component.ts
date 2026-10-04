@@ -1,4 +1,5 @@
 import {
+    ChangeDetectionStrategy,
     Component,
     EventEmitter,
     Input,
@@ -12,6 +13,7 @@ import {
     selector: 'app-inline-countdown',
     templateUrl: './inline-countdown.component.html',
     standalone: false,
+    changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class InlineCountdownComponent implements OnInit, OnDestroy {
     @Input() startValue: number;

@@ -1,4 +1,10 @@
-import { Component, EventEmitter, Input, Output } from '@angular/core';
+import {
+    ChangeDetectionStrategy,
+    Component,
+    EventEmitter,
+    Input,
+    Output
+} from '@angular/core';
 import { faPaperPlane } from '@fortawesome/free-solid-svg-icons';
 
 @Component({
@@ -6,6 +12,7 @@ import { faPaperPlane } from '@fortawesome/free-solid-svg-icons';
     templateUrl: './send-button.component.html',
     styleUrl: './send-button.component.scss',
     standalone: false,
+    changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class SendButtonComponent {
     faPaperPlane = faPaperPlane;

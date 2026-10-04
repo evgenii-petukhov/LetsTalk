@@ -1,4 +1,13 @@
-import { Component, computed, HostBinding, inject, Input, OnInit, signal } from '@angular/core';
+import {
+    ChangeDetectionStrategy,
+    Component,
+    computed,
+    HostBinding,
+    inject,
+    Input,
+    OnInit,
+    signal
+} from '@angular/core';
 import { StoreService } from '../../../../services/store.service';
 import { IProfileDto } from '../../../../api-client/api-client';
 
@@ -7,6 +16,7 @@ import { IProfileDto } from '../../../../api-client/api-client';
     templateUrl: './chat-list-top-panel.component.html',
     styleUrls: ['./chat-list-top-panel.component.scss'],
     standalone: false,
+    changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ChatListTopPanelComponent implements OnInit {
     account = signal<IProfileDto>(null);

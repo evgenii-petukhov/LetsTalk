@@ -1,4 +1,11 @@
-import { Component, inject, Input, OnInit, signal } from '@angular/core';
+import {
+    ChangeDetectionStrategy,
+    Component,
+    inject,
+    Input,
+    OnInit,
+    signal
+} from '@angular/core';
 import { IImageDto } from '../../../api-client/api-client';
 import { errorMessages } from '../../../constants/errors';
 import { ImagePreview } from '../../../models/image-preview';
@@ -11,6 +18,7 @@ import { environment } from '../../../../environments/environment';
     templateUrl: './image.component.html',
     styleUrls: ['./image.component.scss'],
     standalone: false,
+    changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ImageComponent implements OnInit {
     @Input() imagePreview: ImagePreview;

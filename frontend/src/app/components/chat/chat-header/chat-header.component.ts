@@ -1,4 +1,10 @@
-import { Component, computed, inject, Input } from '@angular/core';
+import {
+    ChangeDetectionStrategy,
+    Component,
+    computed,
+    inject,
+    Input
+} from '@angular/core';
 import { Store } from '@ngrx/store';
 import {
     selectSelectedChat,
@@ -18,6 +24,7 @@ import { selectIsAnyCallInProgress } from '../../../state/video-call/video-call.
     templateUrl: './chat-header.component.html',
     styleUrls: ['./chat-header.component.scss'],
     standalone: false,
+    changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ChatHeaderComponent {
     faPhone = faPhone;
