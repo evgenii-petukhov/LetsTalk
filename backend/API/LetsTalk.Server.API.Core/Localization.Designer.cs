@@ -61,11 +61,25 @@ namespace LetsTalk.Server.API.Core {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Your LetsTalk verification code.
+        ///   Looks up a localized string similar to &lt;!doctype html&gt;
+        ///&lt;html&gt;
+        ///&lt;body&gt;
+        ///  &lt;p&gt;Your LetsTalk verification code is:&lt;/p&gt;
+        ///
+        ///  &lt;p style=&quot;font-size: 24px; font-weight: bold; letter-spacing: 4px;&quot;&gt;
+        ///    {0}
+        ///  &lt;/p&gt;
+        ///
+        ///  &lt;p&gt;Use this code to sign in to LetsTalk.&lt;/p&gt;
+        ///  &lt;p&gt;If you did not request this code, you can ignore this email.&lt;/p&gt;
+        ///
+        ///  &lt;p&gt;All the best,&lt;br&gt;LetsTalk team.&lt;/p&gt;
+        ///&lt;/body&gt;
+        ///&lt;/html&gt;.
         /// </summary>
-        internal static string LoginCodeEmailSubject {
+        internal static string LoginCodeEmailHtml {
             get {
-                return ResourceManager.GetString("LoginCodeEmailSubject", resourceCulture);
+                return ResourceManager.GetString("LoginCodeEmailHtml", resourceCulture);
             }
         }
         
@@ -74,14 +88,25 @@ namespace LetsTalk.Server.API.Core {
         ///
         ///{0}
         ///
-        ///Use this code to sign in to LetsTalk. If you did not request this code, you can ignore this email.
+        ///Use this code to sign in to LetsTalk.
+        ///
+        ///If you did not request this code, you can ignore this email.
         ///
         ///All the best,
         ///LetsTalk team..
         /// </summary>
-        internal static string LoginCodeEmailTemplate {
+        internal static string LoginCodeEmailPlainText {
             get {
-                return ResourceManager.GetString("LoginCodeEmailTemplate", resourceCulture);
+                return ResourceManager.GetString("LoginCodeEmailPlainText", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Your LetsTalk verification code.
+        /// </summary>
+        internal static string LoginCodeEmailSubject {
+            get {
+                return ResourceManager.GetString("LoginCodeEmailSubject", resourceCulture);
             }
         }
     }

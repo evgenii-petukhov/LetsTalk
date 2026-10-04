@@ -120,12 +120,31 @@
   <data name="LoginCodeEmailSubject" xml:space="preserve">
     <value>Your LetsTalk verification code</value>
   </data>
-  <data name="LoginCodeEmailTemplate" xml:space="preserve">
+  <data name="LoginCodeEmailHtml" xml:space="preserve">
+    <value>&lt;!doctype html&gt;
+&lt;html&gt;
+&lt;body&gt;
+  &lt;p&gt;Your LetsTalk verification code is:&lt;/p&gt;
+
+  &lt;p style="font-size: 24px; font-weight: bold; letter-spacing: 4px;"&gt;
+    {0}
+  &lt;/p&gt;
+
+  &lt;p&gt;Use this code to sign in to LetsTalk.&lt;/p&gt;
+  &lt;p&gt;If you did not request this code, you can ignore this email.&lt;/p&gt;
+
+  &lt;p&gt;All the best,&lt;br&gt;LetsTalk team.&lt;/p&gt;
+&lt;/body&gt;
+&lt;/html&gt;</value>
+  </data>
+  <data name="LoginCodeEmailPlainText" xml:space="preserve">
     <value>Your LetsTalk verification code is:
 
 {0}
 
-Use this code to sign in to LetsTalk. If you did not request this code, you can ignore this email.
+Use this code to sign in to LetsTalk.
+
+If you did not request this code, you can ignore this email.
 
 All the best,
 LetsTalk team.</value>

@@ -49,8 +49,8 @@ public class GenerateLoginCodeCommandHandlerTests
             x => x.PublishAsync(
                 It.Is<SendEmailRequest>(req => 
                     req.Address == email.ToLowerInvariant() &&
-                    req.Subject == "LetsTalk: login code" &&
-                    req.Body!.Contains(code.ToString())),
+                    req.Subject == "Your LetsTalk verification code" &&
+                    req.PlainText!.Contains(code.ToString())),
                 cancellationToken),
             Times.Once);
     }
@@ -138,8 +138,8 @@ public class GenerateLoginCodeCommandHandlerTests
             x => x.PublishAsync(
                 It.Is<SendEmailRequest>(req => 
                     req.Address == email.ToLowerInvariant() &&
-                    req.Subject == "LetsTalk: login code" &&
-                    req.Body == $"{code} is your new login code\r\n\r\nAll the best,\r\nLetsTalk team."),
+                    req.Subject == "Your LetsTalk verification code" &&
+                    req.PlainText == $"Your LetsTalk verification code is:\r\n\r\n{code}\r\n\r\nUse this code to sign in to LetsTalk.\r\n\r\nIf you did not request this code, you can ignore this email.\r\n\r\nAll the best,\r\nLetsTalk team."),
                 cancellationToken),
             Times.Once);
     }
@@ -257,7 +257,7 @@ public class GenerateLoginCodeCommandHandlerTests
 
         _producerMock.Verify(
             x => x.PublishAsync(
-                It.Is<SendEmailRequest>(req => req.Body!.Contains("0")),
+                It.Is<SendEmailRequest>(req => req.PlainText!.Contains("0")),
                 cancellationToken),
             Times.Once);
     }
@@ -344,9 +344,10 @@ public class GenerateLoginCodeCommandHandlerTests
         _producerMock.Verify(
             x => x.PublishAsync(
                 It.Is<SendEmailRequest>(req => 
-                    req.Body!.StartsWith("555777 is your new login code") &&
-                    req.Body.Contains("All the best,") &&
-                    req.Body.Contains("LetsTalk team.")),
+                    req.PlainText!.StartsWith("Your LetsTalk verification code is:") &&
+                    req.PlainText.Contains("555777") &&
+                    req.PlainText.Contains("All the best,") &&
+                    req.PlainText.Contains("LetsTalk team.")),
                 cancellationToken),
             Times.Once);
     }
@@ -382,8 +383,9 @@ public class GenerateLoginCodeCommandHandlerTests
             x => x.PublishAsync(
                 It.Is<SendEmailRequest>(req => 
                     req.Address == normalizedEmail &&
-                    req.Subject == "LetsTalk: login code" &&
-                    req.Body!.Contains(code.ToString())),
+                    req.Subject == "Your LetsTalk verification code" &&
+                    req.PlainText!.Contains(code.ToString()) &&
+                    req.Html!.Contains(code.ToString())),
                 cancellationToken),
             Times.Once);
     }
