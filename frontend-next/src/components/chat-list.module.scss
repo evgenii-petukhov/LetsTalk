@@ -1,0 +1,76 @@
+$accent: #3c78ff;
+$muted-bg: rgba(127, 127, 127, 0.12);
+$avatar-size: 40px;
+
+.list {
+    list-style: none;
+}
+
+.hint {
+    padding: 16px;
+    opacity: 0.7;
+}
+
+.item {
+    display: grid;
+    grid-template-columns: $avatar-size 1fr auto;
+    grid-template-areas:
+        "avatar name date"
+        "avatar . badge";
+    column-gap: 12px;
+    align-items: center;
+    width: 100%;
+    padding: 10px 16px;
+    border: 0;
+    background: none;
+    color: inherit;
+    text-align: left;
+    cursor: pointer;
+
+    &:hover {
+        background: $muted-bg;
+    }
+
+    &.selected,
+    &.selected:hover {
+        background: rgba($accent, 0.2);
+    }
+}
+
+.avatar {
+    grid-area: avatar;
+    width: $avatar-size;
+    height: $avatar-size;
+    border-radius: 50%;
+    background: rgba(127, 127, 127, 0.3);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    object-fit: cover;
+}
+
+.name {
+    grid-area: name;
+    font-weight: 600;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.date {
+    grid-area: date;
+    font-size: 12px;
+    opacity: 0.6;
+}
+
+.badge {
+    grid-area: badge;
+    justify-self: end;
+    min-width: 20px;
+    padding: 0 6px;
+    border-radius: 10px;
+    background: $accent;
+    color: #fff;
+    font-size: 12px;
+    text-align: center;
+}

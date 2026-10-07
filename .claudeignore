@@ -1,0 +1,21 @@
+# Node.js & Next.js
+**/node_modules/
+**/.next/
+**/out/
+**/dist/
+**/build/
+
+# Angular
+**/.angular/
+
+# C# / .NET Backend
+**/bin/
+**/obj/
+*.suo
+*.user
+*.userosscache
+
+# System
+.git/
+.DS_Store
+*.log
