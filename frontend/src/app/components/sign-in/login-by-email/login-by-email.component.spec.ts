@@ -239,6 +239,49 @@ describe('LoginByEmailComponent', () => {
         expect(component.onSubmit).toHaveBeenCalled();
     });
 
+    describe('code control during submit', () => {
+        const email = 'test@example.com';
+
+        it('should disable the code control while pending and enable it after resolve', async () => {
+            // Arrange
+            component.form.setValue({ email, code: '1234' });
+            let resolveLogin: (v: LoginResponseDto) => void;
+            apiService.loginByEmail.mockReturnValue(
+                new Promise((resolve) => (resolveLogin = resolve)),
+            );
+
+            // Act
+            const submitPromise = component.onSubmit();
+
+            // Assert
+            expect(apiService.loginByEmail).toHaveBeenCalledWith(email, 1234);
+            expect(component.form.controls.code.disabled).toBe(true);
+
+            resolveLogin(new LoginResponseDto({ token: 'fakeToken' }));
+            await submitPromise;
+            expect(component.form.controls.code.enabled).toBe(true);
+        });
+
+        it('should enable the code control again after reject', async () => {
+            // Arrange
+            component.form.setValue({ email, code: '1234' });
+            let rejectLogin: (e: Error) => void;
+            apiService.loginByEmail.mockReturnValue(
+                new Promise((_, reject) => (rejectLogin = reject)),
+            );
+
+            // Act
+            const submitPromise = component.onSubmit();
+
+            // Assert
+            expect(component.form.controls.code.disabled).toBe(true);
+
+            rejectLogin(new Error('error'));
+            await submitPromise;
+            expect(component.form.controls.code.enabled).toBe(true);
+        });
+    });
+
     describe('countdown during submit', () => {
         const email = 'test@example.com';
 

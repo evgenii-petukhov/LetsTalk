@@ -24,7 +24,7 @@
         @if (isCodeRequested()) {
             <div class="form-floating mb-3">
                 <input type="text" id="code" class="form-control" placeholder="Code" formControlName="code"
-                    autocomplete="off" (input)="onCodeChange()" [disabled]="form.controls['email'].valid" [ngClass]="
+                    autocomplete="off" (input)="onCodeChange()" [ngClass]="
                         form.controls['code'].invalid &&
                         (form.controls['code'].touched ||
                             form.controls['code'].dirty) &&
