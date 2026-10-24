@@ -45,7 +45,10 @@ export class LoginByEmailComponent {
     });
 
     async onSubmit(): Promise<void> {
-        if (this.form.value.code) {
+        if (this.isSubmitInProgress()) {
+            return;
+        }
+        if (this.form.getRawValue().code) {
             await this.submit();
         } else {
             await this.requestCode();
@@ -67,11 +70,14 @@ export class LoginByEmailComponent {
     }
 
     private async submit(): Promise<void> {
+        // Read the values first: a disabled control is excluded from form.value
+        const { email, code } = this.form.getRawValue();
         this.isSubmitInProgress.set(true);
+        this.form.controls.code.disable();
         try {
             const loginResponseDto = await this.apiService.loginByEmail(
-                this.form.value.email,
-                Number(this.form.value.code),
+                email,
+                Number(code),
             );
             this.tokenStorage.saveToken(loginResponseDto.token);
             await this.router.navigate(['chats']);
@@ -79,6 +85,7 @@ export class LoginByEmailComponent {
             this.errorService.handleError(e, errorMessages.generateCode);
             this.resumeCountdown();
         } finally {
+            this.form.controls.code.enable();
             this.isSubmitInProgress.set(false);
         }
     }
