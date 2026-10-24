@@ -282,6 +282,50 @@ describe('LoginByEmailComponent', () => {
         });
     });
 
+    describe('cancelling during a pending submit', () => {
+        const email = 'test@example.com';
+
+        it('should not save the token or navigate to chats when the request resolves later', async () => {
+            // Arrange
+            component.form.setValue({ email, code: '1234' });
+            router.navigate.mockResolvedValue(true);
+            let resolveLogin: (v: LoginResponseDto) => void;
+            apiService.loginByEmail.mockReturnValue(
+                new Promise((resolve) => (resolveLogin = resolve)),
+            );
+            const submitPromise = component.onSubmit();
+            await component.onBack();
+            router.navigate.mockClear();
+
+            // Act
+            resolveLogin(new LoginResponseDto({ token: 'fakeToken' }));
+            await submitPromise;
+
+            // Assert
+            expect(tokenStorageService.saveToken).not.toHaveBeenCalled();
+            expect(router.navigate).not.toHaveBeenCalled();
+        });
+
+        it('should not show an error when the request rejects after cancelling', async () => {
+            // Arrange
+            component.form.setValue({ email, code: '1234' });
+            router.navigate.mockResolvedValue(true);
+            let rejectLogin: (e: Error) => void;
+            apiService.loginByEmail.mockReturnValue(
+                new Promise((_, reject) => (rejectLogin = reject)),
+            );
+            const submitPromise = component.onSubmit();
+            await component.onBack();
+
+            // Act
+            rejectLogin(new Error('error'));
+            await submitPromise;
+
+            // Assert
+            expect(errorService.handleError).not.toHaveBeenCalled();
+        });
+    });
+
     describe('countdown during submit', () => {
         const email = 'test@example.com';
 
