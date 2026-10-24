@@ -1,4 +1,5 @@
 import {
+    afterEach,
     beforeEach,
     describe,
     expect,
@@ -236,5 +237,97 @@ describe('LoginByEmailComponent', () => {
 
         // Assert
         expect(component.onSubmit).toHaveBeenCalled();
+    });
+
+    describe('countdown during submit', () => {
+        const email = 'test@example.com';
+
+        afterEach(() => {
+            vi.useRealTimers();
+        });
+
+        const query = (selector: string) =>
+            fixture.nativeElement.querySelector(selector);
+
+        it('should hide the countdown and show a placeholder while the code is being submitted', async () => {
+            // Arrange
+            component.isCodeRequested.set(true);
+            component.codeValidInSeconds.set(60);
+            component.form.setValue({ email, code: '1234' });
+            let resolveLogin: (v: LoginResponseDto) => void;
+            apiService.loginByEmail.mockReturnValue(
+                new Promise((resolve) => (resolveLogin = resolve)),
+            );
+
+            // Act
+            const submitPromise = component.onSubmit();
+            fixture.detectChanges();
+
+            // Assert
+            expect(query('app-inline-countdown')).toBeNull();
+            expect(fixture.nativeElement.textContent).toContain(
+                'Checking the code...',
+            );
+
+            resolveLogin(new LoginResponseDto({ token: 'fakeToken' }));
+            await submitPromise;
+        });
+
+        it('should keep the countdown visible while the code is being requested', async () => {
+            // Arrange
+            component.form.setValue({ email, code: '' });
+            component.isCodeRequested.set(true);
+            component.codeValidInSeconds.set(60);
+            let resolveCode: (v: GenerateLoginCodeResponseDto) => void;
+            apiService.generateLoginCode.mockReturnValue(
+                new Promise((resolve) => (resolveCode = resolve)),
+            );
+
+            // Act
+            const requestPromise = component.onSubmit();
+            fixture.detectChanges();
+
+            // Assert
+            expect(component.isCodeRequestInProgress()).toBe(true);
+            expect(query('app-inline-countdown')).toBeTruthy();
+
+            resolveCode(
+                new GenerateLoginCodeResponseDto({ codeValidInSeconds: 60 }),
+            );
+            await requestPromise;
+        });
+
+        it('should resume the countdown from the remaining time after a failed submit', async () => {
+            // Arrange
+            vi.useFakeTimers();
+            component.form.setValue({ email, code: '' });
+            await component.onSubmit();
+            component.form.setValue({ email, code: '1234' });
+            apiService.loginByEmail.mockRejectedValue(new Error('error'));
+            vi.advanceTimersByTime(20_000);
+
+            // Act
+            await component.onSubmit();
+
+            // Assert
+            expect(component.codeValidInSeconds()).toBe(40);
+            expect(component.isCountDownShown()).toBe(true);
+        });
+
+        it('should mark the code as expired after a failed submit past the validity window', async () => {
+            // Arrange
+            vi.useFakeTimers();
+            component.form.setValue({ email, code: '' });
+            await component.onSubmit();
+            component.form.setValue({ email, code: '1234' });
+            apiService.loginByEmail.mockRejectedValue(new Error('error'));
+            vi.advanceTimersByTime(61_000);
+
+            // Act
+            await component.onSubmit();
+
+            // Assert
+            expect(component.isCodeRequested()).toBe(false);
+        });
     });
 });
