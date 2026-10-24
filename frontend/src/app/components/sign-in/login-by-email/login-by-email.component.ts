@@ -32,6 +32,7 @@ export class LoginByEmailComponent {
     );
 
     private codeExpiresAt = 0;
+    private submitAttempt = 0;
 
     private readonly router = inject(Router);
     private readonly fb = inject(FormBuilder);
@@ -56,6 +57,8 @@ export class LoginByEmailComponent {
     }
 
     async onBack(): Promise<void> {
+        // Abandon any pending login attempt so its late response is ignored
+        this.submitAttempt++;
         await this.router.navigate(['chats']);
     }
 
@@ -72,6 +75,8 @@ export class LoginByEmailComponent {
     private async submit(): Promise<void> {
         // Read the values first: a disabled control is excluded from form.value
         const { email, code } = this.form.getRawValue();
+        const attempt = ++this.submitAttempt;
+        const isCancelled = () => attempt !== this.submitAttempt;
         this.isSubmitInProgress.set(true);
         this.form.controls.code.disable();
         try {
@@ -79,11 +84,16 @@ export class LoginByEmailComponent {
                 email,
                 Number(code),
             );
+            if (isCancelled()) {
+                return;
+            }
             this.tokenStorage.saveToken(loginResponseDto.token);
             await this.router.navigate(['chats']);
         } catch (e) {
-            this.errorService.handleError(e, errorMessages.generateCode);
-            this.resumeCountdown();
+            if (!isCancelled()) {
+                this.errorService.handleError(e, errorMessages.generateCode);
+                this.resumeCountdown();
+            }
         } finally {
             this.form.controls.code.enable();
             this.isSubmitInProgress.set(false);
