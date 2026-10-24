@@ -237,4 +237,92 @@ describe('LoginByEmailComponent', () => {
         // Assert
         expect(component.onSubmit).toHaveBeenCalled();
     });
+
+    it('should hide the countdown while submit is in progress', async () => {
+        // Arrange
+        let resolveLogin!: (value: LoginResponseDto) => void;
+        apiService.loginByEmail.mockReturnValue(
+            new Promise<LoginResponseDto>(resolve => (resolveLogin = resolve)),
+        );
+        component.form.setValue({ email: 'test@example.com', code: '' });
+        await component.onSubmit();
+        fixture.detectChanges();
+        expect(
+            fixture.nativeElement.querySelector('app-inline-countdown'),
+        ).toBeTruthy();
+        component.form.setValue({ email: 'test@example.com', code: '1234' });
+
+        // Act
+        const submitPromise = component.onSubmit();
+        fixture.detectChanges();
+
+        // Assert
+        expect(
+            fixture.nativeElement.querySelector('app-inline-countdown'),
+        ).toBeNull();
+
+        resolveLogin(new LoginResponseDto({ token: 'fakeToken' }));
+        await submitPromise;
+    });
+
+    it('should keep the countdown visible while code request is in progress', () => {
+        // Arrange
+        component.isCodeRequested.set(true);
+        component.codeValidInSeconds.set(60);
+
+        // Act
+        component.isCodeRequestInProgress.set(true);
+        fixture.detectChanges();
+
+        // Assert
+        expect(component.isCountDownShown()).toBe(true);
+    });
+
+    it('should resume the countdown from the remaining time after a failed submit', async () => {
+        // Arrange
+        vi.useFakeTimers();
+        try {
+            vi.setSystemTime(new Date('2026-01-01T00:00:00Z'));
+            component.form.setValue({ email: 'test@example.com', code: '' });
+            await component.onSubmit();
+            apiService.loginByEmail.mockImplementation(async () => {
+                vi.advanceTimersByTime(20000);
+                throw new Error('error');
+            });
+            component.form.setValue({ email: 'test@example.com', code: '1234' });
+
+            // Act
+            await component.onSubmit();
+
+            // Assert
+            expect(component.codeValidInSeconds()).toBe(40);
+            expect(component.isCountDownShown()).toBe(true);
+        } finally {
+            vi.useRealTimers();
+        }
+    });
+
+    it('should mark the code as expired after a failed submit past the validity window', async () => {
+        // Arrange
+        vi.useFakeTimers();
+        try {
+            vi.setSystemTime(new Date('2026-01-01T00:00:00Z'));
+            component.form.setValue({ email: 'test@example.com', code: '' });
+            await component.onSubmit();
+            apiService.loginByEmail.mockImplementation(async () => {
+                vi.advanceTimersByTime(61000);
+                throw new Error('error');
+            });
+            component.form.setValue({ email: 'test@example.com', code: '1234' });
+
+            // Act
+            await component.onSubmit();
+
+            // Assert
+            expect(component.isCodeRequested()).toBe(false);
+            expect(component.isCountDownShown()).toBe(false);
+        } finally {
+            vi.useRealTimers();
+        }
+    });
 });
