@@ -33,12 +33,16 @@
                 <label for="code">Code</label>
             </div>
         }
-        @if (isCountDownShown()) {
+        @if (isCodeValidityShown()) {
             <div class="form-floating mb-3">
-                Your code will expire in
-                <app-inline-countdown [startValue]="codeValidInSeconds()"
-                    (expired)="onTimerExpired()"></app-inline-countdown>
-                sec.
+                @if (isCountDownShown()) {
+                    Your code will expire in
+                    <app-inline-countdown [startValue]="codeValidInSeconds()"
+                        (expired)="onTimerExpired()"></app-inline-countdown>
+                    sec.
+                } @else {
+                    Checking the code...
+                }
             </div>
         }
         <div class="form-floating mb-3 login-buttons">

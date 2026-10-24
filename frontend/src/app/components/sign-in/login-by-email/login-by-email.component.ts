@@ -24,9 +24,14 @@ export class LoginByEmailComponent {
     isCodeRequestInProgress = signal(false);
     isSubmitInProgress = signal(false);
     codeValidInSeconds = signal(0);
-    isCountDownShown = computed(
+    isCodeValidityShown = computed(
         () => this.isCodeRequested() && this.codeValidInSeconds() > 0,
     );
+    isCountDownShown = computed(
+        () => this.isCodeValidityShown() && !this.isSubmitInProgress(),
+    );
+
+    private codeExpiresAt = 0;
 
     private readonly router = inject(Router);
     private readonly fb = inject(FormBuilder);
@@ -72,6 +77,7 @@ export class LoginByEmailComponent {
             await this.router.navigate(['chats']);
         } catch (e) {
             this.errorService.handleError(e, errorMessages.generateCode);
+            this.resumeCountdown();
         } finally {
             this.isSubmitInProgress.set(false);
         }
@@ -86,9 +92,21 @@ export class LoginByEmailComponent {
             this.isCodeRequested.set(true);
             this.isCodeRequestInProgress.set(false);
             this.codeValidInSeconds.set(data.codeValidInSeconds);
+            this.codeExpiresAt = Date.now() + data.codeValidInSeconds * 1000;
         } catch (e) {
             this.errorService.handleError(e, errorMessages.generateCode);
             this.isCodeRequestInProgress.set(false);
+        }
+    }
+
+    // The countdown is destroyed while the code is being submitted and
+    // restarts from startValue, so pass it the time that is actually left
+    private resumeCountdown(): void {
+        const secondsLeft = Math.ceil((this.codeExpiresAt - Date.now()) / 1000);
+        if (secondsLeft > 0) {
+            this.codeValidInSeconds.set(secondsLeft);
+        } else {
+            this.onTimerExpired();
         }
     }
 }
