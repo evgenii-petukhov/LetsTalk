@@ -1,4 +1,6 @@
 ﻿using LetsTalk.Server.Authentication.Abstractions;
+using LetsTalk.Server.Authentication.Exceptions;
+using LetsTalk.Server.Authentication.Models;
 using LetsTalk.Server.Persistence.Redis;
 using StackExchange.Redis;
 using System.Text.Json;
@@ -15,6 +17,11 @@ public class RedisCacheTokenService(
     public async Task<string?> GetAccountIdAsync(string? token)
     {
         if (token == null)
+        {
+            return null;
+        }
+
+        if (await _database.KeyExistsAsync(new RedisKey(GetRevokedKey(token))))
         {
             return null;
         }
@@ -53,5 +60,30 @@ public class RedisCacheTokenService(
                 storedToken.ValidTo - DateTime.Now);
 
         return storedToken.Token!;
+    }
+
+    public async Task RevokeAsync(string token)
+    {
+        StoredToken? storedToken;
+        try
+        {
+            storedToken = await _jwtStorageService.GetStoredTokenAsync(token);
+        }
+        catch (Exception ex) when (ex is AppException or ArgumentException)
+        {
+            return;
+        }
+
+        var remainingLifetime = storedToken?.ValidTo - DateTime.UtcNow;
+        if (remainingLifetime == null || remainingLifetime <= TimeSpan.Zero)
+        {
+            return;
+        }
+
+        await _database.StringSetAsync(
+            new RedisKey(GetRevokedKey(token)),
+            new RedisValue("1"),
+            remainingLifetime.Value);
+        await _database.KeyDeleteAsync(new RedisKey(GetTokenKey(token)));
     }
 }

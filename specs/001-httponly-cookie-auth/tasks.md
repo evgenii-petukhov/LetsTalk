@@ -29,18 +29,18 @@
 
 ## Phase 1 - Authentication service: revocation (blocks everything that logs out)
 Tests first, in `BE/Applications/LetsTalk.Server.Authentication.Tests`:
-- [ ] **T010** Tests for `MemoryCacheTokenService.RevokeAsync` / `GetAccountIdAsync`: `GetAccountIdAsync_WhenTokenRevoked_ShouldReturnNull`; `..._WhenRevokedTokenStillHasValidSignature_ShouldNotRevalidate`; `RevokeAsync_WhenTokenInvalid_ShouldNotThrow`. (FR-005, SC-002)
-- [ ] **T011** [P] Same tests for `RedisCacheTokenService` (mock `IDatabase`/`RedisConnection`): denylist key written with TTL = remaining lifetime; denylist checked before the cache read. (FR-005)
-- [ ] **T012** [P] Test `JwtTokenGrpcService.RevokeJwtToken_WhenCalled_ShouldCallCacheService`.
+- [x] **T010** Tests for `MemoryCacheTokenService.RevokeAsync` / `GetAccountIdAsync`: `GetAccountIdAsync_WhenTokenRevoked_ShouldReturnNull`; `..._WhenRevokedTokenStillHasValidSignature_ShouldNotRevalidate`; `RevokeAsync_WhenTokenInvalid_ShouldNotThrow`. (FR-005, SC-002)
+- [x] **T011** [P] (`RedisConnection.Connection` was made `virtual` in `BE/Persistence/LetsTalk.Server.Persistence.Redis/RedisConnection.cs` so the class can be mocked) Same tests for `RedisCacheTokenService` (mock `IDatabase`/`RedisConnection`): denylist key written with TTL = remaining lifetime; denylist checked before the cache read. (FR-005)
+- [x] **T012** [P] Test `JwtTokenGrpcService.RevokeJwtToken_WhenCalled_ShouldCallCacheService`.
 
 Implementation:
-- [ ] **T013** Add `RevokeJwtToken` rpc + messages to **both** `.proto` copies (`BE/Applications/LetsTalk.Server.Authentication/Protos/authentication.proto` and `BE/Infrastructure/Authentication/LetsTalk.Server.Authentication.Client/Protos/authentication.proto`) exactly as in `contracts/auth-endpoints.md`.
+- [x] **T013** Add `RevokeJwtToken` rpc + messages to **both** `.proto` copies (`BE/Applications/LetsTalk.Server.Authentication/Protos/authentication.proto` and `BE/Infrastructure/Authentication/LetsTalk.Server.Authentication.Client/Protos/authentication.proto`) exactly as in `contracts/auth-endpoints.md`.
   - No manual regeneration step: both projects use `Grpc.Tools` (`<Protobuf Include="Protos\authentication.proto" .../>`), which generates the server base class (`GrpcServices="Server"`) and the client (`GrpcServices="Client"`) from the `.proto` on every build.
   - Verify with `dotnet build` of `LetsTalk.Server.Authentication` and `LetsTalk.Server.Authentication.Client`: the new `RevokeJwtToken` members must appear. T012 and T016 compile only after this build.
-- [ ] **T014** Add `Task RevokeAsync(string token)` to `IJwtCacheService` (`BE/Applications/LetsTalk.Server.Authentication/Abstractions/IJwtCacheService.cs`); implement in `MemoryCacheTokenService` and `RedisCacheTokenService` (denylist first; positive cache entry removed; expiry from `IJwtStorageService.GetStoredTokenAsync`; invalid tokens ignored). Shared key helper in `CacheTokenServiceBase`. (depends T010, T011, T013)
-- [ ] **T015** Implement `JwtTokenGrpcService.RevokeJwtToken`. (depends T012, T014)
-- [ ] **T016** Add `RevokeJwtTokenAsync(string token)` to `IAuthenticationClient` (`BE/Infrastructure/Authentication/LetsTalk.Server.Authentication.Abstractions/IAuthenticationClient.cs`) and `AuthenticationClient` (`.../LetsTalk.Server.Authentication.Client/AuthenticationClient.cs`). (depends T013)
-- [ ] **T017** Run `dotnet test BE/Applications/LetsTalk.Server.Authentication.Tests`. Checkpoint 1.
+- [x] **T014** Add `Task RevokeAsync(string token)` to `IJwtCacheService` (`BE/Applications/LetsTalk.Server.Authentication/Abstractions/IJwtCacheService.cs`); implement in `MemoryCacheTokenService` and `RedisCacheTokenService` (denylist first; positive cache entry removed; expiry from `IJwtStorageService.GetStoredTokenAsync`; invalid tokens ignored). Shared key helper in `CacheTokenServiceBase`. (depends T010, T011, T013)
+- [x] **T015** Implement `JwtTokenGrpcService.RevokeJwtToken`. (depends T012, T014)
+- [x] **T016** Add `RevokeJwtTokenAsync(string token)` to `IAuthenticationClient` (`BE/Infrastructure/Authentication/LetsTalk.Server.Authentication.Abstractions/IAuthenticationClient.cs`) and `AuthenticationClient` (`.../LetsTalk.Server.Authentication.Client/AuthenticationClient.cs`). (depends T013)
+- [x] **T017** Run `dotnet test BE/Applications/LetsTalk.Server.Authentication.Tests`. Checkpoint 1.
 
 ## Phase 2 - API: cookie resolution, login, logout
 Tests first:

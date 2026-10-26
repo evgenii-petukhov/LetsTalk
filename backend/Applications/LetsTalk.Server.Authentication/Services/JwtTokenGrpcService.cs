@@ -27,4 +27,11 @@ public class JwtTokenGrpcService(IJwtCacheService jwtCacheService) : JwtTokenGrp
             AccountId = accountId
         };
     }
+
+    public override async Task<RevokeJwtTokenResponse> RevokeJwtToken(RevokeJwtTokenRequest request, ServerCallContext context)
+    {
+        await _jwtCacheService.RevokeAsync(request.Token);
+
+        return new RevokeJwtTokenResponse();
+    }
 }

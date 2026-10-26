@@ -8,6 +8,7 @@ package authentication;
 service JwtTokenGrpcService {
   rpc GenerateJwtToken (GenerateJwtTokenRequest) returns (GenerateJwtTokenResponse);
   rpc ValidateJwtToken (ValidateJwtTokenRequest) returns (ValidateJwtTokenResponse);
+  rpc RevokeJwtToken (RevokeJwtTokenRequest) returns (RevokeJwtTokenResponse);
 }
 
 message GenerateJwtTokenRequest {
@@ -24,4 +25,11 @@ message ValidateJwtTokenRequest {
 
 message ValidateJwtTokenResponse {
   google.protobuf.StringValue account_id = 1;
+}
+
+message RevokeJwtTokenRequest {
+  string token = 1;
+}
+
+message RevokeJwtTokenResponse {
 }

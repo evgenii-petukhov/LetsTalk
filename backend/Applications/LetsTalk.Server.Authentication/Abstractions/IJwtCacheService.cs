@@ -5,4 +5,6 @@ public interface IJwtCacheService
     Task<string?> GetAccountIdAsync(string? token);
 
     ValueTask<string> GenerateAsync(string accountId);
+
+    Task RevokeAsync(string token);
 }

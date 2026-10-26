@@ -31,6 +31,14 @@ public class AuthenticationClient(
         return response.AccountId;
     }
 
+    public async Task RevokeJwtTokenAsync(string token)
+    {
+        await _tokenClient.RevokeJwtTokenAsync(new RevokeJwtTokenRequest
+        {
+            Token = token
+        });
+    }
+
     public async Task<(int code, bool isCodeCreated, int ttl)> GenerateLoginCodeAsync(string email)
     {
         var response = await _loginCodeClient.GenerateLoginCodeAsync(new GenerateLoginCodeRequest
