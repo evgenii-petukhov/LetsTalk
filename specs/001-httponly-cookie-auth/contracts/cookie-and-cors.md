@@ -22,7 +22,7 @@
   - Development: the dev front-end origin (`https://127.0.0.1:4200`, set in each service's `appsettings.Development.json`)
 - `AllowAnyOrigin` MUST NOT be used with credentials.
 - File storage (gRPC-web) additionally exposes the gRPC-web headers (`grpc-status`, `grpc-message`, `grpc-status-details-bin`) and allows `x-grpc-web`, `x-user-agent` request headers (`AllowAnyHeader`). The previous policy did not expose the status headers; the browser needs them to read a gRPC error code such as `UNAUTHENTICATED` (used by spec 002).
-- Outside the Development environment an empty `AllowedOrigins` list fails at startup. `RunAll.ps1` therefore sets `ASPNETCORE_ENVIRONMENT=Development` for the services it starts, so that `appsettings.Development.json` is loaded.
+- Outside the Development environment an empty `AllowedOrigins` list fails at startup. `RunAll.ps1` therefore sets `ASPNETCORE_ENVIRONMENT=Development` and the variable `Cors__AllowedOrigins__0=https://127.0.0.1:4200` for the services it starts (it starts the executables without a working directory, so their `appsettings.Development.json` is not found); `dotnet run` and the IDE read `appsettings.Development.json`.
 - Notifications (SignalR) uses the same policy; SignalR needs `AllowCredentials()` for the WebSocket handshake with cookies.
 - Authentication service: unchanged (called only by back-end services).
 

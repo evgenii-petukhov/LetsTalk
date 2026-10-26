@@ -3,11 +3,13 @@ import {
     ActivatedRouteSnapshot,
     createUrlTreeFromSnapshot,
 } from '@angular/router';
+import { SessionService } from '../services/session.service';
 import { StoreService } from '../services/store.service';
 
 // https://blog.herodevs.com/functional-router-guards-in-angular-15-open-the-door-to-happier-code-4a53bb60f78a
 export const completeProfileGuard = async (next: ActivatedRouteSnapshot) => {
     const storeService = inject(StoreService);
+    const sessionService = inject(SessionService);
 
     try {
         const account = await storeService.getLoggedInUser();
@@ -16,11 +18,11 @@ export const completeProfileGuard = async (next: ActivatedRouteSnapshot) => {
                 ? true
                 : createUrlTreeFromSnapshot(next, ['/', 'profile']);
         } else {
-            window.localStorage.clear();
+            sessionService.onSessionLost();
             return createUrlTreeFromSnapshot(next, ['/', 'sign-in']);
         }
     } catch {
-        window.localStorage.clear();
+        sessionService.onSessionLost();
         return createUrlTreeFromSnapshot(next, ['/', 'sign-in']);
     }
 };

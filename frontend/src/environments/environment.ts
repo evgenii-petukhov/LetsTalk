@@ -3,10 +3,10 @@ export const environment = {
     login: {},
     services: {
         api: {
-            url: 'https://localhost:5000',
+            url: 'https://127.0.0.1:5000',
         },
         notifications: {
-            url: 'http://127.0.0.1:5002/messagehub',
+            url: 'https://127.0.0.1:5002/messagehub',
             connectionInterval: 5000,
         },
         fileStorage: {

@@ -10,7 +10,7 @@ import { Router } from '@angular/router';
 import { errorMessages } from '../../../constants/errors';
 import { ApiService } from '../../../services/api.service';
 import { ErrorService } from '../../../services/error.service';
-import { TokenStorageService } from '../../../services/token-storage.service';
+import { SessionService } from '../../../services/session.service';
 
 @Component({
     selector: 'app-login-by-email',
@@ -37,7 +37,7 @@ export class LoginByEmailComponent {
     private readonly router = inject(Router);
     private readonly fb = inject(FormBuilder);
     private readonly apiService = inject(ApiService);
-    private readonly tokenStorage = inject(TokenStorageService);
+    private readonly sessionService = inject(SessionService);
     private readonly errorService = inject(ErrorService);
 
     form = this.fb.group({
@@ -80,14 +80,19 @@ export class LoginByEmailComponent {
         this.isSubmitInProgress.set(true);
         this.form.controls.code.disable();
         try {
-            const loginResponseDto = await this.apiService.loginByEmail(
-                email,
-                Number(code),
-            );
+            await this.apiService.loginByEmail(email, Number(code));
             if (isCancelled()) {
                 return;
             }
-            this.tokenStorage.saveToken(loginResponseDto.token);
+            // The session cookie is not readable here: ask the server whether the browser kept it
+            const isSessionActive = await this.sessionService.refresh();
+            if (isCancelled()) {
+                return;
+            }
+            if (!isSessionActive) {
+                this.errorService.handleError(undefined, errorMessages.sessionNotKept);
+                return;
+            }
             await this.router.navigate(['chats']);
         } catch (e) {
             if (!isCancelled()) {

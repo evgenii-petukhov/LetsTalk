@@ -1,20 +1,18 @@
 import { Injectable } from '@angular/core';
 
-const TOKEN_KEY = 'auth-token';
+const LEGACY_TOKEN_KEY = 'auth-token';
 
+// The session credential is an HttpOnly cookie now and is not readable by scripts.
+// Earlier versions kept the token in localStorage, so it is removed on startup.
 @Injectable({
     providedIn: 'root',
 })
 export class TokenStorageService {
-    saveToken(token: string) {
-        window.localStorage.setItem(TOKEN_KEY, token);
-    }
-
-    getToken(): string {
-        return localStorage.getItem(TOKEN_KEY);
-    }
-
-    isLoggedIn(): boolean {
-        return !!this.getToken();
+    clearLegacyToken(): void {
+        try {
+            window.localStorage.removeItem(LEGACY_TOKEN_KEY);
+        } catch {
+            // localStorage can be blocked by the browser; there is nothing to clean up then
+        }
     }
 }

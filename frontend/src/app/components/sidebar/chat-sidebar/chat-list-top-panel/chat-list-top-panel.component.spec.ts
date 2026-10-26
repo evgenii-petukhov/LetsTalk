@@ -9,6 +9,9 @@ import {
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ChatListTopPanelComponent } from './chat-list-top-panel.component';
 import { StoreService } from '../../../../services/store.service';
+import { SessionService } from '../../../../services/session.service';
+import { ErrorService } from '../../../../services/error.service';
+import { errorMessages } from '../../../../constants/errors';
 import { BackButtonStubComponent } from '../../../shared/back-button/back-button.component.stub';
 import { AvatarStubComponent } from '../../../shared/avatar/avatar.component.stub';
 import { LogoutButtonStubComponent } from '../logout-button/logout-button.component.stub';
@@ -34,11 +37,21 @@ describe('ChatListTopPanelComponent', () => {
     let component: ChatListTopPanelComponent;
     let fixture: ComponentFixture<ChatListTopPanelComponent>;
     let storeService: MockedObject<StoreService>;
+    let sessionService: MockedObject<SessionService>;
+    let errorService: MockedObject<ErrorService>;
 
     beforeEach(async () => {
         storeService = {
             getLoggedInUser: vi.fn().mockName('StoreService.getLoggedInUser'),
         } as MockedObject<StoreService>;
+
+        sessionService = {
+            logout: vi.fn().mockName('SessionService.logout'),
+            reloadPage: vi.fn().mockName('SessionService.reloadPage'),
+        } as unknown as MockedObject<SessionService>;
+        errorService = {
+            handleError: vi.fn().mockName('ErrorService.handleError'),
+        } as unknown as MockedObject<ErrorService>;
 
         await TestBed.configureTestingModule({
             declarations: [
@@ -52,12 +65,39 @@ describe('ChatListTopPanelComponent', () => {
             imports: [RouterModule],
             providers: [
                 { provide: StoreService, useValue: storeService },
+                { provide: SessionService, useValue: sessionService },
+                { provide: ErrorService, useValue: errorService },
                 provideRouter([]),
             ],
         }).compileComponents();
 
         fixture = TestBed.createComponent(ChatListTopPanelComponent);
         component = fixture.componentInstance;
+    });
+
+    describe('onLogoutButtonClicked', () => {
+        it('should end the session on the server and reload the page', async () => {
+            sessionService.logout.mockResolvedValue();
+
+            await component.onLogoutButtonClicked();
+
+            expect(sessionService.logout).toHaveBeenCalledTimes(1);
+            expect(sessionService.reloadPage).toHaveBeenCalledTimes(1);
+            expect(errorService.handleError).not.toHaveBeenCalled();
+        });
+
+        it('should show an error and not reload when the logout fails', async () => {
+            const error = new Error('revoke failed');
+            sessionService.logout.mockRejectedValue(error);
+
+            await component.onLogoutButtonClicked();
+
+            expect(errorService.handleError).toHaveBeenCalledWith(
+                error,
+                errorMessages.logout,
+            );
+            expect(sessionService.reloadPage).not.toHaveBeenCalled();
+        });
     });
 
     it('should create', () => {

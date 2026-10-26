@@ -1,3 +1,5 @@
+import { MetaReducer } from '@ngrx/store';
+import { resetOnSessionEnded } from './reset-on-session-ended.meta-reducer';
 import { accountsReducer } from './accounts/accounts.reducer';
 import { chatsReducer } from './chats/chats.reducer';
 import { imageCacheReducer } from './image-cache/image-cache.reducer';
@@ -15,3 +17,5 @@ export const storeConfig = {
     imageCache: imageCacheReducer,
     videoCall: videoCallReducer,
 };
+
+export const storeMetaReducers: MetaReducer[] = [resetOnSessionEnded];
