@@ -4,16 +4,16 @@
 **Conventions**: `[P]` = can run in parallel with other `[P]` tasks of the same phase (different files, no dependency). Tests come before the code they cover (constitution, principle 4). Test names follow `Method_WhenCondition_ShouldOutcome`. Paths are relative to the repo root. `BE` = `backend/`, `FE` = `frontend/src/app/`. **Commit message prefix: `Http-only cookie: `** (one line, for example `Http-only cookie: revoke tokens on logout`). **One commit per phase**, made only when the owner approves, with the ticked `tasks.md` included.
 
 ## Phase 0 - Setup and guardrails
-- [ ] **T000** Before any commit, make sure the uncommitted `BE/Applications/LetsTalk.Server.API/Program.cs` (Swagger outside Development) and `appsettings.json` (real-looking secrets) are NOT staged. Stage files by name only. (NFR-003, constitution 1)
-- [ ] **T001** Create branch `001-httponly-cookie-auth` from `master`.
-- [ ] **T002** [P] Add the cookie settings model, bind it, and add the development CORS origin. (FR-011, NFR-001)
+- [x] **T000** (verified 2026-10-26: the working tree is clean, the owner's `Program.cs`/`appsettings.json` changes are in `stash@{0}` and were not touched; nothing was staged) Before any commit, make sure the uncommitted `BE/Applications/LetsTalk.Server.API/Program.cs` (Swagger outside Development) and `appsettings.json` (real-looking secrets) are NOT staged. Stage files by name only. (NFR-003, constitution 1)
+- [x] **T001** (branch already existed and was checked out) Create branch `001-httponly-cookie-auth` from `master`.
+- [x] **T002** [P] Add the cookie settings model, bind it, and add the development CORS origin. (FR-011, NFR-001)
   - **Model**: create `AuthCookieSettings` in `BE/Infrastructure/Configuration/LetsTalk.Server.Configuration/Models/AuthCookieSettings.cs`.
     - Config section: `AuthCookie`.
     - Defaults in code:
       - `Name = "auth-token"`
       - `Domain = ""` (empty means a host-only cookie)
       - `Secure = true`
-      - `SameSite = SameSiteMode.Strict`
+      - `SameSite = "Strict"` (a string, because the Configuration library has no ASP.NET Core reference; the code that builds the cookie parses it into `SameSiteMode`)
   - **Binding**: add `services.Configure<AuthCookieSettings>(configuration.GetSection("AuthCookie"));` as the repo does for other settings (string literal, no shared constant), in:
     - `BE/Applications/LetsTalk.Server.API/ApiServiceRegistration.cs`, next to the `Security` line (~53)
     - `BE/Applications/LetsTalk.Server.Notifications/NotificationsServicesRegistration.cs`
@@ -25,7 +25,7 @@
   - **Tests**: in `LetsTalk.Server.Configuration.Tests` (create it if it does not exist, same pattern as T003):
     - `AuthCookieSettings_WhenSectionMissing_ShouldUseDefaults`
     - `AuthCookieSettings_WhenSectionPresent_ShouldBindValues`
-- [ ] **T003** [P] Create test project `BE/Applications/LetsTalk.Server.FileStorage.Service.Tests` modeled on `LetsTalk.Server.Notifications.Tests.csproj`; add it to `LetsTalk.Server.sln`.
+- [x] **T003** [P] Create test project `BE/Applications/LetsTalk.Server.FileStorage.Service.Tests` modeled on `LetsTalk.Server.Notifications.Tests.csproj`; add it to `LetsTalk.Server.sln`.
 
 ## Phase 1 - Authentication service: revocation (blocks everything that logs out)
 Tests first, in `BE/Applications/LetsTalk.Server.Authentication.Tests`:

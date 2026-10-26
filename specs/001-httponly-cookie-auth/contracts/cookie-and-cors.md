@@ -13,13 +13,13 @@
 | Expires | the JWT's expiry (persistent cookie; spec 002 shortens it) | same |
 
 - Set only by the API on successful `email-login`; cleared by `logout` using identical Domain/Path.
-- Configuration (API `appsettings.json`, section `AuthCookie`): `Name`, `Domain`, `Secure`, `SameSite`.
+- Configuration (section `AuthCookie`, bound in the API, Notifications and File storage): `Name`, `Domain`, `Secure`, `SameSite`. Defaults live in `AuthCookieSettings`; deployments override them through configuration. `appsettings.json` is not edited.
 
 ## CORS (API, Notifications, File storage)
 - Policy: `WithOrigins(<AllowedOrigins from configuration>)`, `AllowAnyHeader()`, `AllowAnyMethod()`, `AllowCredentials()`.
 - `AllowedOrigins` (configuration, a list):
   - Production: `https://letstalk.petukhov.fyi`
-  - Development: the dev front-end origin (`http://127.0.0.1:4200`)
+  - Development: the dev front-end origin (`https://127.0.0.1:4200`, set in each service's `appsettings.Development.json`)
 - `AllowAnyOrigin` MUST NOT be used with credentials.
 - File storage (gRPC-web) additionally exposes the gRPC-web headers (`grpc-status`, `grpc-message`, `grpc-status-details-bin`) as it does today, and allows `x-grpc-web`, `x-user-agent` request headers.
 - Notifications (SignalR) uses the same policy; SignalR needs `AllowCredentials()` for the WebSocket handshake with cookies.

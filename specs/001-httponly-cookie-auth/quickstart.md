@@ -1,6 +1,6 @@
 # Quickstart: verify the HttpOnly cookie session
 
-Run the back end with `RunAll.ps1` and the Angular app with `ng serve --host 127.0.0.1`; open `http://127.0.0.1:4200`. Use DevTools (Application and Network tabs).
+Run the back end with `RunAll.ps1` and the Angular app with `ng serve --host 127.0.0.1`; open `https://127.0.0.1:4200` (`ng serve --ssl`; plain `http://` also works if the CORS origin and `AuthCookie:Secure` are adjusted). Use DevTools (Application and Network tabs).
 
 | # | Steps | Expected | Covers |
 |---|---|---|---|

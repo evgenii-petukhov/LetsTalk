@@ -1,5 +1,6 @@
 ﻿using LetsTalk.Server.Authentication.Client;
 using LetsTalk.Server.Configuration;
+using LetsTalk.Server.Configuration.Models;
 using LetsTalk.Server.Models.Kafka;
 using LetsTalk.Server.Logging;
 using LetsTalk.Server.Notifications.Abstractions;
@@ -32,6 +33,7 @@ public static class NotificationsServicesRegistration
             });
         });
         services.AddLoggingServices();
+        services.Configure<AuthCookieSettings>(configuration.GetSection("AuthCookie"));
         services.AddMassTransit(x =>
         {
             if (configuration.GetValue<string>("Features:EventBrokerMode") == "aws")
