@@ -84,7 +84,7 @@ New abstraction `IRefreshSessionService` in `Applications/LetsTalk.Server.Authen
 ### D7. Front end (FR-004, FR-008, FR-009, US1, US3)
 - `interceptors/auth.interceptor.ts`: on 401 for our API (excluding `refresh`, `email-login`, `logout`), call `SessionService.renew()` and retry the request once; renewals are shared with a single in-flight observable (`shareReplay`/`BehaviorSubject` lock). A failed renewal -> clear state, navigate to `/sign-in`.
 - `services/session.service.ts` (from 001): add `renew()` calling the generated `refresh()`; `isSignedIn()` stays the probe, now benefiting from renewal through the interceptor.
-- `services/file-storage.service.ts`: gRPC-web errors with `UNAUTHENTICATED` -> `renew()` then retry once.
+- `services/file-storage.service.ts`: gRPC-web errors with `UNAUTHENTICATED` -> `renew()` then retry once. Prerequisite found while implementing spec 001: the file service's `JwtInterceptor` throws `UnauthorizedAccessException`, which ASP.NET Core gRPC reports to the client as `Unknown`, not `UNAUTHENTICATED`. Change it to throw `RpcException(new Status(StatusCode.Unauthenticated, ...))` (tests in `FileStorage.Service.Tests`); the CORS policy already exposes `grpc-status`/`grpc-message` (spec 001, T034).
 - `services/signalr.service.ts`: before each (re)start of the connection call `renew()` if the last renewal is older than the access lifetime minus a safety margin or the last connect failed with auth error; `onreconnected` unchanged (no token handling). `withAutomaticReconnect` custom policy calls `renew()` before the first retry.
 - Proactive renewal is not added (renew-on-401 plus the SignalR rule is enough).
 

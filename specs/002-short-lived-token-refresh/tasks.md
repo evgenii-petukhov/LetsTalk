@@ -55,7 +55,7 @@ Tests first:
 Implementation:
 - [ ] **T154** `SessionService.renew()` with a shared in-flight observable. (T150, T140)
 - [ ] **T155** `auth.interceptor.ts` renew-and-retry. (T151, T154)
-- [ ] **T156** [P] `file-storage.service.ts` retry on `UNAUTHENTICATED`. (T152)
+- [ ] **T156** [P] `file-storage.service.ts` retry on `UNAUTHENTICATED`. (T152) Also, first: `BE/Applications/LetsTalk.Server.FileStorage.Service/GrpcInterceptors/JwtInterceptor.cs` must throw `RpcException(StatusCode.Unauthenticated)` instead of `UnauthorizedAccessException` (update the four "throws" tests in `JwtInterceptorTests` first), otherwise the browser sees `Unknown`.
 - [ ] **T157** [P] `signalr.service.ts` renewal before (re)start and in the reconnect policy. (T153)
 - [ ] **T158** `npm run test:run`, `npm run lint`, `npm run build`. Checkpoint 5.
 

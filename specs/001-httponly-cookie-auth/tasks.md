@@ -66,11 +66,11 @@ Implementation:
 - [x] **T035** (also: `BE/RunAll.ps1` sets `ASPNETCORE_ENVIRONMENT=Development` for the services it starts, otherwise they would start as Production and fail on the empty `Cors:AllowedOrigins`) Leave the `Authentication` service's CORS unchanged (not browser-facing, see research R5). Verify `dotnet build BE/LetsTalk.Server.sln`. Checkpoint 3.
 
 ## Phase 4 - Real-time and file service
-- [ ] **T040** Tests in `BE/Applications/LetsTalk.Server.Notifications.Tests`: `OnConnectedAsync_WhenCookieValid_ShouldRegisterConnection`; `..._WhenCookieMissing_ShouldAbortAndNotRegister`; `..._WhenCookieInvalid_ShouldAbort`; `AuthorizeAsync_WhenTokenValid_ShouldRegisterConnection` (unchanged path). (FR-010, FR-004)
-- [ ] **T041** [P] Tests in the new FileStorage test project (T003): `UnaryServerHandler_WhenCookiePresent_ShouldAuthenticate`; `..._WhenOnlyMetadata_ShouldAuthenticate`; `..._WhenBothPresent_ShouldPreferCookie`; `..._WhenNone_ShouldThrowUnauthorized`. (FR-003, FR-004)
-- [ ] **T042** `NotificationHub.OnConnectedAsync` per `contracts/realtime-auth.md`. (depends T002, T040)
-- [ ] **T043** `JwtInterceptor`: metadata or cookie via `context.GetHttpContext()`. (depends T002, T041)
-- [ ] **T044** Run `dotnet test` for Notifications.Tests and FileStorage.Service.Tests. Checkpoint 4.
+- [x] **T040** (cookie missing now means "stay open, unregistered, no abort" so that `AuthorizeAsync` keeps working, see `contracts/realtime-auth.md`; tests are `..._WhenCookieMissing_ShouldNotRegisterAndNotAbort`, plus `..._WhenValidationThrowsRpcException_ShouldAbortAndNotRegister` and `AuthorizeAsync_WhenTokenInvalid_ShouldNotRegisterConnection`) Tests in `BE/Applications/LetsTalk.Server.Notifications.Tests`: `OnConnectedAsync_WhenCookieValid_ShouldRegisterConnection`; `..._WhenCookieMissing_ShouldAbortAndNotRegister`; `..._WhenCookieInvalid_ShouldAbort`; `AuthorizeAsync_WhenTokenValid_ShouldRegisterConnection` (unchanged path). (FR-010, FR-004)
+- [x] **T041** [P] (also `..._WhenCredentialInvalid_ShouldThrowUnauthorized`) Tests in the new FileStorage test project (T003): `UnaryServerHandler_WhenCookiePresent_ShouldAuthenticate`; `..._WhenOnlyMetadata_ShouldAuthenticate`; `..._WhenBothPresent_ShouldPreferCookie`; `..._WhenNone_ShouldThrowUnauthorized`. (FR-003, FR-004)
+- [x] **T042** `NotificationHub.OnConnectedAsync` per `contracts/realtime-auth.md`. (depends T002, T040)
+- [x] **T043** `JwtInterceptor`: metadata or cookie via `context.GetHttpContext()`. (depends T002, T041)
+- [x] **T044** Run `dotnet test` for Notifications.Tests and FileStorage.Service.Tests. Checkpoint 4.
 
 ## Phase 5 - Clients and contracts
 - [ ] **T050** **Owner step, then agent verification.** Regenerate the API clients from the changed API. **Do not run `nextjs.nswag`.** (depends T027, T028)
