@@ -58,12 +58,12 @@ Implementation:
 - [x] **T029** Run `dotnet test` for API.Middleware.Tests, API.Core.Tests, API.Tests. Checkpoint 2.
 
 ## Phase 3 - CORS with credentials
-- [ ] **T030** Tests in `LetsTalk.Server.Configuration.Tests` (or a new DI test project if the helper lives elsewhere) for the helper: `AddCredentialedCors_WhenOriginsConfigured_ShouldAllowOnlyThoseOrigins`; `..._WhenOriginsEmptyOutsideDevelopment_ShouldThrow`. (FR-009)
-- [ ] **T031** Add the helper to `BE/Infrastructure/LetsTalk.Server.DependencyInjection/ServiceRegistrationExtensions.cs` (named policy "all", `WithOrigins`, any header/method, `AllowCredentials`, optional exposed headers). (depends T002, T030)
-- [ ] **T032** [P] API: use the helper in `BE/Applications/LetsTalk.Server.API/ApiServiceRegistration.cs:29`.
-- [ ] **T033** [P] Notifications: `NotificationsServicesRegistration.cs:24`.
-- [ ] **T034** [P] File storage: `FileStorageServiceRegistration.cs:27` and replace the per-endpoint `.RequireCors(... AllowAnyOrigin())` in `FileStorage.Service/Program.cs:32` with the named policy (exposed gRPC-web headers included). (FR-009)
-- [ ] **T035** Leave the `Authentication` service's CORS unchanged (not browser-facing, see research R5). Verify `dotnet build BE/LetsTalk.Server.sln`. Checkpoint 3.
+- [x] **T030** (new project `BE/Infrastructure/LetsTalk.Server.Cors.Tests`; also `..._WhenOriginsEmptyInDevelopment_ShouldNotThrow`, `..._WhenExposedHeadersProvided_ShouldExposeThem`) Tests in `LetsTalk.Server.Configuration.Tests` (or a new DI test project if the helper lives elsewhere) for the helper: `AddCredentialedCors_WhenOriginsConfigured_ShouldAllowOnlyThoseOrigins`; `..._WhenOriginsEmptyOutsideDevelopment_ShouldThrow`. (FR-009)
+- [x] **T031** Add the helper `AddCredentialedCors` in the new project `BE/Infrastructure/LetsTalk.Server.Cors/CorsServiceCollectionExtensions.cs` (not in `DependencyInjection`, so the ASP.NET Core framework reference stays out of that project; referenced by API, Notifications and File storage only) (named policy "all", `WithOrigins`, any header/method, `AllowCredentials`, optional exposed headers). (depends T002, T030)
+- [x] **T032** [P] API: use the helper in `BE/Applications/LetsTalk.Server.API/ApiServiceRegistration.cs:29`.
+- [x] **T033** [P] Notifications (project reference to `Cors` added): `NotificationsServicesRegistration.cs:24`.
+- [x] **T034** [P] File storage: `FileStorageServiceRegistration.cs:27` and replace the per-endpoint `.RequireCors(... AllowAnyOrigin())` in `FileStorage.Service/Program.cs:32` with the named policy (exposed gRPC-web headers included). (FR-009)
+- [x] **T035** (also: `BE/RunAll.ps1` sets `ASPNETCORE_ENVIRONMENT=Development` for the services it starts, otherwise they would start as Production and fail on the empty `Cors:AllowedOrigins`) Leave the `Authentication` service's CORS unchanged (not browser-facing, see research R5). Verify `dotnet build BE/LetsTalk.Server.sln`. Checkpoint 3.
 
 ## Phase 4 - Real-time and file service
 - [ ] **T040** Tests in `BE/Applications/LetsTalk.Server.Notifications.Tests`: `OnConnectedAsync_WhenCookieValid_ShouldRegisterConnection`; `..._WhenCookieMissing_ShouldAbortAndNotRegister`; `..._WhenCookieInvalid_ShouldAbort`; `AuthorizeAsync_WhenTokenValid_ShouldRegisterConnection` (unchanged path). (FR-010, FR-004)

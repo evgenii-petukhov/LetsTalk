@@ -1,6 +1,7 @@
 ﻿using LetsTalk.Server.Authentication.Client;
 using LetsTalk.Server.Configuration;
 using LetsTalk.Server.Configuration.Models;
+using LetsTalk.Server.Cors;
 using LetsTalk.Server.Models.Kafka;
 using LetsTalk.Server.Logging;
 using LetsTalk.Server.Notifications.Abstractions;
@@ -22,16 +23,7 @@ public static class NotificationsServicesRegistration
         services.AddAuthenticationClientServices(configuration);
         services.AddControllers();
         services.AddSignalR(o => o.EnableDetailedErrors = true);
-        services.AddCors(options =>
-        {
-            options.AddPolicy("all", builder =>
-            {
-                builder
-                    .AllowAnyOrigin()
-                    .AllowAnyHeader()
-                    .AllowAnyMethod();
-            });
-        });
+        services.AddCredentialedCors(configuration);
         services.AddLoggingServices();
         services.Configure<AuthCookieSettings>(configuration.GetSection("AuthCookie"));
         services.AddMassTransit(x =>

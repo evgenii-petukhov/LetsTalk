@@ -14,7 +14,7 @@ Implement the spec identified by `$ARGUMENTS` (the first word is the spec number
 
 Guardrails for this repository:
 - My uncommitted changes in `backend/Applications/LetsTalk.Server.API/Program.cs` and `appsettings.json` contain secrets. Never stage, modify, or reformat them. Stage files by explicit path only; never `git add -A` or `git add .`. If a task needs a change in those files, make the change only in other files or tell me what to add locally.
-- Commit only when I ask. Commit messages are one line and start with the prefix given under "Conventions" in the spec's `tasks.md` (spec 001: `Http-only cookie: `, spec 002: `Token refresh: `).
+- Commit only when I ask. Commit messages are one line and start with the prefix given under "Conventions" in the spec's `tasks.md` (spec 001: `Http-only cookie: `, spec 002: `Token refresh: `). Never add a `Co-Authored-By` line or any other attribution to a commit message.
 - Do not touch `frontend-next/`; never run `nswag/nextjs.nswag`.
 - Do not hand-edit generated files (`api-client.ts`, `ApiClient.cs`, `*_pb.js`, `.proto` outputs). Regenerate NSwag clients with the matching `nswag/*.nswag`. If `protoc` is needed for the grpc-web client, tell me exactly what to run; I run it in WSL.
 - Do not implement any other spec than the one requested.

@@ -9,6 +9,7 @@ using LetsTalk.Server.FileStorage.AgnosticServices;
 using LetsTalk.Server.ImageProcessing.ImageResizeEngine;
 using System.Reflection;
 using LetsTalk.Server.FileStorage.Service.Services.Cache;
+using LetsTalk.Server.Cors;
 using LetsTalk.Server.DependencyInjection;
 using LetsTalk.Server.SignPackage;
 using LetsTalk.Server.Persistence.Redis;
@@ -24,16 +25,7 @@ public static class FileStorageServiceRegistration
         this IServiceCollection services,
         IConfiguration configuration)
     {
-        services.AddCors(options =>
-        {
-            options.AddPolicy("all", builder =>
-            {
-                builder
-                    .AllowAnyOrigin()
-                    .AllowAnyHeader()
-                    .AllowAnyMethod();
-            });
-        });
+        services.AddCredentialedCors(configuration, "grpc-status", "grpc-message", "grpc-status-details-bin");
         services.AddGrpc(options => options.Interceptors.Add<JwtInterceptor>());
         services.AddGrpcReflection();
         services.AddScoped<IImageStorageService, ImageStorageService>();

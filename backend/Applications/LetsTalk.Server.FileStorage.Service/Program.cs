@@ -29,6 +29,6 @@ app.MapGrpcReflectionService();
 
 app.MapGrpcService<FileUploadGrpcEndpoint>()
     .EnableGrpcWeb()
-    .RequireCors(cors => cors.AllowAnyHeader().AllowAnyMethod().AllowAnyOrigin());
+    .RequireCors("all");
 
 app.Run();
