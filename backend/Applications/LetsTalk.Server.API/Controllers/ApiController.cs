@@ -14,6 +14,6 @@ public class ApiController : ControllerBase
 
     protected string GetToken()
     {
-        return HttpContext.Request.Headers.Authorization!;
+        return (string)HttpContext.Items["Token"]!;
     }
 }

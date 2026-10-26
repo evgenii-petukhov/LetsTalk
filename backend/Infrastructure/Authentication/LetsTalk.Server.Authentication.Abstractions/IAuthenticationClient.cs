@@ -2,7 +2,7 @@
 
 public interface IAuthenticationClient
 {
-    Task<string> GenerateJwtTokenAsync(string accountId);
+    Task<(string token, DateTime expiresAt)> GenerateJwtTokenAsync(string accountId);
 
     Task<string?> ValidateJwtTokenAsync(string token);
 

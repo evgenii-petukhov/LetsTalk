@@ -17,6 +17,7 @@ Base path `api/Authentication`. The OpenAPI document is generated from the contr
   3. Respond with an expired `Set-Cookie` of the same name, domain and path.
 - Success: `204 No Content`.
 - Anonymous-allowed (`[AllowAnonymous]`) so a browser with an expired session can still clear its cookie.
+- The token to revoke is the one `JwtMiddleware` resolved (`HttpContext.Items["Token"]`); when the middleware found the cookie invalid there is nothing to revoke. An invalid `Authorization` header with no cookie still yields `401` from the middleware, like every endpoint. If the revocation call itself fails, the error propagates and the cookie is not cleared, so the user can retry.
 
 ## Credential resolution order (all HTTP entry points)
 1. Cookie `auth-token`.
@@ -26,7 +27,8 @@ If both are present and differ, the cookie wins (FR-004).
 ### Invalid credentials (FR-013)
 - **Cookie present but invalid** (expired, revoked, unknown, malformed): treated as *no credential*. The request continues anonymously, the response carries an expired `Set-Cookie` that removes it, and protected endpoints answer `401` through the `[Authorize]` filter. Public endpoints (`email-login`, `generate-login-code`, `logout`) work normally.
 - **Header credential present but invalid** (no cookie): unchanged, `401` (explicit callers want a hard failure).
-- If a valid cookie and an invalid header are both present, the cookie is used.
+- If a valid cookie and an invalid header are both present, the cookie is used. If the cookie is invalid and a valid header is present, the header is used (and the stale cookie is still removed).
+- **Authentication service unreachable** (gRPC `Unavailable` or `DeadlineExceeded`) while validating a cookie: the request continues anonymously but the cookie is **not** removed, so a temporary outage does not sign users out. Any other gRPC failure (the service reports an invalid token as `Unknown`) counts as an invalid cookie.
 
 ## Session probe (existing endpoint, no change)
 The profile call behind `StoreService.getLoggedInUser()` -> `ApiService.getProfile()` (`frontend/src/app/services/store.service.ts:124`, `api.service.ts`). `200` = signed in; `401` = not signed in. No new endpoint is needed. Note that `getLoggedInUser()` returns the NgRx-cached profile if present, so the probe must bypass that cache once at startup and after sign-in (FR-006, FR-014).
@@ -43,3 +45,4 @@ message RevokeJwtTokenResponse {}
   `Applications/LetsTalk.Server.Authentication/Protos/authentication.proto` and
   `Infrastructure/Authentication/LetsTalk.Server.Authentication.Client/Protos/authentication.proto`.
 - `IAuthenticationClient` gets `RevokeJwtTokenAsync(string token)`.
+- The cookie needs the token's expiry, so `GenerateJwtTokenResponse` gets `int64 expires_at_unix_seconds = 2;` (both `.proto` copies), `IJwtCacheService.GenerateAsync` returns the stored token (token + `ValidTo`), and `IAuthenticationClient.GenerateJwtTokenAsync` returns `(string token, DateTime expiresAt)`.

@@ -17,6 +17,7 @@ message GenerateJwtTokenRequest {
 
 message GenerateJwtTokenResponse {
   string token = 1;
+  int64 expires_at_unix_seconds = 2;
 }
 
 message ValidateJwtTokenRequest {
