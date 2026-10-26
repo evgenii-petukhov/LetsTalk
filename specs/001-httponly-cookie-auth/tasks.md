@@ -73,7 +73,7 @@ Implementation:
 - [x] **T044** Run `dotnet test` for Notifications.Tests and FileStorage.Service.Tests. Checkpoint 4.
 
 ## Phase 5 - Clients and contracts
-- [ ] **T050** **Owner step, then agent verification.** Regenerate the API clients from the changed API. **Do not run `nextjs.nswag`.** (depends T027, T028)
+- [x] **T050** (done by the owner; verified: `logout` in both clients, `LoginResponseDto` has only `success`, the only other diffs are the stored spec snapshot in the two `.nswag` files) **Owner step, then agent verification.** Regenerate the API clients from the changed API. **Do not run `nextjs.nswag`.** (depends T027, T028)
   - **Why it is not automatic:** each `.nswag` file has `fromDocument.url` = `https://127.0.0.1:5000/swagger/v1/swagger.json` and also a stored `fromDocument.json` snapshot of the spec. The snapshot has no `logout`. Which one the generator uses when both are present is unverified, so a blind run could regenerate the old client. Running the API needs Docker, Redis, Kafka and the owner's secrets.
   - **Owner:**
     - Start the API in Development (for example `RunAll.ps1`) so the URL above responds.
@@ -85,7 +85,7 @@ Implementation:
     - `LoginResponseDto` has no `token`.
     - `git diff --stat` shows only the expected files. The `.nswag` files may also change (the stored snapshot); stage them by explicit path.
     - If the check fails, report it and stop.
-- [ ] **T051** `dotnet build BE/LetsTalk.Server.sln`; fix any consumer of `ApiClient` that referenced removed members (image/link consumers and Lambdas should compile unchanged). Checkpoint 5.
+- [x] **T051** (solution builds with 0 errors; the full `dotnet test` run has no failures) `dotnet build BE/LetsTalk.Server.sln`; fix any consumer of `ApiClient` that referenced removed members (image/link consumers and Lambdas should compile unchanged). Checkpoint 5.
 
 ## Phase 6 - Angular front end
 Tests first (vitest; update or add specs):
