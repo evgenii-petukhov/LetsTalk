@@ -59,7 +59,7 @@ dotnet publish -r win-x64 --self-contained false --configuration Debug
 
 Write-Host "`Launching..."
 dotnet publish -r win-x64 --self-contained false --configuration Debug
-# Started services inherit this: it loads appsettings.Development.json (Cors:AllowedOrigins) and enables Swagger
+# Development: allows an empty origin list and enables Swagger
 $env:ASPNETCORE_ENVIRONMENT = "Development"
 Start-Process -FilePath "Applications\LetsTalk.Server.API\bin\Debug\net10.0\win-x64\publish\LetsTalk.Server.API.exe"
 Start-Process -FilePath "Applications\LetsTalk.Server.Authentication\bin\Debug\net10.0\win-x64\publish\LetsTalk.Server.Authentication.exe"
