@@ -119,6 +119,72 @@ public class JwtInterceptorTests
         await act.Should().ThrowAsync<UnauthorizedAccessException>();
     }
 
+    [Test]
+    public async Task UnaryServerHandler_WhenCookieInvalidAndMetadataValid_ShouldAuthenticateWithMetadata()
+    {
+        // Arrange: same rule as the API, an invalid cookie does not hide a valid explicit credential
+        var context = CreateContext(cookieToken: CookieToken, metadataToken: MetadataToken);
+        _authenticationClientMock
+            .Setup(x => x.ValidateJwtTokenAsync(MetadataToken))
+            .ReturnsAsync(MetadataAccountId);
+
+        // Act
+        await Invoke(context);
+
+        // Assert
+        context.UserState[AccountIdKey].Should().Be(MetadataAccountId);
+    }
+
+    [Test]
+    public async Task UnaryServerHandler_WhenCookieValidationFailsWithRpcException_ShouldFallBackToMetadata()
+    {
+        // Arrange: the Authentication service reports an invalid token as an RpcException
+        var context = CreateContext(cookieToken: CookieToken, metadataToken: MetadataToken);
+        _authenticationClientMock
+            .Setup(x => x.ValidateJwtTokenAsync(CookieToken))
+            .ThrowsAsync(new RpcException(new Status(StatusCode.Unknown, "Invalid token")));
+        _authenticationClientMock
+            .Setup(x => x.ValidateJwtTokenAsync(MetadataToken))
+            .ReturnsAsync(MetadataAccountId);
+
+        // Act
+        await Invoke(context);
+
+        // Assert
+        context.UserState[AccountIdKey].Should().Be(MetadataAccountId);
+    }
+
+    [Test]
+    public async Task UnaryServerHandler_WhenCookieAndMetadataInvalid_ShouldThrowUnauthorized()
+    {
+        // Arrange
+        var context = CreateContext(cookieToken: CookieToken, metadataToken: MetadataToken);
+
+        // Act
+        var act = () => Invoke(context);
+
+        // Assert
+        await act.Should().ThrowAsync<UnauthorizedAccessException>();
+    }
+
+    [TestCase(StatusCode.Unavailable)]
+    [TestCase(StatusCode.DeadlineExceeded)]
+    public async Task UnaryServerHandler_WhenAuthServiceUnavailable_ShouldPropagateTheStatusInsteadOfTryingTheNextCredential(StatusCode statusCode)
+    {
+        // Arrange: an outage is not an invalid credential
+        var context = CreateContext(cookieToken: CookieToken, metadataToken: MetadataToken);
+        _authenticationClientMock
+            .Setup(x => x.ValidateJwtTokenAsync(CookieToken))
+            .ThrowsAsync(new RpcException(new Status(statusCode, "Authentication service is not reachable")));
+
+        // Act
+        var act = () => Invoke(context);
+
+        // Assert
+        (await act.Should().ThrowAsync<RpcException>()).Which.StatusCode.Should().Be(statusCode);
+        _authenticationClientMock.Verify(x => x.ValidateJwtTokenAsync(MetadataToken), Times.Never);
+    }
+
     private Task<string> Invoke(TestServerCallContext context) =>
         _interceptor.UnaryServerHandler(
             Request,

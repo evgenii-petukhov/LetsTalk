@@ -21,19 +21,7 @@ public class JwtInterceptor(
         ServerCallContext context,
         UnaryServerMethod<TRequest, TResponse> continuation)
     {
-        // The session cookie wins over the explicit "authorization" metadata (same rule as the API)
-        var token = context.GetHttpContext()?.Request.Cookies[_authCookieSettings.Name];
-        if (string.IsNullOrEmpty(token))
-        {
-            token = context.RequestHeaders.Get("authorization")?.Value;
-        }
-
-        if (string.IsNullOrEmpty(token))
-        {
-            throw new UnauthorizedAccessException();
-        }
-
-        var accountId = await _authenticationClient.ValidateJwtTokenAsync(token);
+        var accountId = await GetAccountIdAsync(context);
         if (string.IsNullOrEmpty(accountId))
         {
             throw new UnauthorizedAccessException();
@@ -45,5 +33,43 @@ public class JwtInterceptor(
         _signPackageService.Sign(response);
 
         return response;
+    }
+
+    // Same rule as the API: the session cookie first, then the explicit "authorization" metadata.
+    // An invalid cookie does not hide a valid explicit credential.
+    private async Task<string?> GetAccountIdAsync(ServerCallContext context)
+    {
+        var cookieToken = context.GetHttpContext()?.Request.Cookies[_authCookieSettings.Name];
+        var metadataToken = context.RequestHeaders.Get("authorization")?.Value;
+
+        foreach (var token in new[] { cookieToken, metadataToken })
+        {
+            if (string.IsNullOrEmpty(token))
+            {
+                continue;
+            }
+
+            var accountId = await TryValidateAsync(token);
+            if (!string.IsNullOrEmpty(accountId))
+            {
+                return accountId;
+            }
+        }
+
+        return null;
+    }
+
+    // The Authentication service reports an invalid token as an RpcException. An outage
+    // (Unavailable, DeadlineExceeded) is not an invalid credential and propagates as it is.
+    private async Task<string?> TryValidateAsync(string token)
+    {
+        try
+        {
+            return await _authenticationClient.ValidateJwtTokenAsync(token);
+        }
+        catch (RpcException ex) when (ex.StatusCode is not (StatusCode.Unavailable or StatusCode.DeadlineExceeded))
+        {
+            return null;
+        }
     }
 }

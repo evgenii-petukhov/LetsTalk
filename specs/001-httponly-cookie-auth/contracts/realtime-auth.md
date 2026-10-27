@@ -13,7 +13,7 @@
 
 ## File storage gRPC-web (`chatfilestorage{{suffix}}...`)
 - Browser: `new FileUploadGrpcEndpointClient(url, null, { withCredentials: true })`; no `authorization` metadata is set.
-- Server (`JwtInterceptor`): credential = cookie `auth-token` from `context.GetHttpContext().Request.Cookies` if present, else metadata `authorization` (explicit path). When both are present, the cookie wins (consistent with HTTP). Both absent, or the credential invalid -> `UnauthorizedAccessException` as today. (Spec 002 changes the failure to a gRPC `Unauthenticated` status so the browser can tell it apart.)
+- Server (`JwtInterceptor`): credential = cookie `auth-token` from `context.GetHttpContext().Request.Cookies` first, then metadata `authorization` (explicit path); an invalid cookie does not hide a valid explicit credential, like in the API. When both are valid, the cookie wins (consistent with HTTP). No valid credential -> `UnauthorizedAccessException` as today. An Authentication outage (`Unavailable`, `DeadlineExceeded`) propagates as that gRPC status; it is not an invalid credential. (Spec 002 changes the failure to a gRPC `Unauthenticated` status so the browser can tell it apart.)
 - Response signing (`ISignPackageService`) unchanged.
 
 ## Credential handed to background work

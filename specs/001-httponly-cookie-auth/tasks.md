@@ -118,7 +118,7 @@ Implementation (depends T050 and its test task):
 
 ## Review follow-ups (code review of the branch, 2026-10-27)
 - [x] **A** An Authentication outage must not look like a sign-out: `JwtMiddleware` answers `503` (new `ServiceUnavailableException`, mapped in `CustomExceptionMiddleware`) for a cookie or a header when the service is `Unavailable`/`DeadlineExceeded`; `SessionService` treats only a `401` probe as "not signed in".
-- [ ] **B** `JwtInterceptor` (file storage) falls back to the `authorization` metadata when the cookie is invalid, like the API.
+- [x] **B** `JwtInterceptor` (file storage) falls back to the `authorization` metadata when the cookie is invalid, like the API; an Authentication outage propagates as its gRPC status.
 - [ ] **C** `RedisCacheTokenService` computes the cache TTL from `DateTime.UtcNow` (was `DateTime.Now`).
 - [ ] **D** The `AuthCookie` settings are validated at startup.
 
