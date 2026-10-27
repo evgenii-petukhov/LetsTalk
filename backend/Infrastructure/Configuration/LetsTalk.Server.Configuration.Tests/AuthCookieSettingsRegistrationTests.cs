@@ -25,7 +25,7 @@ public class AuthCookieSettingsRegistrationTests
     public void AddAuthCookieSettings_ShouldRegisterTheOptions()
     {
         // Act
-        var services = Register(("Domain", "petukhov.fyi"));
+        var services = Register(("Domain", "example.com"));
 
         // Assert
         services.Should().Contain(x => x.ServiceType == typeof(IConfigureOptions<AuthCookieSettings>));
@@ -84,8 +84,8 @@ public class AuthCookieSettingsRegistrationTests
         act.Should().Throw<InvalidOperationException>().WithMessage("*AuthCookie*Name*");
     }
 
-    [TestCase("petukhov.fyi")]
-    [TestCase(".petukhov.fyi")]
+    [TestCase("example.com")]
+    [TestCase(".example.com")]
     public void AddAuthCookieSettings_WhenDomainIsAHostName_ShouldNotThrow(string domain)
     {
         // Act
@@ -95,9 +95,9 @@ public class AuthCookieSettingsRegistrationTests
         act.Should().NotThrow();
     }
 
-    [TestCase("https://petukhov.fyi")]
-    [TestCase("petukhov.fyi:443")]
-    [TestCase("petukhov.fyi/")]
+    [TestCase("https://example.com")]
+    [TestCase("example.com:443")]
+    [TestCase("example.com/")]
     [TestCase("petukhov fyi")]
     public void AddAuthCookieSettings_WhenDomainIsNotAHostName_ShouldThrow(string domain)
     {

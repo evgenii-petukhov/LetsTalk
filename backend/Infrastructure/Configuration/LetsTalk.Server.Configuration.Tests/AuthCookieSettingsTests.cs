@@ -11,7 +11,7 @@ public class AuthCookieSettingsTests
     private const string DefaultName = "auth-token";
     private const string DefaultSameSite = "Strict";
     private const string CustomName = "session";
-    private const string CustomDomain = "petukhov.fyi";
+    private const string CustomDomain = "example.com";
     private const string CustomSameSite = "Lax";
 
     [Test]

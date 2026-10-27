@@ -8,7 +8,7 @@
 | HttpOnly | yes | yes |
 | Secure | yes | configurable (default yes) |
 | SameSite | `Strict` | `Strict` |
-| Domain | `petukhov.fyi` (configurable) | empty (host-only) |
+| Domain | `{{domain}}` (deployment placeholder, set through configuration) | empty (host-only) |
 | Path | `/` | `/` |
 | Expires | the JWT's expiry (persistent cookie; spec 002 shortens it) | same |
 
@@ -18,7 +18,7 @@
 ## CORS (API, Notifications, File storage)
 - Policy: `WithOrigins(<AllowedOrigins from configuration>)`, `AllowAnyHeader()`, `AllowAnyMethod()`, `AllowCredentials()`.
 - `AllowedOrigins` (configuration, a list):
-  - Production: `https://letstalk.petukhov.fyi`
+  - Production: `https://{{frontend}}.{{domain}}`
   - Development: the dev front-end origin (`https://127.0.0.1:4200`, set in each service's `appsettings.Development.json`)
 - `AllowAnyOrigin` MUST NOT be used with credentials.
 - File storage (gRPC-web) additionally exposes the gRPC-web headers (`grpc-status`, `grpc-message`, `grpc-status-details-bin`) and allows `x-grpc-web`, `x-user-agent` request headers (`AllowAnyHeader`). The previous policy did not expose the status headers; the browser needs them to read a gRPC error code such as `UNAUTHENTICATED` (used by spec 002).

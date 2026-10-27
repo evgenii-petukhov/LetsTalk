@@ -21,7 +21,7 @@ public class JwtMiddlewareTests
     private const string AccountIdValue = "1";
     private const string CookieAccountIdValue = "2";
     private const string CookieName = "auth-token";
-    private const string CookieDomain = "petukhov.fyi";
+    private const string CookieDomain = "example.com";
     private const string ExpiredCookieDate = "expires=Thu, 01 Jan 1970";
 
     private JwtMiddleware _jwtMiddleware;

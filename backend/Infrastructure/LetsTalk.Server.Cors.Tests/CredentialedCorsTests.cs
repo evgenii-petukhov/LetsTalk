@@ -12,7 +12,7 @@ namespace LetsTalk.Server.Cors.Tests;
 public class CredentialedCorsTests
 {
     private const string PolicyName = "all";
-    private const string AllowedOrigin = "https://letstalk.petukhov.fyi";
+    private const string AllowedOrigin = "https://letstalk.example.com";
     private const string SecondAllowedOrigin = "https://127.0.0.1:4200";
     private const string OtherOrigin = "https://evil.example";
     private const string GrpcStatusHeader = "grpc-status";
