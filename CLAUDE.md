@@ -63,6 +63,8 @@ Follow `.github/instructions/persistence-service-tests.instructions.md` (referen
 
 The Angular app is organized by `components/`, `state/` (NgRx), `services/`, `api-client/`, `protos/` (grpc-web), with SignalR for realtime. Components use `ChangeDetectionStrategy.OnPush`.
 
+Auth session: an HttpOnly, `SameSite=Strict` cookie (`auth-token`, config section `AuthCookie`) set by `POST api/Authentication/email-login` and cleared and revoked by `POST api/Authentication/logout`; scripts never see the token. `JwtMiddleware` takes the cookie first and the `Authorization` header second (still used by `frontend-next` and the back-end `ApiClient` callers) and stores the bare token in `HttpContext.Items["Token"]` for background work. The Angular app asks the server whether it is signed in (`SessionService`) and sends credentials with every call (HTTP interceptor, grpc-web client, SignalR); the services use credentialed CORS with explicit `Cors:AllowedOrigins`. In development the front end and every service must be on `https://127.0.0.1` (a cookie is per site and scheme; `npm start` serves `https://127.0.0.1:4200`), and each service's `Program.cs` also reads `appsettings.{Environment}.json` from the executable folder, because `RunAll.ps1` starts the executables without a working directory.
+
 ## Spec-Driven Development
 
 Features are specified before they are built. Project rules are in `.specify/memory/constitution.md`; each feature lives in `specs/NNN-name/` (`spec.md` what/why, `plan.md` how, `tasks.md` ordered checkboxes, plus `research.md`, `contracts/`, `quickstart.md`). Implement with `/implement-spec NNN`.

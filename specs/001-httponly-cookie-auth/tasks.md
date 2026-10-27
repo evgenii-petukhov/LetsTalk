@@ -107,9 +107,9 @@ Implementation (depends T050 and its test task):
 - [x] **T076** (results: vitest 62 files / 736 tests pass; `npm run build` succeeds; `npx ng lint` reports 17 errors, all in code not touched by this phase (`api.service.ts:203,205`, `signalr.service.spec.ts:447,452`, rtc and stub files); `npm run lint` was not run because it uses `--fix` and would rewrite unrelated files) `npm run test:run`, `npm run lint`, `npm run build` in `frontend/`. Checkpoint 6.
 
 ## Phase 7 - Verification and wrap-up
-- [ ] **T080** Run the whole `quickstart.md` (Q1-Q13) against a local run (`RunAll.ps1` + `ng serve --host 127.0.0.1`). Record results in the PR description.
-- [ ] **T081** `dotnet test BE/LetsTalk.Server.sln` fully green.
-- [ ] **T082** Add deployment notes to the PR: set `AuthCookie:Domain=petukhov.fyi`, `AuthCookie:Secure=true`, `Cors:AllowedOrigins=https://letstalk.petukhov.fyi` on API, Notifications and FileStorage; users must sign in once.
+- [x] **T080** (2026-10-27: agent ran Q2, Q13, Q15 with curl: pass. Owner, hosted run: Q1-Q8, Q10-Q12 and Q14 pass; Q9 skipped by the owner) Run the whole `quickstart.md` (Q1-Q13) against a local run (`RunAll.ps1` + `ng serve --host 127.0.0.1`). Record results in the PR description.
+- [x] **T081** (2026-10-27: 13 test projects, no failures) `dotnet test BE/LetsTalk.Server.sln` fully green.
+- [x] **T082** (written as `deployment.md` in this folder, to paste into the PR; the release was rolled out and checked on the hosting on 2026-10-27) Deployment notes: set `AuthCookie:Domain=petukhov.fyi`, `AuthCookie:Secure=true`, `Cors:AllowedOrigins=https://letstalk.petukhov.fyi` on API, Notifications and FileStorage; users must sign in once. Set `AuthCookie__Domain` before the first rollout: if it is changed later, a cookie issued without it stays as a separate host-only cookie, so users must sign out or clear it once.
 - [ ] **T083** Update `CLAUDE.md` "Frontend notes"/auth paragraph with the cookie-session behavior (one short paragraph). Run `/code-review` on the branch before merging.
 
 ## Dependencies
