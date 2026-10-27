@@ -35,7 +35,7 @@ public static class FileStorageServiceRegistration
         services.AddImageResizeEngineServices();
         services.Configure<FileStorageSettings>(configuration.GetSection("FileStorage"));
         services.Configure<ImageConstraints>(configuration.GetSection("ImageConstraints"));
-        services.Configure<AuthCookieSettings>(configuration.GetSection("AuthCookie"));
+        services.AddAuthCookieSettings(configuration);
         services.AddAutoMapper(
             cfg =>
             {

@@ -1,4 +1,5 @@
 ﻿using LetsTalk.Server.Authentication.Client;
+using LetsTalk.Server.Configuration;
 using LetsTalk.Server.Configuration.Models;
 using LetsTalk.Server.API.Core;
 using LetsTalk.Server.Cors;
@@ -43,7 +44,7 @@ public static class ApiServiceRegistration
         });
         services.Configure<MessagingSettings>(configuration.GetSection("Messaging"));
         services.Configure<SecuritySettings>(configuration.GetSection("Security"));
-        services.Configure<AuthCookieSettings>(configuration.GetSection("AuthCookie"));
+        services.AddAuthCookieSettings(configuration);
         services.Configure<FeaturesSettings>(configuration.GetSection("Features"));
 
         return services;

@@ -25,7 +25,7 @@ public static class NotificationsServicesRegistration
         services.AddSignalR(o => o.EnableDetailedErrors = true);
         services.AddCredentialedCors(configuration);
         services.AddLoggingServices();
-        services.Configure<AuthCookieSettings>(configuration.GetSection("AuthCookie"));
+        services.AddAuthCookieSettings(configuration);
         services.AddMassTransit(x =>
         {
             if (configuration.GetValue<string>("Features:EventBrokerMode") == "aws")
