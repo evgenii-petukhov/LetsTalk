@@ -37,7 +37,7 @@ public class RedisCacheTokenService(
             await _database.StringSetAsync(
                 key,
                 new RedisValue(JsonSerializer.Serialize(storedToken!.AccountId)),
-                storedToken!.ValidTo - DateTime.Now,
+                storedToken!.ValidTo - DateTime.UtcNow,
             When.NotExists);
 
             await _database.KeyExpireAsync(key, storedToken.ValidTo);
@@ -57,7 +57,7 @@ public class RedisCacheTokenService(
         await _database.StringSetAsync(
                 key,
                 new RedisValue(JsonSerializer.Serialize(storedToken.AccountId)),
-                storedToken.ValidTo - DateTime.Now);
+                storedToken.ValidTo - DateTime.UtcNow);
 
         return storedToken;
     }

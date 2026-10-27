@@ -134,6 +134,50 @@ public class RedisCacheTokenServiceTests
         calls.Should().Equal("denylist", "cache");
     }
 
+    [Test]
+    public async Task GenerateAsync_ShouldCacheTheTokenForItsRemainingLifetime()
+    {
+        // Arrange: ValidTo is UTC, so the lifetime must be measured against UtcNow whatever the server time zone is
+        _jwtStorageServiceMock
+            .Setup(x => x.Generate(AccountId))
+            .Returns(new StoredToken
+            {
+                AccountId = AccountId,
+                Token = Token,
+                ValidTo = DateTime.UtcNow.AddMinutes(LifetimeMinutes)
+            });
+
+        // Act
+        await _service.GenerateAsync(AccountId);
+
+        // Assert
+        _databaseMock.Verify(x => x.StringSetAsync(
+            It.Is<RedisKey>(k => k == TokenKey),
+            It.IsAny<RedisValue>(),
+            It.Is<Expiration>(e => IsLifetimeCloseToRemaining(e)),
+            It.IsAny<ValueCondition>(),
+            It.IsAny<CommandFlags>()), Times.Once);
+    }
+
+    [Test]
+    public async Task GetAccountIdAsync_WhenNotCached_ShouldCacheForTheRemainingLifetime()
+    {
+        // Arrange
+        SetupValidToken();
+
+        // Act
+        await _service.GetAccountIdAsync(Token);
+
+        // Assert
+        _databaseMock.Verify(x => x.StringSetAsync(
+            It.Is<RedisKey>(k => k == TokenKey),
+            It.IsAny<RedisValue>(),
+            It.Is<TimeSpan?>(t => t.HasValue
+                && t.Value > TimeSpan.FromMinutes(LifetimeMinutes - 1)
+                && t.Value <= TimeSpan.FromMinutes(LifetimeMinutes)),
+            When.NotExists), Times.Once);
+    }
+
     // Expiration exposes no accessor; its ToString() is the Redis option, "EX <seconds>" or "PX <milliseconds>"
     private static bool IsLifetimeCloseToRemaining(Expiration expiration)
     {
