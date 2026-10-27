@@ -4,7 +4,7 @@
 **Conventions**: as in spec 001 (`[P]` parallel, tests before code, `Method_WhenCondition_ShouldOutcome`). `BE` = `backend/`, `FE` = `frontend/src/app/`. **Commit message prefix: `Token refresh: `** (one line, for example `Token refresh: rotate refresh tokens with reuse detection`). **One commit per phase**, made only when the owner approves, with the ticked `tasks.md` included.
 
 ## Phase 0 - Setup
-- [ ] **T100** Branch `002-short-lived-token-refresh` from `001-httponly-cookie-auth`. Re-check that uncommitted `Program.cs`/`appsettings.json` changes are not staged (constitution 1).
+- [ ] **T100** Branch `002-short-lived-token-refresh` from the updated `master`. Re-check that uncommitted `Program.cs`/`appsettings.json` changes are not staged (constitution 1).
 - [ ] **T101** [P] Extend `JwtSettings` (`AccessTokenLifetime`, `BackgroundTokenLifetime`, `RefreshIdleLifetime`, `RefreshAbsoluteLifetime`, `RefreshReuseGrace`) and `AuthCookieSettings` (`RefreshName`, `RefreshPath`); defaults per plan D1; test binding in `LetsTalk.Server.Configuration.Tests`; add values (no secrets) to Authentication/API `appsettings.json` and long lifetimes to `appsettings.Development.json`. (FR-001, FR-003, FR-013)
 
 ## Phase 1 - Authentication service
