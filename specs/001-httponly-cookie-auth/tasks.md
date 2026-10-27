@@ -54,7 +54,7 @@ Implementation:
 - [x] **T025** `BE/Applications/LetsTalk.Server.API/Controllers/ApiController.cs`: `GetToken()` returns `Items["Token"]`. (depends T023, T024)
 - [x] **T026** `EmailLoginCommandHandler` + `EmailLoginCommand`: return `EmailLoginResult` (token + expiry), remove `Token` from `BE/Models/LetsTalk.Server.Models.Dtos/LoginResponseDto.cs`. (depends T021)
 - [x] **T027** `AuthenticationController.EmailLoginAsync`: append cookie per `contracts/cookie-and-cors.md`, return `LoginResponseDto { Success }`. (depends T022, T026)
-- [x] **T028** `AuthenticationController.LogoutAsync` (`POST logout`, `[AllowAnonymous]`, `204`): resolve credential, `RevokeJwtTokenAsync`, expire cookie. (depends T016, T022, T024)
+- [x] **T028** `AuthenticationController.LogoutAsync` (`POST logout`, `[AllowAnonymous]`, `204`): resolve credential, send `LogoutCommand` (handler `LogoutCommandHandler` in `API.Core` revokes the token with `RevokeJwtTokenAsync`), expire cookie. (depends T016, T022, T024)
 - [x] **T029** Run `dotnet test` for API.Middleware.Tests, API.Core.Tests, API.Tests. Checkpoint 2.
 
 ## Phase 3 - CORS with credentials

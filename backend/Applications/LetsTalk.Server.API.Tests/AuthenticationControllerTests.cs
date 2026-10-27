@@ -3,7 +3,6 @@ using FluentAssertions;
 using LetsTalk.Server.API.Controllers;
 using LetsTalk.Server.API.Core.Commands;
 using LetsTalk.Server.API.Models.Login;
-using LetsTalk.Server.Authentication.Abstractions;
 using LetsTalk.Server.Configuration.Models;
 using LetsTalk.Server.DateHelpers;
 using LetsTalk.Server.Exceptions;
@@ -30,7 +29,6 @@ public class AuthenticationControllerTests
 
     private Mock<IMediator> _mediatorMock;
     private Mock<IMapper> _mapperMock;
-    private Mock<IAuthenticationClient> _authenticationClientMock;
     private DefaultHttpContext _httpContext;
     private AuthenticationController _controller;
 
@@ -39,7 +37,6 @@ public class AuthenticationControllerTests
     {
         _mediatorMock = new Mock<IMediator>();
         _mapperMock = new Mock<IMapper>();
-        _authenticationClientMock = new Mock<IAuthenticationClient>();
         _httpContext = new DefaultHttpContext();
 
         _mapperMock
@@ -50,7 +47,6 @@ public class AuthenticationControllerTests
             _mediatorMock.Object,
             _mapperMock.Object,
             Options.Create(new SecuritySettings { AntiSpamTokenLifeTimeInSeconds = AntiSpamLifetimeInSeconds }),
-            _authenticationClientMock.Object,
             Options.Create(new AuthCookieSettings()))
         {
             ControllerContext = new ControllerContext { HttpContext = _httpContext }
@@ -106,11 +102,13 @@ public class AuthenticationControllerTests
         _httpContext.Items["Token"] = Token;
 
         // Act
-        var result = await _controller.LogoutAsync();
+        var result = await _controller.LogoutAsync(CancellationToken.None);
 
         // Assert
         result.Should().BeOfType<NoContentResult>();
-        _authenticationClientMock.Verify(x => x.RevokeJwtTokenAsync(Token), Times.Once);
+        _mediatorMock.Verify(
+            x => x.Send(It.Is<LogoutCommand>(c => c.Token == Token), It.IsAny<CancellationToken>()),
+            Times.Once);
         _httpContext.Response.Headers.SetCookie.ToString().Should()
             .Contain($"{CookieName}=;").And.Contain(ExpiredCookieDate);
     }
@@ -119,11 +117,11 @@ public class AuthenticationControllerTests
     public async Task LogoutAsync_WhenNoCredential_ShouldReturnNoContentAndClearCookie()
     {
         // Act
-        var result = await _controller.LogoutAsync();
+        var result = await _controller.LogoutAsync(CancellationToken.None);
 
         // Assert
         result.Should().BeOfType<NoContentResult>();
-        _authenticationClientMock.Verify(x => x.RevokeJwtTokenAsync(It.IsAny<string>()), Times.Never);
+        _mediatorMock.Verify(x => x.Send(It.IsAny<LogoutCommand>(), It.IsAny<CancellationToken>()), Times.Never);
         _httpContext.Response.Headers.SetCookie.ToString().Should()
             .Contain($"{CookieName}=;").And.Contain(ExpiredCookieDate);
     }
@@ -135,11 +133,11 @@ public class AuthenticationControllerTests
         _httpContext.Request.Headers.Cookie = $"{CookieName}=stale";
 
         // Act
-        var result = await _controller.LogoutAsync();
+        var result = await _controller.LogoutAsync(CancellationToken.None);
 
         // Assert
         result.Should().BeOfType<NoContentResult>();
-        _authenticationClientMock.Verify(x => x.RevokeJwtTokenAsync(It.IsAny<string>()), Times.Never);
+        _mediatorMock.Verify(x => x.Send(It.IsAny<LogoutCommand>(), It.IsAny<CancellationToken>()), Times.Never);
     }
 
     private static EmailLoginRequest CreateRequest() => new()
