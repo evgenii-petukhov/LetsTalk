@@ -16,9 +16,4 @@ export class AccountListTopPanelComponent {
     @Input()
     @HostBinding('class.navigation-active')
     isNavigationActive: boolean = false;
-
-    onLogoutButtonClicked(): void {
-        window.localStorage.clear();
-        window.location.reload();
-    }
 }

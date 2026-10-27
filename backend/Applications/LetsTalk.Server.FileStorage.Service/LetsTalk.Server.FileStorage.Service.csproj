@@ -34,6 +34,7 @@
     <ProjectReference Include="..\..\Infrastructure\Authentication\LetsTalk.Server.Authentication.Client\LetsTalk.Server.Authentication.Client.csproj" />
     <ProjectReference Include="..\..\Infrastructure\FileStorage\LetsTalk.Server.FileStorage.AgnosticServices\LetsTalk.Server.FileStorage.AgnosticServices.csproj" />
     <ProjectReference Include="..\..\Infrastructure\ImageProcessing\LetsTalk.Server.ImageProcessing.ImageResizeEngine\LetsTalk.Server.ImageProcessing.ImageResizeEngine.csproj" />
+    <ProjectReference Include="..\..\Infrastructure\LetsTalk.Server.Cors\LetsTalk.Server.Cors.csproj" />
     <ProjectReference Include="..\..\Infrastructure\LetsTalk.Server.DependencyInjection\LetsTalk.Server.DependencyInjection.csproj" />
     <ProjectReference Include="..\..\Infrastructure\Logging\LetsTalk.Server.Logging\LetsTalk.Server.Logging.csproj" />
     <ProjectReference Include="..\..\Infrastructure\SignPackage\LetsTalk.Server.SignPackage.Models\LetsTalk.Server.SignPackage.Models.csproj" />

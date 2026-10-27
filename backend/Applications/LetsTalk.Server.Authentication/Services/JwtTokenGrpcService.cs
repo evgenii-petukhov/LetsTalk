@@ -10,11 +10,12 @@ public class JwtTokenGrpcService(IJwtCacheService jwtCacheService) : JwtTokenGrp
 
     public override async Task<GenerateJwtTokenResponse> GenerateJwtToken(GenerateJwtTokenRequest request, ServerCallContext context)
     {
-        var token = await _jwtCacheService.GenerateAsync(request.AccountId);
+        var storedToken = await _jwtCacheService.GenerateAsync(request.AccountId);
 
         return new GenerateJwtTokenResponse
         {
-            Token = token
+            Token = storedToken.Token,
+            ExpiresAtUnixSeconds = new DateTimeOffset(storedToken.ValidTo).ToUnixTimeSeconds()
         };
     }
 
@@ -26,5 +27,12 @@ public class JwtTokenGrpcService(IJwtCacheService jwtCacheService) : JwtTokenGrp
         {
             AccountId = accountId
         };
+    }
+
+    public override async Task<RevokeJwtTokenResponse> RevokeJwtToken(RevokeJwtTokenRequest request, ServerCallContext context)
+    {
+        await _jwtCacheService.RevokeAsync(request.Token);
+
+        return new RevokeJwtTokenResponse();
     }
 }

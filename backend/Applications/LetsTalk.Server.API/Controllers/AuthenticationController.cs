@@ -8,6 +8,8 @@ using LetsTalk.Server.API.Validation;
 using Microsoft.Extensions.Options;
 using LetsTalk.Server.Configuration.Models;
 using LetsTalk.Server.API.Core.Commands;
+using LetsTalk.Server.API.Middleware;
+using Microsoft.AspNetCore.Authorization;
 
 namespace LetsTalk.Server.API.Controllers;
 
@@ -16,11 +18,13 @@ namespace LetsTalk.Server.API.Controllers;
 public class AuthenticationController(
     IMediator mediator,
     IMapper mapper,
-    IOptions<SecuritySettings> securitySettingsOptions) : ControllerBase
+    IOptions<SecuritySettings> securitySettingsOptions,
+    IOptions<AuthCookieSettings> authCookieSettingsOptions) : ControllerBase
 {
     private readonly IMediator _mediator = mediator;
     private readonly IMapper _mapper = mapper;
     private readonly SecuritySettings _securitySettings = securitySettingsOptions.Value;
+    private readonly AuthCookieSettings _authCookieSettings = authCookieSettingsOptions.Value;
 
     [HttpPost("email-login")]
     public async Task<ActionResult<LoginResponseDto>> EmailLoginAsync(EmailLoginRequest request, CancellationToken cancellationToken)
@@ -35,7 +39,24 @@ public class AuthenticationController(
 
         var result = await _mediator.Send(_mapper.Map<EmailLoginCommand>(request), cancellationToken);
 
-        return Ok(result);
+        Response.AppendAuthCookie(_authCookieSettings, result.Token, result.ExpiresAt);
+
+        return Ok(new LoginResponseDto { Success = true });
+    }
+
+    [AllowAnonymous]
+    [HttpPost("logout")]
+    public async Task<IActionResult> LogoutAsync(CancellationToken cancellationToken)
+    {
+        // JwtMiddleware stores the token only when the session cookie or the header was valid
+        if (HttpContext.Items["Token"] is string token)
+        {
+            await _mediator.Send(new LogoutCommand(token), cancellationToken);
+        }
+
+        Response.DeleteAuthCookie(_authCookieSettings);
+
+        return NoContent();
     }
 
     [HttpPost("generate-login-code")]

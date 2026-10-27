@@ -13,7 +13,8 @@ import { Router } from '@angular/router';
 import { LoginByEmailComponent } from './login-by-email.component';
 import { ApiService } from '../../../services/api.service';
 import { ErrorService } from '../../../services/error.service';
-import { TokenStorageService } from '../../../services/token-storage.service';
+import { errorMessages } from '../../../constants/errors';
+import { SessionService } from '../../../services/session.service';
 import { InlineCountdownStubComponent } from '../inline-countdown/inline-countdown.component.stub';
 import {
     GenerateLoginCodeResponseDto,
@@ -24,7 +25,7 @@ describe('LoginByEmailComponent', () => {
     let component: LoginByEmailComponent;
     let fixture: ComponentFixture<LoginByEmailComponent>;
     let apiService: MockedObject<ApiService>;
-    let tokenStorageService: MockedObject<TokenStorageService>;
+    let sessionService: MockedObject<SessionService>;
     let errorService: MockedObject<ErrorService>;
     let router: MockedObject<Router>;
 
@@ -34,14 +35,15 @@ describe('LoginByEmailComponent', () => {
             generateLoginCode: vi.fn().mockName('ApiService.generateLoginCode'),
         } as MockedObject<ApiService>;
         apiService.loginByEmail.mockResolvedValue(
-            new LoginResponseDto({ token: 'fakeToken' }),
+            new LoginResponseDto({ success: true }),
         );
         apiService.generateLoginCode.mockResolvedValue(
             new GenerateLoginCodeResponseDto({ codeValidInSeconds: 60 }),
         );
-        tokenStorageService = {
-            saveToken: vi.fn().mockName('TokenStorageService.saveToken'),
-        } as MockedObject<TokenStorageService>;
+        sessionService = {
+            refresh: vi.fn().mockName('SessionService.refresh'),
+        } as unknown as MockedObject<SessionService>;
+        sessionService.refresh.mockResolvedValue(true);
         errorService = {
             handleError: vi.fn().mockName('ErrorService.handleError'),
         } as MockedObject<ErrorService>;
@@ -56,7 +58,7 @@ describe('LoginByEmailComponent', () => {
                 FormBuilder,
                 { provide: Router, useValue: router },
                 { provide: ApiService, useValue: apiService },
-                { provide: TokenStorageService, useValue: tokenStorageService },
+                { provide: SessionService, useValue: sessionService },
                 { provide: ErrorService, useValue: errorService },
             ],
         }).compileComponents();
@@ -155,8 +157,25 @@ describe('LoginByEmailComponent', () => {
             'test@example.com',
             1234,
         );
-        expect(tokenStorageService.saveToken).toHaveBeenCalledWith('fakeToken');
+        expect(sessionService.refresh).toHaveBeenCalled();
         expect(router.navigate).toHaveBeenCalledWith(['chats']);
+        expect(component.isSubmitInProgress()).toBe(false);
+    });
+
+    it('should show a message and stay on the page when the browser did not keep the session', async () => {
+        // Arrange
+        component.form.setValue({ email: 'test@example.com', code: '1234' });
+        sessionService.refresh.mockResolvedValue(false);
+
+        // Act
+        await component.onSubmit();
+
+        // Assert
+        expect(errorService.handleError).toHaveBeenCalledWith(
+            undefined,
+            errorMessages.sessionNotKept,
+        );
+        expect(router.navigate).not.toHaveBeenCalled();
         expect(component.isSubmitInProgress()).toBe(false);
     });
 
@@ -257,7 +276,7 @@ describe('LoginByEmailComponent', () => {
             expect(apiService.loginByEmail).toHaveBeenCalledWith(email, 1234);
             expect(component.form.controls.code.disabled).toBe(true);
 
-            resolveLogin(new LoginResponseDto({ token: 'fakeToken' }));
+            resolveLogin(new LoginResponseDto({ success: true }));
             await submitPromise;
             expect(component.form.controls.code.enabled).toBe(true);
         });
@@ -285,7 +304,7 @@ describe('LoginByEmailComponent', () => {
     describe('cancelling during a pending submit', () => {
         const email = 'test@example.com';
 
-        it('should not save the token or navigate to chats when the request resolves later', async () => {
+        it('should not check the session or navigate to chats when the request resolves later', async () => {
             // Arrange
             component.form.setValue({ email, code: '1234' });
             router.navigate.mockResolvedValue(true);
@@ -298,11 +317,11 @@ describe('LoginByEmailComponent', () => {
             router.navigate.mockClear();
 
             // Act
-            resolveLogin(new LoginResponseDto({ token: 'fakeToken' }));
+            resolveLogin(new LoginResponseDto({ success: true }));
             await submitPromise;
 
             // Assert
-            expect(tokenStorageService.saveToken).not.toHaveBeenCalled();
+            expect(sessionService.refresh).not.toHaveBeenCalled();
             expect(router.navigate).not.toHaveBeenCalled();
         });
 
@@ -356,7 +375,7 @@ describe('LoginByEmailComponent', () => {
                 'Checking the code...',
             );
 
-            resolveLogin(new LoginResponseDto({ token: 'fakeToken' }));
+            resolveLogin(new LoginResponseDto({ success: true }));
             await submitPromise;
         });
 

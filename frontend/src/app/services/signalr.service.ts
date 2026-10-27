@@ -11,7 +11,7 @@ import {
     IMessageDto,
 } from '../api-client/api-client';
 import { ConstantRetryPolicy } from './constant-retry-policy';
-import { TokenStorageService } from './token-storage.service';
+import { SessionService } from './session.service';
 import { IncomingCall } from '../models/incoming-call';
 import { EstablishConnection } from '../models/establish-connection';
 
@@ -30,7 +30,7 @@ type TypeDto = TypeDtoMap[TypeNames];
     providedIn: 'root',
 })
 export class SignalrService {
-    private readonly tokenStorageService = inject(TokenStorageService);
+    private readonly sessionService = inject(SessionService);
     private readonly retryPolicy = new ConstantRetryPolicy(
         environment.services.notifications.connectionInterval,
     );
@@ -38,6 +38,8 @@ export class SignalrService {
         .withUrl(environment.services.notifications.url, {
             skipNegotiation: true,
             transport: HttpTransportType.WebSockets,
+            // the browser sends the HttpOnly session cookie with the WebSocket handshake
+            withCredentials: true,
         })
         .withAutomaticReconnect(this.retryPolicy)
         .configureLogging(LogLevel.Information)
@@ -49,6 +51,10 @@ export class SignalrService {
     private handlerMapping!: {
         [K in TypeNames]: (dto: TypeDtoMap[K]) => void;
     };
+
+    constructor() {
+        this.sessionService.sessionLost.subscribe(() => this.removeHandlers());
+    }
 
     async init(
         messageHandler: (messageDto: IMessageDto) => Promise<void>,
@@ -77,24 +83,17 @@ export class SignalrService {
             }, this.retryPolicy.nextRetryDelayInMilliseconds());
         }
 
-        this.hubConnectionBuilder.onreconnected(async () => {
-            await this.authorize();
+        this.hubConnectionBuilder.onreconnected(() => {
+            // the new handshake carries the session cookie again; nothing to re-send
             console.log('Notification service: reconnected');
         });
     }
 
     removeHandlers(): void {
+        window.clearInterval(this.connectionTimerId);
         this.hubConnectionBuilder.off(this.notificationEventName);
         this.hubConnectionBuilder.stop();
         this.isInitialized = false;
-    }
-
-    private async authorize(): Promise<void> {
-        await this.hubConnectionBuilder.invoke(
-            'AuthorizeAsync',
-            this.tokenStorageService.getToken(),
-        );
-        console.log('Notification service: authorized');
     }
 
     private async setUpConnection(): Promise<void> {
@@ -108,10 +107,12 @@ export class SignalrService {
                     this.handlerMapping[typeName]?.(dto);
                 },
             );
-            await this.authorize();
             console.log('Notification service: connected');
         } catch {
             console.log('Notification service: unable to establish connection');
+            // the server refuses the handshake when the session is gone: find out, and
+            // let SessionService drop the session (which stops this service) if so
+            void this.sessionService.refresh();
         }
     }
 }

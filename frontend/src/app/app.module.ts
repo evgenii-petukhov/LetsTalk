@@ -2,7 +2,7 @@ import {
     provideHttpClient,
     withInterceptorsFromDi,
 } from '@angular/common/http';
-import { NgModule } from '@angular/core';
+import { inject, NgModule, provideAppInitializer } from '@angular/core';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
@@ -16,7 +16,7 @@ import { BrowserModule } from '@angular/platform-browser';
 import { ToastrModule } from 'ngx-toastr';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { StoreModule } from '@ngrx/store';
-import { storeConfig } from './state/store-config';
+import { storeConfig, storeMetaReducers } from './state/store-config';
 import { ReactiveFormsModule } from '@angular/forms';
 import { PrivacyPolicyComponent } from './components/privacy-policy/privacy-policy.component';
 import { ImageViewerComponent } from './components/image-viewer/image-viewer.component';
@@ -25,6 +25,7 @@ import { SharedModule } from './components/shared/shared.module';
 import { SidebarModule } from './components/sidebar/sidebar.module';
 import { SignInModule } from './components/sign-in/sign-in.module';
 import { ChatModule } from './components/chat/chat.module';
+import { TokenStorageService } from './services/token-storage.service';
 
 @NgModule({
     declarations: [
@@ -40,7 +41,7 @@ import { ChatModule } from './components/chat/chat.module';
         FontAwesomeModule,
         BrowserAnimationsModule,
         ToastrModule.forRoot(),
-        StoreModule.forRoot(storeConfig),
+        StoreModule.forRoot(storeConfig, { metaReducers: storeMetaReducers }),
         ReactiveFormsModule,
         SharedModule,
         SidebarModule,
@@ -48,6 +49,9 @@ import { ChatModule } from './components/chat/chat.module';
         ChatModule,
     ],
     providers: [
+        provideAppInitializer(() =>
+            inject(TokenStorageService).clearLegacyToken(),
+        ),
         authInterceptorProvider,
         httpLogInterceptorProvider,
         apiClientProvider,

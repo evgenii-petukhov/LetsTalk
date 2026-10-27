@@ -6,7 +6,8 @@ using System.Globalization;
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Configuration
-    .AddJsonFile(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "appsettings.json"), optional: false);
+    .AddJsonFile(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "appsettings.json"), optional: false)
+    .AddJsonFile(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, $"appsettings.{builder.Environment.EnvironmentName}.json"), optional: true);
 
 builder.Services.AddFileStorageServices(builder.Configuration);
 
@@ -29,6 +30,6 @@ app.MapGrpcReflectionService();
 
 app.MapGrpcService<FileUploadGrpcEndpoint>()
     .EnableGrpcWeb()
-    .RequireCors(cors => cors.AllowAnyHeader().AllowAnyMethod().AllowAnyOrigin());
+    .RequireCors("all");
 
 app.Run();

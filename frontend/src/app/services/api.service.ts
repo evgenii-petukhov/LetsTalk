@@ -43,6 +43,10 @@ export class ApiService {
         return firstValueFrom(this.client.emailLogin(request));
     }
 
+    logout(): Promise<void> {
+        return firstValueFrom(this.client.logout());
+    }
+
     getChats(): Promise<IChatDto[]> {
         return firstValueFrom(this.client.chatAll());
     }

@@ -54,6 +54,16 @@ public class CustomExceptionMiddleware(RequestDelegate next)
                     Detail = GetExceptionText(notFound)
                 };
                 break;
+            case ServiceUnavailableException serviceUnavailable:
+                statusCode = (int)HttpStatusCode.ServiceUnavailable;
+                problem = new CustomProblemDetails
+                {
+                    Title = serviceUnavailable.Message,
+                    Status = statusCode,
+                    Type = nameof(ServiceUnavailableException),
+                    Detail = GetExceptionText(serviceUnavailable)
+                };
+                break;
             case UnauthorizedAccessException unauthorized:
                 statusCode = (int)HttpStatusCode.Unauthorized;
                 problem = new CustomProblemDetails

@@ -1,4 +1,6 @@
 ﻿using LetsTalk.Server.Authentication.Abstractions;
+using LetsTalk.Server.Authentication.Exceptions;
+using LetsTalk.Server.Authentication.Models;
 using LetsTalk.Server.Persistence.Redis;
 using StackExchange.Redis;
 using System.Text.Json;
@@ -19,6 +21,11 @@ public class RedisCacheTokenService(
             return null;
         }
 
+        if (await _database.KeyExistsAsync(new RedisKey(GetRevokedKey(token))))
+        {
+            return null;
+        }
+
         var key = new RedisKey(GetTokenKey(token!));
 
         var cachedAccountId = await _database.StringGetAsync(key);
@@ -30,7 +37,7 @@ public class RedisCacheTokenService(
             await _database.StringSetAsync(
                 key,
                 new RedisValue(JsonSerializer.Serialize(storedToken!.AccountId)),
-                storedToken!.ValidTo - DateTime.Now,
+                storedToken!.ValidTo - DateTime.UtcNow,
             When.NotExists);
 
             await _database.KeyExpireAsync(key, storedToken.ValidTo);
@@ -41,7 +48,7 @@ public class RedisCacheTokenService(
         return JsonSerializer.Deserialize<string?>(cachedAccountId!.ToString())!;
     }
 
-    public async ValueTask<string> GenerateAsync(string accountId)
+    public async ValueTask<StoredToken> GenerateAsync(string accountId)
     {
         var storedToken = _jwtStorageService.Generate(accountId);
 
@@ -50,8 +57,33 @@ public class RedisCacheTokenService(
         await _database.StringSetAsync(
                 key,
                 new RedisValue(JsonSerializer.Serialize(storedToken.AccountId)),
-                storedToken.ValidTo - DateTime.Now);
+                storedToken.ValidTo - DateTime.UtcNow);
 
-        return storedToken.Token!;
+        return storedToken;
+    }
+
+    public async Task RevokeAsync(string token)
+    {
+        StoredToken? storedToken;
+        try
+        {
+            storedToken = await _jwtStorageService.GetStoredTokenAsync(token);
+        }
+        catch (Exception ex) when (ex is AppException or ArgumentException)
+        {
+            return;
+        }
+
+        var remainingLifetime = storedToken?.ValidTo - DateTime.UtcNow;
+        if (remainingLifetime == null || remainingLifetime <= TimeSpan.Zero)
+        {
+            return;
+        }
+
+        await _database.StringSetAsync(
+            new RedisKey(GetRevokedKey(token)),
+            new RedisValue("1"),
+            remainingLifetime.Value);
+        await _database.KeyDeleteAsync(new RedisKey(GetTokenKey(token)));
     }
 }

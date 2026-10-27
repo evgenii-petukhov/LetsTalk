@@ -6,4 +6,9 @@ public class CacheTokenServiceBase
     {
         return $"jwt:{token}";
     }
+
+    protected static string GetRevokedKey(string token)
+    {
+        return $"revoked:{GetTokenKey(token)}";
+    }
 }

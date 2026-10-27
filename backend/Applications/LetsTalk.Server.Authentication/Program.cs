@@ -7,7 +7,8 @@ using LoginCodeGrpcService = LetsTalk.Server.Authentication.Services.LoginCodeGr
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Configuration
-    .AddJsonFile(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "appsettings.json"), optional: false);
+    .AddJsonFile(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "appsettings.json"), optional: false)
+    .AddJsonFile(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, $"appsettings.{builder.Environment.EnvironmentName}.json"), optional: true);
 
 builder.Services.AddAuthenticationServices(builder.Configuration);
 

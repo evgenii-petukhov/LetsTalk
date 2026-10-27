@@ -1,4 +1,4 @@
-import { inject, Injectable } from '@angular/core';
+import { Injectable } from '@angular/core';
 import { FileUploadGrpcEndpointClient } from '../protos/file_upload_grpc_web_pb';
 import {
     DownloadImageRequest,
@@ -8,16 +8,17 @@ import {
     UploadImageResponse,
 } from '../protos/file_upload_pb';
 import { environment } from '../../environments/environment';
-import { TokenStorageService } from './token-storage.service';
 import { IImageDto } from '../api-client/api-client';
 
 @Injectable({
     providedIn: 'root',
 })
 export class FileStorageService {
-    private tokenStorageService = inject(TokenStorageService);
+    // withCredentials makes the browser send the HttpOnly session cookie with every call
     private fileUploadService = new FileUploadGrpcEndpointClient(
         environment.services.fileStorage.url,
+        null,
+        { withCredentials: true },
     );
 
     async uploadImageAsBlob(
@@ -38,7 +39,7 @@ export class FileStorageService {
         return new Promise((resolve, reject) => {
             this.fileUploadService.uploadImageAsync(
                 request,
-                { authorization: this.tokenStorageService.getToken() },
+                {},
                 (err, resp) => {
                     if (err) reject(err);
                     else resolve(resp);
@@ -54,7 +55,7 @@ export class FileStorageService {
         return new Promise((resolve, reject) => {
             this.fileUploadService.downloadImageAsync(
                 request,
-                { authorization: this.tokenStorageService.getToken() },
+                {},
                 (err, resp) => {
                     if (err) reject(err);
                     else resolve(resp);

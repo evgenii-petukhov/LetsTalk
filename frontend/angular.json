@@ -79,34 +79,20 @@
                             "vendorChunk": true,
                             "buildOptimizer": false,
                             "outputHashing": "all"
-                        },
-                        "development-hosting": {
-                            "fileReplacements": [
-                                {
-                                    "replace": "src/environments/environment.ts",
-                                    "with": "src/environments/environment.hosting.dev.ts"
-                                }
-                            ],
-                            "optimization": false,
-                            "sourceMap": true,
-                            "namedChunks": true,
-                            "extractLicenses": true,
-                            "vendorChunk": true,
-                            "buildOptimizer": false,
-                            "outputHashing": "all"
                         }
                     }
                 },
                 "serve": {
                     "builder": "@angular-devkit/build-angular:dev-server",
-                    "options": {
-                        "browserTarget": "LetsTalk:build"
-                    },
                     "configurations": {
                         "production": {
-                            "browserTarget": "LetsTalk:build:production"
+                            "buildTarget": "LetsTalk:build:production"
+                        },
+                        "development": {
+                            "buildTarget": "LetsTalk:build:development"
                         }
-                    }
+                    },
+                    "defaultConfiguration": "development"
                 },
                 "extract-i18n": {
                     "builder": "@angular-devkit/build-angular:extract-i18n",

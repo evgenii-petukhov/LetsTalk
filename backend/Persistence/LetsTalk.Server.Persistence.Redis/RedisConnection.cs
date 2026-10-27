@@ -13,6 +13,6 @@ namespace LetsTalk.Server.Persistence.Redis
             return ConnectionMultiplexer.Connect(configurationOptions);
         });
 
-        public IConnectionMultiplexer Connection => _lazyConnection.Value;
+        public virtual IConnectionMultiplexer Connection => _lazyConnection.Value;
     }
 }

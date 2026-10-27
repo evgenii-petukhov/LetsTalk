@@ -11,14 +11,14 @@ public class AuthenticationClient(
     private readonly JwtTokenGrpcServiceClient _tokenClient = tokenClient;
     private readonly LoginCodeGrpcServiceClient _loginCodeClient = loginCodeClient;
 
-    public async Task<string> GenerateJwtTokenAsync(string accountId)
+    public async Task<(string token, DateTime expiresAt)> GenerateJwtTokenAsync(string accountId)
     {
         var response = await _tokenClient.GenerateJwtTokenAsync(new GenerateJwtTokenRequest
         {
             AccountId = accountId
         });
 
-        return response.Token;
+        return (response.Token, DateTimeOffset.FromUnixTimeSeconds(response.ExpiresAtUnixSeconds).UtcDateTime);
     }
 
     public async Task<string?> ValidateJwtTokenAsync(string token)
@@ -29,6 +29,14 @@ public class AuthenticationClient(
         });
 
         return response.AccountId;
+    }
+
+    public async Task RevokeJwtTokenAsync(string token)
+    {
+        await _tokenClient.RevokeJwtTokenAsync(new RevokeJwtTokenRequest
+        {
+            Token = token
+        });
     }
 
     public async Task<(int code, bool isCodeCreated, int ttl)> GenerateLoginCodeAsync(string email)

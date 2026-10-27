@@ -7,12 +7,13 @@ import {
     it,
     vi,
     type Mock,
-    type MockedObject,
 } from 'vitest';
 import { TestBed } from '@angular/core/testing';
 import { HubConnectionBuilder } from '@microsoft/signalr';
 import { SignalrService } from './signalr.service';
-import { TokenStorageService } from './token-storage.service';
+import { Subject } from 'rxjs';
+import { environment } from '../../environments/environment';
+import { SessionService } from './session.service';
 import {
     IImagePreviewDto,
     ILinkPreviewDto,
@@ -22,10 +23,9 @@ import { IncomingCall } from '../models/incoming-call';
 
 describe('SignalrService', () => {
     let service: SignalrService;
-    let mockTokenStorageService: MockedObject<TokenStorageService>;
+    let mockSessionService: { sessionLost: Subject<void>; refresh: Mock };
     let mockHubConnection: any;
 
-    const mockToken = 'test-token';
     const mockMessageDto: IMessageDto = {
         id: '1',
         text: 'test message',
@@ -61,11 +61,11 @@ describe('SignalrService', () => {
             onreconnected: vi.fn(),
         };
 
-        // Create spy for TokenStorageService
-        mockTokenStorageService = {
-            getToken: vi.fn().mockName('TokenStorageService.getToken'),
-        } as MockedObject<TokenStorageService>;
-        mockTokenStorageService.getToken.mockReturnValue(mockToken);
+        // The session cookie is sent by the browser; the service only reacts to a lost session
+        mockSessionService = {
+            sessionLost: new Subject<void>(),
+            refresh: vi.fn().mockName('SessionService.refresh').mockResolvedValue(true),
+        };
 
         // Mock HubConnectionBuilder
         vi.spyOn(HubConnectionBuilder.prototype, 'withUrl').mockReturnValue(
@@ -87,8 +87,8 @@ describe('SignalrService', () => {
             providers: [
                 SignalrService,
                 {
-                    provide: TokenStorageService,
-                    useValue: mockTokenStorageService,
+                    provide: SessionService,
+                    useValue: mockSessionService,
                 },
             ],
         });
@@ -148,10 +148,7 @@ describe('SignalrService', () => {
             );
 
             expect(mockHubConnection.start).toHaveBeenCalled();
-            expect(mockHubConnection.invoke).toHaveBeenCalledWith(
-                'AuthorizeAsync',
-                mockToken,
-            );
+            expect(mockHubConnection.invoke).not.toHaveBeenCalled();
             expect(mockHubConnection.on).toHaveBeenCalledWith(
                 'SendNotificationAsync',
                 expect.any(Function),
@@ -392,7 +389,7 @@ describe('SignalrService', () => {
     });
 
     describe('reconnection handling', () => {
-        it('should authorize on reconnection', async () => {
+        it('should not send any credential on reconnection', async () => {
             const testMessageHandler = vi
                 .fn()
                 .mockReturnValue(Promise.resolve());
@@ -414,46 +411,13 @@ describe('SignalrService', () => {
                 mockHubConnection.onreconnected,
             ).mock.calls[0][0];
 
-            // Reset invoke spy to track reconnection authorization
+            // Reset invoke spy to track what is sent on reconnection
             mockHubConnection.invoke.mockClear();
 
             // Simulate reconnection
             await reconnectionHandler();
 
-            expect(mockHubConnection.invoke).toHaveBeenCalledWith(
-                'AuthorizeAsync',
-                mockToken,
-            );
-        });
-
-        it('should handle reconnection authorization errors gracefully', async () => {
-            const testMessageHandler = vi
-                .fn()
-                .mockReturnValue(Promise.resolve());
-            const testLinkPreviewHandler = vi.fn();
-            const testImagePreviewHandler = vi.fn();
-            const testRtcOfferHandler = vi.fn();
-            const testRtcAnswerHandler = vi.fn();
-
-            await service.init(
-                testMessageHandler,
-                testLinkPreviewHandler,
-                testImagePreviewHandler,
-                testRtcOfferHandler,
-                testRtcAnswerHandler,
-            );
-
-            const reconnectionHandler = vi.mocked(
-                mockHubConnection.onreconnected,
-            ).mock.calls[0][0];
-
-            // Make authorization fail on reconnection
-            mockHubConnection.invoke.mockReturnValue(
-                Promise.reject(new Error('Auth failed')),
-            );
-
-            // Should not throw - the actual service doesn't handle this error, so it will reject
-            await expect(reconnectionHandler()).rejects.toThrow();
+            expect(mockHubConnection.invoke).not.toHaveBeenCalled();
         });
     });
 
@@ -571,7 +535,7 @@ describe('SignalrService', () => {
     });
 
     describe('error handling', () => {
-        it('should handle authorization errors gracefully', async () => {
+        it('should not authorize through the hub, so a failing hub call cannot affect the connection', async () => {
             const messageHandler = vi.fn().mockReturnValue(Promise.resolve());
             const linkPreviewHandler = vi.fn();
             const imagePreviewHandler = vi.fn();
@@ -579,11 +543,9 @@ describe('SignalrService', () => {
             const rtcAnswerHandler = vi.fn();
 
             mockHubConnection.start.mockReturnValue(Promise.resolve());
-            mockHubConnection.invoke.mockReturnValue(
-                Promise.reject(new Error('Auth failed')),
-            );
+            // Rejects only if the service calls the hub, which it must not do any more
+            mockHubConnection.invoke.mockRejectedValue(new Error('Auth failed'));
 
-            // Should not throw
             await expect(
                 service.init(
                     messageHandler,
@@ -593,6 +555,8 @@ describe('SignalrService', () => {
                     rtcAnswerHandler,
                 ),
             ).resolves.not.toThrow();
+
+            expect(mockHubConnection.invoke).not.toHaveBeenCalled();
         });
 
         it('should handle connection start errors gracefully', async () => {
@@ -648,7 +612,7 @@ describe('SignalrService', () => {
     });
 
     describe('private methods', () => {
-        it('should call authorize with correct token', async () => {
+        it('should not send any token to the hub', async () => {
             const messageHandler = vi.fn().mockReturnValue(Promise.resolve());
             const linkPreviewHandler = vi.fn();
             const imagePreviewHandler = vi.fn();
@@ -663,11 +627,7 @@ describe('SignalrService', () => {
                 rtcAnswerHandler,
             );
 
-            expect(mockTokenStorageService.getToken).toHaveBeenCalled();
-            expect(mockHubConnection.invoke).toHaveBeenCalledWith(
-                'AuthorizeAsync',
-                mockToken,
-            );
+            expect(mockHubConnection.invoke).not.toHaveBeenCalled();
         });
 
         it('should set up connection event handlers correctly', async () => {
@@ -695,6 +655,48 @@ describe('SignalrService', () => {
         });
     });
 
+    describe('session handling', () => {
+        const initService = () =>
+            service.init(
+                vi.fn().mockReturnValue(Promise.resolve()),
+                vi.fn(),
+                vi.fn(),
+                vi.fn(),
+                vi.fn(),
+            );
+
+        it('should connect with credentials so the browser sends the session cookie', () => {
+            expect(HubConnectionBuilder.prototype.withUrl).toHaveBeenCalledWith(
+                environment.services.notifications.url,
+                expect.objectContaining({
+                    skipNegotiation: true,
+                    withCredentials: true,
+                }),
+            );
+        });
+
+        it('should stop the connection when the session is lost', async () => {
+            await initService();
+            mockHubConnection.stop.mockClear();
+
+            mockSessionService.sessionLost.next();
+
+            expect(mockHubConnection.off).toHaveBeenCalledWith(
+                'SendNotificationAsync',
+            );
+            expect(mockHubConnection.stop).toHaveBeenCalled();
+        });
+
+        it('should check the session when the connection cannot be established', async () => {
+            vi.spyOn(window, 'setInterval').mockReturnValue(1);
+            mockHubConnection.start.mockRejectedValue(new Error('refused'));
+
+            await initService();
+
+            expect(mockSessionService.refresh).toHaveBeenCalled();
+        });
+    });
+
     describe('integration tests', () => {
         it('should handle complete workflow successfully', async () => {
             const messageHandler = vi.fn().mockReturnValue(Promise.resolve());
@@ -714,10 +716,7 @@ describe('SignalrService', () => {
 
             // Verify initialization
             expect(mockHubConnection.start).toHaveBeenCalled();
-            expect(mockHubConnection.invoke).toHaveBeenCalledWith(
-                'AuthorizeAsync',
-                mockToken,
-            );
+            expect(mockHubConnection.invoke).not.toHaveBeenCalled();
 
             // Test notification handling
             const notificationHandler = vi.mocked(mockHubConnection.on).mock

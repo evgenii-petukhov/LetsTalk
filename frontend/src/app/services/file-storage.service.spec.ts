@@ -1,39 +1,51 @@
-import { beforeEach, describe, expect, it, vi, type MockedObject } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { TestBed } from '@angular/core/testing';
 import { FileStorageService } from './file-storage.service';
-import { TokenStorageService } from './token-storage.service';
+import { environment } from '../../environments/environment';
 import { DownloadImageRequest, DownloadImageResponse, ImageRoles, UploadImageRequest, UploadImageResponse, } from '../protos/file_upload_pb';
 import { IImageDto } from '../api-client/api-client';
 
+const clientConstructor = vi.hoisted(() => vi.fn());
+
+vi.mock('../protos/file_upload_grpc_web_pb', () => ({
+    FileUploadGrpcEndpointClient: class {
+        constructor(...args: unknown[]) {
+            clientConstructor(...args);
+        }
+    },
+}));
+
 describe('FileStorageService', () => {
     let service: FileStorageService;
-    let tokenStorageService: MockedObject<TokenStorageService>;
 
-    const mockToken = 'Bearer mock-token';
     const mockImageKey: IImageDto = {
         id: 'test-image-id',
         fileStorageTypeId: 1,
     };
 
     beforeEach(() => {
-        tokenStorageService = {
-            getToken: vi.fn().mockName("TokenStorageService.getToken")
-        } as MockedObject<TokenStorageService>;
+        clientConstructor.mockClear();
 
         TestBed.configureTestingModule({
             providers: [
                 FileStorageService,
-                { provide: TokenStorageService, useValue: tokenStorageService },
             ],
         });
 
-        tokenStorageService.getToken.mockReturnValue(mockToken);
         service = TestBed.inject(FileStorageService);
     });
 
     it('should be created', () => {
         expect(service).toBeTruthy();
+    });
+
+    it('should create the gRPC client with credentials enabled so the browser sends the session cookie', () => {
+        expect(clientConstructor).toHaveBeenCalledWith(
+            environment.services.fileStorage.url,
+            null,
+            { withCredentials: true },
+        );
     });
 
     describe('uploadImageAsBlob', () => {
@@ -68,7 +80,7 @@ describe('FileStorageService', () => {
                 expect(request).toBeInstanceOf(UploadImageRequest);
                 expect(request.getContent()).toEqual(mockContent);
                 expect(request.getImageRole()).toBe(imageRole);
-                expect(metadata.authorization).toBe(mockToken);
+                expect(metadata).toEqual({});
                 callback(null, mockResponse);
             });
 
@@ -134,7 +146,7 @@ describe('FileStorageService', () => {
                 expect(request).toBeInstanceOf(DownloadImageRequest);
                 expect(request.getImageId()).toBe(mockImageKey.id);
                 expect(request.getFileStorageTypeId()).toBe(mockImageKey.fileStorageTypeId);
-                expect(metadata.authorization).toBe(mockToken);
+                expect(metadata).toEqual({});
                 callback(null, mockResponse);
             });
 
@@ -184,26 +196,6 @@ describe('FileStorageService', () => {
             await service.download(customImageKey);
 
             expect(mockFileUploadService.downloadImageAsync).toHaveBeenCalled();
-        });
-
-        it('should use correct authorization token', async () => {
-            const customToken = 'Bearer custom-token';
-            tokenStorageService.getToken.mockReturnValue(customToken);
-            const mockResponse = new DownloadImageResponse();
-
-            const mockFileUploadService = {
-                downloadImageAsync: vi.fn().mockName("FileUploadGrpcEndpointClient.downloadImageAsync")
-            };
-            (service as any).fileUploadService = mockFileUploadService;
-
-            mockFileUploadService.downloadImageAsync.mockImplementation((_: any, metadata: any, callback: any) => {
-                expect(metadata.authorization).toBe(customToken);
-                callback(null, mockResponse);
-            });
-
-            await service.download(mockImageKey);
-
-            expect(tokenStorageService.getToken).toHaveBeenCalled();
         });
     });
 });

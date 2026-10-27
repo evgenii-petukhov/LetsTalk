@@ -9,6 +9,9 @@ import {
     signal
 } from '@angular/core';
 import { StoreService } from '../../../../services/store.service';
+import { SessionService } from '../../../../services/session.service';
+import { ErrorService } from '../../../../services/error.service';
+import { errorMessages } from '../../../../constants/errors';
 import { IProfileDto } from '../../../../api-client/api-client';
 
 @Component({
@@ -29,14 +32,20 @@ export class ChatListTopPanelComponent implements OnInit {
     });
 
     private readonly storeService = inject(StoreService);
+    private readonly sessionService = inject(SessionService);
+    private readonly errorService = inject(ErrorService);
 
     async ngOnInit(): Promise<void> {
         const loggedInUser = await this.storeService.getLoggedInUser();
         this.account.set(loggedInUser);
     }
 
-    onLogoutButtonClicked(): void {
-        window.localStorage.clear();
-        window.location.reload();
+    async onLogoutButtonClicked(): Promise<void> {
+        try {
+            await this.sessionService.logout();
+            this.sessionService.reloadPage();
+        } catch (e) {
+            this.errorService.handleError(e, errorMessages.logout);
+        }
     }
 }

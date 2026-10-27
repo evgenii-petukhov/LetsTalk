@@ -1,9 +1,8 @@
-﻿using LetsTalk.Server.Models.Dtos;
-using MediatR;
+﻿using MediatR;
 
 namespace LetsTalk.Server.API.Core.Commands;
 
-public class EmailLoginCommand : IRequest<LoginResponseDto>
+public class EmailLoginCommand : IRequest<EmailLoginResult>
 {
     public string? Email { get; set; }
 
