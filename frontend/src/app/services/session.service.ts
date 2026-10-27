@@ -26,11 +26,13 @@ export class SessionService {
             : Promise.resolve(this.signedIn);
     }
 
-    // Asks the server again, whatever was cached; concurrent callers share one request
+    // Asks the server again, whatever was cached; concurrent callers share one request.
+    // Only a 401 means "not signed in": any other failure (a server outage, the network) keeps
+    // what is known, so an outage never looks like a sign-out.
     refresh(): Promise<boolean> {
         this.probe ??= this.apiService.getProfile().then(
             () => this.finishProbe(true),
-            () => this.finishProbe(false),
+            (error) => this.finishProbe(error?.status === 401 ? false : this.signedIn),
         );
         return this.probe;
     }
@@ -51,9 +53,9 @@ export class SessionService {
         window.location.reload();
     }
 
-    private finishProbe(result: boolean): boolean {
+    private finishProbe(result: boolean | null): boolean {
         this.signedIn = result;
         this.probe = null;
-        return result;
+        return result ?? false;
     }
 }

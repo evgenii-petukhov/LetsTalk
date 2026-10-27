@@ -1,4 +1,5 @@
 ﻿using Grpc.Core;
+using LetsTalk.Server.API.Middleware.Exceptions;
 using LetsTalk.Server.Authentication.Abstractions;
 using LetsTalk.Server.Configuration.Models;
 using Microsoft.AspNetCore.Http;
@@ -42,6 +43,10 @@ public class JwtMiddleware(RequestDelegate next)
                     ?? throw new UnauthorizedAccessException("Invalid token");
                 context.Items["Token"] = headerToken;
             }
+            catch (RpcException ex) when (IsUnavailable(ex))
+            {
+                throw CreateServiceUnavailableException(ex);
+            }
             catch (RpcException)
             {
                 throw new UnauthorizedAccessException("Invalid token");
@@ -52,8 +57,9 @@ public class JwtMiddleware(RequestDelegate next)
     }
 
     // A session cookie that is no longer valid is treated as "not signed in" and removed from the browser,
-    // because page scripts cannot remove an HttpOnly cookie. A temporarily unreachable
-    // Authentication service must not sign users out, so the cookie is kept in that case.
+    // because page scripts cannot remove an HttpOnly cookie. A temporarily unreachable Authentication
+    // service must not look like a sign-out (the client drops its session on 401): the cookie is kept
+    // and the request is answered with 503.
     private static async Task<string?> TryValidateCookieTokenAsync(
         HttpContext context,
         IAuthenticationClient authenticationClient,
@@ -70,9 +76,9 @@ public class JwtMiddleware(RequestDelegate next)
 
             return accountId;
         }
-        catch (RpcException ex) when (ex.StatusCode is StatusCode.Unavailable or StatusCode.DeadlineExceeded)
+        catch (RpcException ex) when (IsUnavailable(ex))
         {
-            return null;
+            throw CreateServiceUnavailableException(ex);
         }
         catch (RpcException)
         {
@@ -80,4 +86,10 @@ public class JwtMiddleware(RequestDelegate next)
             return null;
         }
     }
+
+    private static bool IsUnavailable(RpcException ex) =>
+        ex.StatusCode is StatusCode.Unavailable or StatusCode.DeadlineExceeded;
+
+    private static ServiceUnavailableException CreateServiceUnavailableException(RpcException ex) =>
+        new("The Authentication service is not available", ex);
 }

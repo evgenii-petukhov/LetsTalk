@@ -71,6 +71,31 @@ describe('SessionService', () => {
         });
     });
 
+    describe('a probe that fails for a reason other than 401', () => {
+        it('should keep the previous state: an outage is not a sign-out', async () => {
+            apiService.getProfile.mockResolvedValue({});
+            await service.isSignedIn();
+            apiService.getProfile.mockRejectedValue({ status: 503 });
+
+            const result = await service.refresh();
+
+            expect(result).toBe(true);
+            expect(await service.isSignedIn()).toBe(true);
+        });
+
+        it('should not cache the failure when nothing is known yet', async () => {
+            apiService.getProfile.mockRejectedValueOnce({ status: 503 });
+            apiService.getProfile.mockResolvedValue({});
+
+            const first = await service.isSignedIn();
+            const second = await service.isSignedIn();
+
+            expect(first).toBe(false);
+            expect(second).toBe(true);
+            expect(apiService.getProfile).toHaveBeenCalledTimes(2);
+        });
+    });
+
     describe('refresh', () => {
         it('should bypass the cached result and probe again', async () => {
             apiService.getProfile.mockResolvedValue({});

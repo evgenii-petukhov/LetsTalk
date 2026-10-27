@@ -55,6 +55,23 @@ public class CustomExceptionMiddlewareTests
     }
 
     [Test]
+    public async Task InvokeAsync_ServiceUnavailableException()
+    {
+        // Arrange
+        HttpContext ctx = new DefaultHttpContext();
+
+        _mockRequestDelegate
+            .Setup(x => x.Invoke(ctx))
+            .ThrowsAsync(new ServiceUnavailableException());
+
+        // Act
+        await _customExceptionMiddleware.InvokeAsync(ctx);
+
+        // Assert
+        ctx.Response.StatusCode.Should().Be((int)HttpStatusCode.ServiceUnavailable);
+    }
+
+    [Test]
     public async Task InvokeAsync_UnauthorizedAccessException()
     {
         // Arrange

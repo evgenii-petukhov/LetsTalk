@@ -1,5 +1,6 @@
 ﻿using FluentAssertions;
 using Grpc.Core;
+using LetsTalk.Server.API.Middleware.Exceptions;
 using LetsTalk.Server.Authentication.Abstractions;
 using LetsTalk.Server.Configuration.Models;
 using Microsoft.AspNetCore.Http;
@@ -180,21 +181,39 @@ public class JwtMiddlewareTests
 
     [TestCase(StatusCode.Unavailable)]
     [TestCase(StatusCode.DeadlineExceeded)]
-    public async Task InvokeAsync_WhenCookieAndAuthServiceUnavailable_ShouldContinueAnonymouslyAndKeepCookie(StatusCode statusCode)
+    public async Task InvokeAsync_WhenCookieAndAuthServiceUnavailable_ShouldThrowServiceUnavailableAndKeepCookie(StatusCode statusCode)
     {
-        // Arrange
+        // Arrange: the answer must not look like a sign-out (401); the cookie stays
         var ctx = CreateContext(cookieToken: CookieToken);
         _mockAuthenticationClient
             .Setup(x => x.ValidateJwtTokenAsync(CookieToken))
             .ThrowsAsync(new RpcException(new Status(statusCode, "Authentication service is not reachable")));
 
         // Act
-        await Invoke(ctx);
+        Func<Task> f = async () => await Invoke(ctx);
 
         // Assert
-        ctx.Items.Should().BeEmpty();
+        await f.Should().ThrowAsync<ServiceUnavailableException>();
         ctx.Response.Headers.SetCookie.Should().BeEmpty();
-        _mockRequestDelegate.Verify(x => x.Invoke(ctx), Times.Once);
+        _mockRequestDelegate.Verify(x => x.Invoke(ctx), Times.Never);
+    }
+
+    [TestCase(StatusCode.Unavailable)]
+    [TestCase(StatusCode.DeadlineExceeded)]
+    public async Task InvokeAsync_WhenHeaderAndAuthServiceUnavailable_ShouldThrowServiceUnavailable(StatusCode statusCode)
+    {
+        // Arrange
+        var ctx = CreateContext(authorizationHeader: AuthorizationHeaderValue);
+        _mockAuthenticationClient
+            .Setup(x => x.ValidateJwtTokenAsync(SampleToken))
+            .ThrowsAsync(new RpcException(new Status(statusCode, "Authentication service is not reachable")));
+
+        // Act
+        Func<Task> f = async () => await Invoke(ctx);
+
+        // Assert
+        await f.Should().ThrowAsync<ServiceUnavailableException>();
+        _mockRequestDelegate.Verify(x => x.Invoke(ctx), Times.Never);
     }
 
     [Test]

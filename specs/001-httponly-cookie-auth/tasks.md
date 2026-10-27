@@ -116,6 +116,12 @@ Implementation (depends T050 and its test task):
 - [x] **T082** (written as `deployment.md` in this folder, to paste into the PR; the release was rolled out and checked on the hosting on 2026-10-27) Deployment notes: set `AuthCookie:Domain=petukhov.fyi`, `AuthCookie:Secure=true`, `Cors:AllowedOrigins=https://letstalk.petukhov.fyi` on API, Notifications and FileStorage; users must sign in once. Set `AuthCookie__Domain` before the first rollout: if it is changed later, a cookie issued without it stays as a separate host-only cookie, so users must sign out or clear it once.
 - [ ] **T083** Update `CLAUDE.md` "Frontend notes"/auth paragraph with the cookie-session behavior (one short paragraph). Run `/code-review` on the branch before merging.
 
+## Review follow-ups (code review of the branch, 2026-10-27)
+- [x] **A** An Authentication outage must not look like a sign-out: `JwtMiddleware` answers `503` (new `ServiceUnavailableException`, mapped in `CustomExceptionMiddleware`) for a cookie or a header when the service is `Unavailable`/`DeadlineExceeded`; `SessionService` treats only a `401` probe as "not signed in".
+- [ ] **B** `JwtInterceptor` (file storage) falls back to the `authorization` metadata when the cookie is invalid, like the API.
+- [ ] **C** `RedisCacheTokenService` computes the cache TTL from `DateTime.UtcNow` (was `DateTime.Now`).
+- [ ] **D** The `AuthCookie` settings are validated at startup.
+
 ## Dependencies
 ```
 T000 T001 -> everything
