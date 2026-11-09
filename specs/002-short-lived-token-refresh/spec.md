@@ -76,6 +76,7 @@ As a user, I keep using the app for days without being asked to sign in, even th
 - "Sign out of all devices" and a device/session list.
 - Multi-factor authentication, changes to the email-code sign-in.
 - Content-security-policy and other page hardening.
+- The experimental Next.js front end (`frontend-next/`): it is not changed and gets no silent renewal, no renewal credential and no cookie session. It keeps sending an explicit credential (so the origin check does not apply to it, AS4.3), and because that credential is now short-lived, it must be pasted again after it expires (in Development the lifetime can be extended, FR-013).
 - Persisting sessions beyond what the existing token cache (Redis or memory) provides; with the in-memory mode sessions end when the Authentication service restarts (users sign in again).
 
 ## Key Entities

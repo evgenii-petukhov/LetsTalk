@@ -1,7 +1,10 @@
 # Tasks: Short-lived sessions with silent renewal
 
-**Inputs**: [spec.md](spec.md), [plan.md](plan.md). **Precondition**: all of `specs/001-httponly-cookie-auth/tasks.md` is done and merged.
-**Conventions**: as in spec 001 (`[P]` parallel, tests before code, `Method_WhenCondition_ShouldOutcome`). `BE` = `backend/`, `FE` = `frontend/src/app/`. **Commit message prefix: `Token refresh: `** (one line, for example `Token refresh: rotate refresh tokens with reuse detection`). **One commit per phase**, made only when the owner approves, with the ticked `tasks.md` included.
+**Inputs**: [spec.md](spec.md), [plan.md](plan.md).\
+**Precondition**: all of `specs/001-httponly-cookie-auth/tasks.md` is done and merged.\
+**Conventions**: as in spec 001 (`[P]` parallel, tests before code, `Method_WhenCondition_ShouldOutcome`). `BE` = `backend/`, `FE` = `frontend/src/app/`.\
+**Commit message prefix: `Token refresh: `** (one line, for example `Token refresh: rotate refresh tokens with reuse detection`).\
+**One commit per phase**, made only when the owner approves, with the ticked `tasks.md` included.
 
 ## Phase 0 - Setup
 - [ ] **T100** Branch `002-short-lived-token-refresh` from the updated `master`. Re-check that uncommitted `Program.cs`/`appsettings.json` changes are not staged (constitution 1).

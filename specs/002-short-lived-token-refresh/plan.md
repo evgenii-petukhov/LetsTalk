@@ -1,6 +1,6 @@
 # Implementation Plan: Short-lived sessions with silent renewal
 
-**Spec**: [spec.md](spec.md) | **Builds on**: [001 plan](../001-httponly-cookie-auth/plan.md)
+**Spec**: [spec.md](spec.md) | **Builds on**: [001 plan](../001-httponly-cookie-auth/plan.md)\
 **Precondition**: spec 001 merged (cookie session, `AuthCookieSettings`, `JwtMiddleware` cookie resolution, `RevokeAsync`, credentialed CORS helper).
 
 ## Summary
