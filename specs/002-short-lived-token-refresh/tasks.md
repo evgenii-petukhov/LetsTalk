@@ -7,8 +7,8 @@
 **One commit per phase**, made only when the owner approves, with the ticked `tasks.md` included.
 
 ## Phase 0 - Setup
-- [ ] **T100** Branch `002-short-lived-token-refresh` from the updated `master`. Re-check that uncommitted `Program.cs`/`appsettings.json` changes are not staged (constitution 1).
-- [ ] **T101** [P] Extend `JwtSettings` (`AccessTokenLifetime`, `BackgroundTokenLifetime`, `RefreshIdleLifetime`, `RefreshAbsoluteLifetime`, `RefreshReuseGrace`) and `AuthCookieSettings` (`RefreshName`, `RefreshPath`); defaults per plan D1; test binding in `LetsTalk.Server.Configuration.Tests`; add values (no secrets) to Authentication/API `appsettings.json` and long lifetimes to `appsettings.Development.json`. (FR-001, FR-003, FR-013)
+- [x] **T100** (branch created from `master` at `b1ac411a`; the working tree was clean, nothing staged) Branch `002-short-lived-token-refresh` from the updated `master`. Re-check that uncommitted `Program.cs`/`appsettings.json` changes are not staged (constitution 1).
+- [x] **T101** (defaults live in code, as in spec 001 T002, so no `appsettings.json` is edited: the API one holds the owner's secrets and never reads these values, and the Authentication one holds the signing key. New tests: `JwtSettingsTests`; `AuthCookieSettingsTests` extended; `AuthCookieSettingsRegistrationTests` extended, because `AddAuthCookieSettings` now also rejects an empty or duplicate `RefreshName` and a `RefreshPath` that is not an absolute path; `Configuration.Tests`: 40 pass) [P] Extend `JwtSettings` (`AccessTokenLifetime`, `BackgroundTokenLifetime`, `RefreshIdleLifetime`, `RefreshAbsoluteLifetime`, `RefreshReuseGrace`) and `AuthCookieSettings` (`RefreshName`, `RefreshPath`); defaults per plan D1; test binding in `LetsTalk.Server.Configuration.Tests`; long lifetimes (1 day for the access and background tokens) in the Authentication service's `appsettings.Development.json`. (FR-001, FR-003, FR-013)
 
 ## Phase 1 - Authentication service
 Tests first, in `BE/Applications/LetsTalk.Server.Authentication.Tests`:

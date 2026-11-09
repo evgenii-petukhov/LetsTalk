@@ -43,8 +43,9 @@ Same stack as spec 001. New server state: refresh records in the existing token 
 - **Single owner**: only the Authentication service reads these values.
   - The API gets the resulting expiry times back from the gRPC calls (D3) and sets the cookie `Expires` from them (D4).
   - All expiry decisions are therefore made on one host (clock-skew risk).
+- **Defaults in code**: the values above are the property defaults in `JwtSettings`; no `appsettings.json` is edited (the API one holds the owner's secrets and does not read these values, the Authentication one holds the signing key). `AuthCookieSettings` gains `RefreshName` = `auth-refresh` and `RefreshPath` = `/api/Authentication`, validated at startup by `AddAuthCookieSettings` (not empty, different from `Name`, absolute path).
 - **Overrides**:
-  - Development: `appsettings.Development.json` of the Authentication service sets long values (for example 1 day) so `frontend-next` can use a pasted credential (FR-013).
+  - Development: `appsettings.Development.json` of the Authentication service sets long values (1 day for the access and background tokens) so `frontend-next` can use a pasted credential (FR-013).
   - Production: supplied by the deployment (environment variables).
 - **No secrets**: no secret values are committed.
 
