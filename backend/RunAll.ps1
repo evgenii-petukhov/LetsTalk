@@ -1,5 +1,5 @@
 Write-Host "Starting Docker Desktop..."
-Start-Process -FilePath "C:\Program Files\Docker\Docker\Docker Desktop.exe"
+Start-Process -FilePath "$env:USERPROFILE\AppData\Local\Programs\DockerDesktop\Docker Desktop.exe"
 
 Write-Host "Waiting for Docker engine to be ready..."
 while (-not (docker info 2>$null)) {
