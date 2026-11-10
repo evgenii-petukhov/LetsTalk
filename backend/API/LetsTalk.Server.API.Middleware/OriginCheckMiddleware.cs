@@ -1,6 +1,7 @@
 using LetsTalk.Server.Configuration.Models;
 using LetsTalk.Server.Cors;
 using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
 namespace LetsTalk.Server.API.Middleware;
@@ -9,10 +10,20 @@ namespace LetsTalk.Server.API.Middleware;
 // A state-changing request that carries the browser session is therefore accepted only when it comes
 // from one of the web app origins. Requests with an explicit credential (Authorization header) are
 // exempt, because the browser never adds that header on its own.
-public class OriginCheckMiddleware(RequestDelegate next, AllowedOrigins allowedOrigins)
+public class OriginCheckMiddleware(
+    RequestDelegate next,
+    AllowedOrigins allowedOrigins,
+    ILogger<OriginCheckMiddleware> logger)
 {
+    private static readonly Action<ILogger, string, string, string, Exception?> _logRefused =
+        LoggerMessage.Define<string, string, string>(
+            LogLevel.Warning,
+            new EventId(0, nameof(OriginCheckMiddleware)),
+            "A {Method} request to {Path} that carries the browser session was refused, its origin is {Origin}");
+
     private readonly RequestDelegate _next = next;
     private readonly AllowedOrigins _allowedOrigins = allowedOrigins;
+    private readonly ILogger<OriginCheckMiddleware> _logger = logger;
 
     public async Task InvokeAsync(HttpContext context, IOptions<AuthCookieSettings> cookieSettingsOptions)
     {
@@ -22,8 +33,10 @@ public class OriginCheckMiddleware(RequestDelegate next, AllowedOrigins allowedO
             return;
         }
 
-        if (!_allowedOrigins.Contains(GetRequestOrigin(context.Request)))
+        var origin = GetRequestOrigin(context.Request);
+        if (!_allowedOrigins.Contains(origin))
         {
+            _logRefused(_logger, context.Request.Method, context.Request.Path, origin ?? "none", null);
             context.Response.StatusCode = StatusCodes.Status403Forbidden;
             await context.Response.WriteAsJsonAsync(new { message = "Forbidden" });
             return;

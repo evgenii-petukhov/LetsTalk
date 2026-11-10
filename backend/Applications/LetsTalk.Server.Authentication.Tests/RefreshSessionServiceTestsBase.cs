@@ -35,6 +35,13 @@ public abstract class RefreshSessionServiceTestsBase
         Logger = new ListLogger();
         _accessTokenCounter = 0;
         JwtCacheServiceMock = new Mock<IJwtCacheService>();
+        SetUpAccessTokens();
+
+        Service = CreateService(JwtCacheServiceMock.Object, Options.Create(Settings), Time, Logger);
+    }
+
+    private void SetUpAccessTokens()
+    {
         JwtCacheServiceMock
             .Setup(x => x.GenerateAsync(AccountId, It.IsAny<TimeSpan>()))
             .ReturnsAsync((string accountId, TimeSpan lifetime) => new StoredToken
@@ -43,8 +50,6 @@ public abstract class RefreshSessionServiceTestsBase
                 Token = $"access-{Interlocked.Increment(ref _accessTokenCounter)}",
                 ValidTo = Time.GetUtcNow().UtcDateTime + lifetime
             });
-
-        Service = CreateService(JwtCacheServiceMock.Object, Options.Create(Settings), Time, Logger);
     }
 
     protected abstract IRefreshSessionService CreateService(
@@ -121,6 +126,30 @@ public abstract class RefreshSessionServiceTestsBase
 
         // Assert
         rotated!.RefreshExpiresAt.Should().Be(Start + TimeSpan.FromDays(10) + Settings.RefreshIdleLifetime);
+    }
+
+    [Test]
+    public async Task RotateAsync_WhenIssuingTheSuccessorFails_ShouldLetTheSameTokenBeUsedAgain()
+    {
+        // Arrange: the server could not finish the renewal, so the browser never received a successor
+        var issued = await Service.IssueAsync(AccountId);
+        JwtCacheServiceMock.Reset();
+        JwtCacheServiceMock
+            .Setup(x => x.GenerateAsync(AccountId, It.IsAny<TimeSpan>()))
+            .Throws(new InvalidOperationException("The token cache is not available"));
+
+        // Act
+        var failed = () => Service.RotateAsync(issued.RefreshToken!);
+        await failed.Should().ThrowAsync<InvalidOperationException>();
+        JwtCacheServiceMock.Reset();
+        SetUpAccessTokens();
+        Time.Advance(Settings.RefreshReuseGrace + TimeSpan.FromMinutes(1));
+        var retried = await Service.RotateAsync(issued.RefreshToken!);
+
+        // Assert: the token is not treated as used, even after the grace period, and the chain lives on
+        retried.Should().NotBeNull();
+        retried!.RefreshToken.Should().NotBeNullOrWhiteSpace();
+        Logger.Entries.Should().NotContain(x => x.Level == LogLevel.Warning);
     }
 
     [Test]

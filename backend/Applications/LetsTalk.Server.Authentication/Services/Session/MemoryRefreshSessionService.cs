@@ -49,6 +49,16 @@ public class MemoryRefreshSessionService(
         }
     }
 
+    protected override Task DeleteUsedMarkerAsync(string hash)
+    {
+        lock (UsedLock)
+        {
+            _memoryCache.Remove(GetUsedKey(hash));
+        }
+
+        return Task.CompletedTask;
+    }
+
     protected override Task<string?> GetChainHeadAsync(string chainId)
     {
         return Task.FromResult(_memoryCache.TryGetValue(GetChainKey(chainId), out string? hash) ? hash : null);

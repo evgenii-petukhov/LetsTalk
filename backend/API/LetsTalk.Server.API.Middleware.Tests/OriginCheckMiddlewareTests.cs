@@ -3,6 +3,7 @@ using LetsTalk.Server.Configuration.Models;
 using LetsTalk.Server.Cors;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Moq;
 
@@ -20,6 +21,7 @@ public class OriginCheckMiddlewareTests
     private const string RefreshCookieName = "auth-refresh";
 
     private Mock<RequestDelegate> _mockRequestDelegate;
+    private ListLogger _logger;
     private OriginCheckMiddleware _middleware;
 
     [SetUp]
@@ -33,7 +35,8 @@ public class OriginCheckMiddlewareTests
                 ["Cors:AllowedOrigins:1"] = OtherAllowedOrigin
             })
             .Build();
-        _middleware = new OriginCheckMiddleware(_mockRequestDelegate.Object, new AllowedOrigins(configuration));
+        _logger = new ListLogger();
+        _middleware = new OriginCheckMiddleware(_mockRequestDelegate.Object, new AllowedOrigins(configuration), _logger);
     }
 
     [TestCase("POST")]
@@ -93,6 +96,48 @@ public class OriginCheckMiddlewareTests
         // Assert
         ctx.Response.StatusCode.Should().Be(StatusCodes.Status403Forbidden);
         _mockRequestDelegate.Verify(x => x.Invoke(ctx), Times.Never);
+    }
+
+    [Test]
+    public async Task InvokeAsync_WhenRefused_ShouldLogAWarningWithTheMethodPathAndOrigin()
+    {
+        // Arrange: a wrong Cors:AllowedOrigins in production shows up as 403s, and the log has to say why
+        var ctx = CreateContext("POST", origin: ForeignOrigin, credentialSource: CookieSource);
+        ctx.Request.Path = "/api/Chat";
+
+        // Act
+        await Invoke(ctx);
+
+        // Assert
+        var warning = _logger.Entries.Should().ContainSingle().Subject;
+        warning.Level.Should().Be(LogLevel.Warning);
+        warning.Message.Should().Contain("POST").And.Contain("/api/Chat").And.Contain(ForeignOrigin);
+    }
+
+    [Test]
+    public async Task InvokeAsync_WhenRefusedWithoutOrigin_ShouldSayThatThereWasNone()
+    {
+        // Arrange
+        var ctx = CreateContext("POST", credentialSource: CookieSource);
+
+        // Act
+        await Invoke(ctx);
+
+        // Assert
+        _logger.Entries.Should().ContainSingle().Which.Message.Should().Contain("none");
+    }
+
+    [Test]
+    public async Task InvokeAsync_WhenAllowed_ShouldNotLog()
+    {
+        // Arrange
+        var ctx = CreateContext("POST", origin: AllowedOrigin, credentialSource: CookieSource);
+
+        // Act
+        await Invoke(ctx);
+
+        // Assert
+        _logger.Entries.Should().BeEmpty();
     }
 
     [Test]
@@ -247,6 +292,18 @@ public class OriginCheckMiddlewareTests
         }
 
         return ctx;
+    }
+
+    private sealed class ListLogger : ILogger<OriginCheckMiddleware>
+    {
+        public List<(LogLevel Level, string Message)> Entries { get; } = [];
+
+        public IDisposable? BeginScope<TState>(TState state) where TState : notnull => null;
+
+        public bool IsEnabled(LogLevel logLevel) => true;
+
+        public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception? exception, Func<TState, Exception?, string> formatter) =>
+            Entries.Add((logLevel, formatter(state, exception)));
     }
 
     private Task Invoke(HttpContext ctx) => _middleware.InvokeAsync(ctx, Options.Create(new AuthCookieSettings()));

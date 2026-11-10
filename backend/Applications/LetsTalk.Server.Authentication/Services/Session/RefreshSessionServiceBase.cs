@@ -50,7 +50,17 @@ public abstract class RefreshSessionServiceBase(
         var firstUse = await TryMarkUsedAsync(hash, now, record.ExpiresAt - now);
         if (firstUse == null)
         {
-            return await IssueTokensAsync(record.AccountId, record.ChainId, record.ChainStartedAt, now);
+            try
+            {
+                return await IssueTokensAsync(record.AccountId, record.ChainId, record.ChainStartedAt, now);
+            }
+            catch
+            {
+                // The browser never gets a successor, so this token must stay usable: otherwise a retry
+                // after the grace period would look like a replayed token and end the whole session
+                await DeleteUsedMarkerAsync(hash);
+                throw;
+            }
         }
 
         if (now - firstUse.Value <= _jwtSettings.RefreshReuseGrace)
@@ -82,6 +92,8 @@ public abstract class RefreshSessionServiceBase(
 
     /// <returns>Null when this call marked the token as used, otherwise the time of the first use. Must be atomic.</returns>
     protected abstract Task<DateTime?> TryMarkUsedAsync(string hash, DateTime now, TimeSpan lifetime);
+
+    protected abstract Task DeleteUsedMarkerAsync(string hash);
 
     protected abstract Task<string?> GetChainHeadAsync(string chainId);
 

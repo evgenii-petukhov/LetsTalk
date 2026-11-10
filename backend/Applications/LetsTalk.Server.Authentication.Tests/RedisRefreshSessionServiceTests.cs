@@ -71,6 +71,28 @@ public class RedisRefreshSessionServiceTests : RefreshSessionServiceTestsBase
     }
 
     [Test]
+    public async Task RotateAsync_WhenTheUsedMarkerVanishesAfterTheFailedClaim_ShouldTreatItAsUsedJustNow()
+    {
+        // Arrange: SET NX reports "already there", but the key expired or was evicted before it could be read
+        var issued = await Service.IssueAsync(AccountId);
+        _databaseMock
+            .Setup(x => x.StringSetAsync(
+                It.Is<RedisKey>(k => k.ToString().StartsWith("refresh-used:")),
+                It.IsAny<RedisValue>(),
+                It.IsAny<TimeSpan?>(),
+                When.NotExists))
+            .ReturnsAsync(false);
+
+        // Act
+        var rotated = await Service.RotateAsync(issued.RefreshToken!);
+
+        // Assert: a concurrent renewal, not a replayed token, so only an access token and no ended chain
+        rotated.Should().NotBeNull();
+        rotated!.RefreshToken.Should().BeNull();
+        Logger.Entries.Should().NotContain(x => x.Level == LogLevel.Warning);
+    }
+
+    [Test]
     public async Task IssueAsync_ShouldGiveEveryKeyAnExpiry()
     {
         // Act

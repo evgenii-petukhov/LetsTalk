@@ -47,10 +47,17 @@ public class RedisRefreshSessionService(
             return null;
         }
 
+        // The marker can expire or be evicted between the two commands. Another renewal has just claimed the
+        // token, so read it as used just now (inside the grace period), not as an old replay that ends the chain.
         var firstUse = await _database.StringGetAsync(key);
         return firstUse == RedisValue.Null
-            ? DateTime.MinValue
+            ? now
             : new DateTime(long.Parse(firstUse.ToString(), CultureInfo.InvariantCulture), DateTimeKind.Utc);
+    }
+
+    protected override async Task DeleteUsedMarkerAsync(string hash)
+    {
+        await _database.KeyDeleteAsync(new RedisKey(GetUsedKey(hash)));
     }
 
     protected override async Task<string?> GetChainHeadAsync(string chainId)
