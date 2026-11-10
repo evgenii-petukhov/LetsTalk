@@ -142,16 +142,33 @@ describe('SignalrService', () => {
             expect(setIntervalSpy).not.toHaveBeenCalled();
         });
 
-        it('should renew the session before every reconnect attempt', () => {
-            // the spy is shared by all tests of this file: the last call belongs to the service created for this test
-            const retryPolicy = vi.mocked(HubConnectionBuilder.prototype.withAutomaticReconnect).mock.calls.at(-1)![0] as {
-                nextRetryDelayInMilliseconds: () => number;
-            };
+        describe('before a reconnect attempt', () => {
+            const context = (previousRetryCount: number) => ({
+                previousRetryCount,
+                elapsedMilliseconds: 0,
+                retryReason: new Error(),
+            });
+            let retryPolicy: { nextRetryDelayInMilliseconds: (c: unknown) => number };
 
-            const delay = retryPolicy.nextRetryDelayInMilliseconds();
+            beforeEach(() => {
+                // the spy is shared by all tests of this file: the last call belongs to the service created for this test
+                retryPolicy = vi.mocked(HubConnectionBuilder.prototype.withAutomaticReconnect).mock.calls.at(-1)![0] as typeof retryPolicy;
+            });
 
-            expect(mockSessionService.ensureAccess).toHaveBeenCalledTimes(1);
-            expect(delay).toBe(environment.services.notifications.connectionInterval);
+            it('should renew the session when the access token may have expired', () => {
+                const delay = retryPolicy.nextRetryDelayInMilliseconds(context(0));
+
+                expect(mockSessionService.ensureAccess).toHaveBeenCalledTimes(1);
+                expect(mockSessionService.refresh).not.toHaveBeenCalled();
+                expect(delay).toBe(environment.services.notifications.connectionInterval);
+            });
+
+            it('should ask the server about the session after a refused attempt, which renews it when it has expired', () => {
+                retryPolicy.nextRetryDelayInMilliseconds(context(1));
+
+                expect(mockSessionService.refresh).toHaveBeenCalledTimes(1);
+                expect(mockSessionService.ensureAccess).not.toHaveBeenCalled();
+            });
         });
     });
 

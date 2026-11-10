@@ -63,7 +63,7 @@ Implementation:
 - [x] **T158** (2026-11-10: vitest 63 files / 771 tests pass; `ng lint` still reports the 17 older errors, none new in the changed files; `npm run build` succeeds without warnings) `npm run test:run`, `npm run lint`, `npm run build`. Checkpoint 5.
 
 ## Phase 6 - Verification
-- [ ] **T160** Add manual steps to `specs/002-short-lived-token-refresh/quickstart.md` (create it) with these checks, using a short test lifetime (access 1 min, grace 10 s):
+- [x] **T160** (written for the setup of this repository: the temporary short lifetimes go into the Authentication `appsettings.Development.json` and `environment.ts`, because the settings files are read after environment variables; R6 checks the file service with a gRPC-web `curl`; R7 uses `generate-login-code`, which changes nothing; found while writing it: the notifications reconnect needs the extra rule in the retry policy, see plan D7) Add manual steps to `specs/002-short-lived-token-refresh/quickstart.md` (create it) with these checks, using a short test lifetime (access 1 min, grace 10 s):
   - R1 sign in -> cookies: `auth-token` (Path `/`), `auth-refresh` (Path `/api/Authentication`, HttpOnly); (FR-002)
   - R2 wait past access lifetime, click around -> works, new cookies visible; (AS1.1)
   - R3 two tabs, wait, act in both at once -> both work; (AS1.4)

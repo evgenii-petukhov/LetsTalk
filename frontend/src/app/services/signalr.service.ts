@@ -31,10 +31,15 @@ type TypeDto = TypeDtoMap[TypeNames];
 })
 export class SignalrService {
     private readonly sessionService = inject(SessionService);
-    // the handshake carries the access cookie: renew it before SignalR tries to reconnect
+    // The handshake carries the access cookie. Before the first reconnect attempt renew it if it may have expired.
+    // A refused attempt shows that the guess was wrong or that the server is down: ask the server about the
+    // session, which renews it when it has expired (the HTTP interceptor does that on the 401).
     private readonly retryPolicy = new ConstantRetryPolicy(
         environment.services.notifications.connectionInterval,
-        () => void this.sessionService.ensureAccess(),
+        (context) =>
+            void (context.previousRetryCount === 0
+                ? this.sessionService.ensureAccess()
+                : this.sessionService.refresh()),
     );
     private readonly hubConnectionBuilder = new HubConnectionBuilder()
         .withUrl(environment.services.notifications.url, {

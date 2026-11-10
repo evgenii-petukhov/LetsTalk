@@ -20,13 +20,16 @@ describe('ConstantRetryPolicy', () => {
         expect(retryPolicy.nextRetryDelayInMilliseconds()).toBe(interval);
     });
 
-    it('should call the hook before every retry', () => {
+    it('should call the hook with the retry context before every retry', () => {
         const beforeRetry = vi.fn();
         const policy = new ConstantRetryPolicy(interval, beforeRetry);
+        const first = { previousRetryCount: 0, elapsedMilliseconds: 0, retryReason: new Error() };
+        const second = { previousRetryCount: 1, elapsedMilliseconds: interval, retryReason: new Error() };
 
-        expect(policy.nextRetryDelayInMilliseconds()).toBe(interval);
-        expect(policy.nextRetryDelayInMilliseconds()).toBe(interval);
+        expect(policy.nextRetryDelayInMilliseconds(first)).toBe(interval);
+        expect(policy.nextRetryDelayInMilliseconds(second)).toBe(interval);
 
-        expect(beforeRetry).toHaveBeenCalledTimes(2);
+        expect(beforeRetry).toHaveBeenNthCalledWith(1, first);
+        expect(beforeRetry).toHaveBeenNthCalledWith(2, second);
     });
 });
