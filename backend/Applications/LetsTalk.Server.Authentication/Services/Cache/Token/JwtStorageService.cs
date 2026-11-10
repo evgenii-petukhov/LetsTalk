@@ -57,7 +57,7 @@ public class JwtStorageService : IJwtStorageService
         };
     }
 
-    public StoredToken Generate(string accountId)
+    public StoredToken Generate(string accountId, TimeSpan lifetime)
     {
         var tokenHandler = new JwtSecurityTokenHandler();
         var tokenDescriptor = new SecurityTokenDescriptor
@@ -66,7 +66,7 @@ public class JwtStorageService : IJwtStorageService
             [
                 new Claim(CLAIM_ID, accountId)
             ]),
-            Expires = DateTime.UtcNow.AddYears(1),
+            Expires = DateTime.UtcNow.Add(lifetime),
             SigningCredentials = _signingCredentials
         };
         var token = tokenHandler.CreateToken(tokenDescriptor);

@@ -12,18 +12,18 @@
 
 ## Phase 1 - Authentication service
 Tests first, in `BE/Applications/LetsTalk.Server.Authentication.Tests`:
-- [ ] **T110** `JwtStorageService`: `Generate_WhenLifetimeGiven_ShouldSetExpiry`; access vs background lifetime. (FR-001, FR-012)
-- [ ] **T111** [P] `MemoryRefreshSessionService` tests: `IssueAsync_ShouldStoreOnlyHash`; `RotateAsync_WhenUnused_ShouldIssueNewPair`; `RotateAsync_WhenUsedWithinGrace_ShouldIssueAccessOnly`; `RotateAsync_WhenUsedAfterGrace_ShouldEndChainAndFail`; `RotateAsync_WhenIdleExpired_ShouldFail`; `RotateAsync_WhenAbsoluteLifetimeReached_ShouldFail`; `RotateAsync_WhenConcurrent_ShouldCreateSingleSuccessor`; `EndByRefreshTokenAsync_ShouldInvalidateChain`. (FR-003, FR-005, FR-006, FR-007, NFR-002)
-- [ ] **T112** [P] Same for `RedisRefreshSessionService` (mocked `IDatabase`), including the atomic `usedAt` marker.
-- [ ] **T113** [P] gRPC service tests: `CreateSession`, `RefreshSession`, `EndSession`, `GenerateJwtToken_WhenKindBackground_ShouldUseBackgroundLifetime`.
+- [x] **T110** (new `JwtStorageServiceTests`; the access vs background difference is only the lifetime argument, chosen in the gRPC service, see T113) `JwtStorageService`: `Generate_WhenLifetimeGiven_ShouldSetExpiry`; access vs background lifetime. (FR-001, FR-012)
+- [x] **T111** (one shared scenario base class `RefreshSessionServiceTestsBase` runs the same tests against both stores; the memory store is checked through a recording `IMemoryCache`; extra cases: sliding idle period, another chain untouched, unknown token, warning log without token values) [P] `MemoryRefreshSessionService` tests: `IssueAsync_ShouldStoreOnlyHash`; `RotateAsync_WhenUnused_ShouldIssueNewPair`; `RotateAsync_WhenUsedWithinGrace_ShouldIssueAccessOnly`; `RotateAsync_WhenUsedAfterGrace_ShouldEndChainAndFail`; `RotateAsync_WhenIdleExpired_ShouldFail`; `RotateAsync_WhenAbsoluteLifetimeReached_ShouldFail`; `RotateAsync_WhenConcurrent_ShouldCreateSingleSuccessor`; `EndByRefreshTokenAsync_ShouldInvalidateChain`. (FR-003, FR-005, FR-006, FR-007, NFR-002)
+- [x] **T112** (`RedisRefreshSessionServiceTests` runs the shared scenarios on a dictionary-backed fake of the few `IDatabase` commands used, with an atomic `SET NX`; extra: the used marker is written with `When.NotExists`, every key gets an expiry) [P] Same for `RedisRefreshSessionService` (mocked `IDatabase`), including the atomic `usedAt` marker.
+- [x] **T113** (also `GenerateJwtToken` with the default kind and `RefreshSession_WhenRefreshTokenRejected_ShouldThrowUnauthenticated`) [P] gRPC service tests: `CreateSession`, `RefreshSession`, `EndSession`, `GenerateJwtToken_WhenKindBackground_ShouldUseBackgroundLifetime`.
 
 Implementation:
-- [ ] **T114** Update both `.proto` copies (`kind` enum; `CreateSession`, `RefreshSession`, `EndSession`). (depends T101)
-- [ ] **T115** `JwtStorageService.Generate(accountId, lifetime)` and callers (`MemoryCacheTokenService`, `RedisCacheTokenService`). (T110)
-- [ ] **T116** `IRefreshSessionService` + `MemoryRefreshSessionService` + `RedisRefreshSessionService`, DI registration next to the existing token-cache switch in `AuthenticationServiceRegistration.cs`. (T111, T112)
-- [ ] **T117** gRPC service methods. (T113, T114, T116)
-- [ ] **T118** `IAuthenticationClient`/`AuthenticationClient`: `CreateSessionAsync`, `RefreshSessionAsync`, `EndSessionAsync`, `GenerateBackgroundTokenAsync`. (T114)
-- [ ] **T119** `dotnet test BE/Applications/LetsTalk.Server.Authentication.Tests`. Checkpoint 1.
+- [x] **T114** (both copies identical; `TokenKind` enum `ACCESS|BACKGROUND`; one `SessionResponse` message for `CreateSession` and `RefreshSession`, with an empty `refresh_token` and expiry 0 for the access-only case; no `protoc` step, `Grpc.Tools` generates on build) Update both `.proto` copies (`kind` enum; `CreateSession`, `RefreshSession`, `EndSession`). (depends T101)
+- [x] **T115** (`IJwtCacheService.GenerateAsync(accountId, lifetime)` as well; the existing Redis token test was updated) `JwtStorageService.Generate(accountId, lifetime)` and callers (`MemoryCacheTokenService`, `RedisCacheTokenService`). (T110)
+- [x] **T116** (deviations from plan D3, now recorded there: the rules live once in `RefreshSessionServiceBase` and each store only supplies primitives; the record holds `AccountId`, `ChainId`, `ChainStartedAt`, `ExpiresAt`; the used marker is a separate key, set atomically, instead of `usedAt`/`replacedByHash` fields; memory mode uses one static lock instead of a lock per hash; `TimeProvider` is injected for testing; registered scoped like the token services) `IRefreshSessionService` + `MemoryRefreshSessionService` + `RedisRefreshSessionService`, DI registration next to the existing token-cache switch in `AuthenticationServiceRegistration.cs`. (T111, T112)
+- [x] **T117** (`RefreshSession` throws `RpcException(Unauthenticated)` when the token is rejected) gRPC service methods. (T113, T114, T116)
+- [x] **T118** (new project `Infrastructure/Authentication/LetsTalk.Server.Authentication.Client.Tests`, added to the solution by hand, 8 tests; `AuthSession` record in the Abstractions project; `RefreshSessionAsync` returns null only for `Unauthenticated`, an outage throws) `IAuthenticationClient`/`AuthenticationClient`: `CreateSessionAsync`, `RefreshSessionAsync`, `EndSessionAsync`, `GenerateBackgroundTokenAsync`. (T114)
+- [x] **T119** (2026-11-09: Authentication.Tests 57 pass, Authentication.Client.Tests 8 pass, `dotnet build` of the solution 0 errors) `dotnet test BE/Applications/LetsTalk.Server.Authentication.Tests`. Checkpoint 1.
 
 ## Phase 2 - API
 Tests first:

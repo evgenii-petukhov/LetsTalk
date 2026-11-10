@@ -9,10 +9,19 @@ service JwtTokenGrpcService {
   rpc GenerateJwtToken (GenerateJwtTokenRequest) returns (GenerateJwtTokenResponse);
   rpc ValidateJwtToken (ValidateJwtTokenRequest) returns (ValidateJwtTokenResponse);
   rpc RevokeJwtToken (RevokeJwtTokenRequest) returns (RevokeJwtTokenResponse);
+  rpc CreateSession (CreateSessionRequest) returns (SessionResponse);
+  rpc RefreshSession (RefreshSessionRequest) returns (SessionResponse);
+  rpc EndSession (EndSessionRequest) returns (EndSessionResponse);
+}
+
+enum TokenKind {
+  ACCESS = 0;
+  BACKGROUND = 1;
 }
 
 message GenerateJwtTokenRequest {
   string account_id = 1;
+  TokenKind kind = 2;
 }
 
 message GenerateJwtTokenResponse {
@@ -33,4 +42,28 @@ message RevokeJwtTokenRequest {
 }
 
 message RevokeJwtTokenResponse {
+}
+
+message CreateSessionRequest {
+  string account_id = 1;
+}
+
+message RefreshSessionRequest {
+  string refresh_token = 1;
+}
+
+// refresh_token is empty (and refresh_expires_at_unix_seconds is 0) when only a new access token was issued,
+// because the presented refresh token had already been used a moment ago (the grace period).
+message SessionResponse {
+  string access_token = 1;
+  int64 access_expires_at_unix_seconds = 2;
+  string refresh_token = 3;
+  int64 refresh_expires_at_unix_seconds = 4;
+}
+
+message EndSessionRequest {
+  string refresh_token = 1;
+}
+
+message EndSessionResponse {
 }

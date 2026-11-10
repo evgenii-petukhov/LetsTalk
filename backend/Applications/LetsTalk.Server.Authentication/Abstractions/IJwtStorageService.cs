@@ -6,5 +6,5 @@ public interface IJwtStorageService
 {
     Task<StoredToken?> GetStoredTokenAsync(string? token);
 
-    StoredToken Generate(string accountId);
+    StoredToken Generate(string accountId, TimeSpan lifetime);
 }

@@ -1,6 +1,7 @@
 # Implementation Plan: Short-lived sessions with silent renewal
 
 **Spec**: [spec.md](spec.md) | **Builds on**: [001 plan](../001-httponly-cookie-auth/plan.md)\
+**Diagrams**: [token-refresh-flow.md](token-refresh-flow.md)\
 **Precondition**: spec 001 merged (cookie session, `AuthCookieSettings`, `JwtMiddleware` cookie resolution, `RevokeAsync`, credentialed CORS helper).
 
 ## Summary
@@ -56,8 +57,9 @@ Same stack as spec 001. New server state: refresh records in the existing token 
 ### D3. Refresh store and session chain (FR-002..FR-007, NFR-002)
 New abstraction `IRefreshSessionService` in `Applications/LetsTalk.Server.Authentication/Abstractions`, with `RedisRefreshSessionService` and `MemoryRefreshSessionService` selected by the same switch as the token cache.
 - Refresh token: 256-bit random, URL-safe; only `SHA-256(token)` is stored.
-- Record (key = hash): `accountId`, `chainId`, `createdAt`, `chainStartedAt`, `usedAt?`, `replacedByHash?`; TTL = min(idle lifetime, absolute remaining).
-- Chain index: `chain:<chainId>` -> current hash, so a chain can be ended in one operation.
+- Record (key `refresh:<hash>`): `accountId`, `chainId`, `chainStartedAt`, `expiresAt`; TTL = min(idle lifetime, absolute remaining), and `expiresAt` is checked in code as well. The first use is a separate key `refresh-used:<hash>` holding the time of the first use, written atomically (Redis `SET NX`, a lock in memory mode); it replaces the `usedAt`/`replacedByHash` fields.
+- Chain index: `refresh-chain:<chainId>` -> current hash, so a chain can be ended in one operation. A token whose chain index is gone is rejected, which also covers the grace period after sign-out. The chain is needed because each record knows only itself and is replaced at every refresh: (1) reuse detection must find and kill the token that is valid now, (2) sign-out ends the session of that device from whichever token the browser holds, (3) `chainStartedAt` is copied along so the absolute lifetime counts from the sign-in, (4) every sign-in has its own chain, so one device's sign-out or reuse alarm leaves the others alone. Without chains the server would have to scan records or revoke everything of the account.
+- The rotation rules are written once in `RefreshSessionServiceBase`; the Redis and memory services only provide the storage primitives.
 - `IssueAsync(accountId)`: new chain, returns `{refreshToken, accessToken, expiries}`.
 - `RotateAsync(refreshToken)`:
   1. Unknown/expired -> fail.
@@ -66,11 +68,11 @@ New abstraction `IRefreshSessionService` in `Applications/LetsTalk.Server.Authen
   4. Used after the grace period -> revoke the whole chain (`EndChainAsync`) and fail; log the event at Warning level with `chainId` (no token values).
 - `EndChainAsync(chainId)` and `EndByRefreshTokenAsync(token)` used by logout.
 - `gRPC` additions (both proto copies): `CreateSession(accountId) -> (accessToken, refreshToken, expiries)`, `RefreshSession(refreshToken) -> (accessToken, refreshToken?, expiries)`, `EndSession(refreshToken)`.
-- Concurrency: Redis uses a Lua script / `StringSet(When.NotExists)` on the `usedAt` marker so two simultaneous rotations cannot both create successors; memory implementation uses a lock per hash.
+- Concurrency: two simultaneous rotations of the same token must not both create a successor. The "used" marker (`refresh-used:<hash>`) is therefore written with Redis `SET ... NX` (`StringSetAsync(..., When.NotExists)`): "set only if the key does not exist yet", one atomic step in which exactly one caller succeeds. The winner creates the successor, the others read the winner's time and are answered by the grace rule (step 3 above). The memory implementation gets the same result with one static lock around the check and the write.
 
 ### D4. API endpoints (FR-002, FR-004, FR-005, FR-007)
 - `email-login`: calls `CreateSession`; sets both cookies (access: `Path=/`, refresh: `Path=/api/Authentication`, same Domain/Secure/SameSite=Strict, `Expires` = respective lifetime).
-- `POST api/Authentication/refresh` (`[AllowAnonymous]`): relies on spec 001 FR-013 (an expired or invalid access cookie must not turn this call into a 401 before it runs); reads the refresh cookie only (never the header); on success sets new cookies, returns `204`; on failure clears both cookies and returns `401`.
+- `POST api/Authentication/refresh` (`[AllowAnonymous]`): relies on spec 001 FR-013 (an expired or invalid access cookie must not turn this call into a 401 before it runs); reads the refresh cookie only (never the header); on success sets new cookies, returns `204`; on failure (the refresh token is unknown, expired by idle or absolute lifetime, or replayed) clears both cookies and returns `401`. When the Authentication service cannot answer (`Unavailable`/`DeadlineExceeded`) it returns `503` through `ServiceUnavailableException` and keeps the cookies, as `JwtMiddleware` does (spec 001, review follow-up A).
 - `logout` (from 001): additionally calls `EndSession` with the refresh cookie and clears both cookies.
 - Cookie names/paths in `AuthCookieSettings` (add `RefreshName`, `RefreshPath`).
 
@@ -83,7 +85,7 @@ New abstraction `IRefreshSessionService` in `Applications/LetsTalk.Server.Authen
 - Header-credential requests are exempt (no ambient credential).
 
 ### D7. Front end (FR-004, FR-008, FR-009, US1, US3)
-- `interceptors/auth.interceptor.ts`: on 401 for our API (excluding `refresh`, `email-login`, `logout`), call `SessionService.renew()` and retry the request once; renewals are shared with a single in-flight observable (`shareReplay`/`BehaviorSubject` lock). A failed renewal -> clear state, navigate to `/sign-in`.
+- `interceptors/auth.interceptor.ts`: on 401 for our API (excluding `refresh`, `email-login`, `logout`), call `SessionService.renew()` and retry the request once; renewals are shared with a single in-flight observable (`shareReplay`/`BehaviorSubject` lock). A failed renewal (401 from `refresh`) -> clear state, navigate to `/sign-in`. A `503` or a network error is not a failed renewal: keep the state and the page and retry later (spec 001 `SessionService` already treats only 401 as "not signed in").
 - `services/session.service.ts` (from 001): add `renew()` calling the generated `refresh()`; `isSignedIn()` stays the probe, now benefiting from renewal through the interceptor.
 - `services/file-storage.service.ts`: gRPC-web errors with `UNAUTHENTICATED` -> `renew()` then retry once. Prerequisite found while implementing spec 001: the file service's `JwtInterceptor` throws `UnauthorizedAccessException`, which ASP.NET Core gRPC reports to the client as `Unknown`, not `UNAUTHENTICATED`. Change it to throw `RpcException(new Status(StatusCode.Unauthenticated, ...))` (tests in `FileStorage.Service.Tests`); the CORS policy already exposes `grpc-status`/`grpc-message` (spec 001, T034).
 - `services/signalr.service.ts`: before each (re)start of the connection call `renew()` if the last renewal is older than the access lifetime minus a safety margin or the last connect failed with auth error; `onreconnected` unchanged (no token handling). `withAutomaticReconnect` custom policy calls `renew()` before the first retry.
