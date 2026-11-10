@@ -74,8 +74,8 @@ Implementation:
   - R8 send an image, hold the consumer for > access lifetime, then release -> preview arrives; (SC-005)
   - R9 sign out -> refresh with the old refresh cookie fails. (FR-007)
 - [ ] **T161** Run R1-R9; record results in the PR.
-- [ ] **T162** `dotnet test BE/LetsTalk.Server.sln` green; `/code-review` on the branch.
-- [ ] **T163** Deployment notes: Redis recommended for persistent sessions; `Cors:AllowedOrigins` required on API and Notifications; lifetimes as configuration; users re-sign-in once. Update `CLAUDE.md` auth paragraph (from 001) to mention refresh.
+- [x] **T162** (2026-11-10: `dotnet test` of the solution, 16 test projects, no failures; `/code-review` at the high level found 8 items, handled like the follow-ups of spec 001: four fixed, two accepted and documented (memory mode, sign-out), one is the owner's own uncommitted `appsettings.json` and was never staged, one accepted as designed (the retry policy hook). Fixed: a refresh token whose successor could not be issued stays usable (`DeleteUsedMarkerAsync`), a used marker that vanishes in Redis counts as used just now, `OriginCheckMiddleware` logs a warning for a refused request, and `environment.ts` assumes the one-day Development lifetime) `dotnet test BE/LetsTalk.Server.sln` green; `/code-review` on the branch.
+- [x] **T163** (written as `deployment.md` in this folder, to paste into the PR; deviation from the line below: nobody has to sign in again at the release, because the access tokens of spec 001 stay valid until their own expiry, so the notes say how to end them at once by changing `JwtSettings:Key`; `CLAUDE.md` auth paragraph extended; the front end needs the same access lifetime in `environment.session`, and both parts should be rolled out together) Deployment notes: Redis recommended for persistent sessions; `Cors:AllowedOrigins` required on API and Notifications; lifetimes as configuration; users re-sign-in once. Update `CLAUDE.md` auth paragraph (from 001) to mention refresh.
 
 ## Dependencies
 ```

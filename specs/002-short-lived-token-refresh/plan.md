@@ -104,7 +104,8 @@ New abstraction `IRefreshSessionService` in `Applications/LetsTalk.Server.Authen
 | Risk | Mitigation |
 |---|---|
 | Rotation race between tabs logs the user out | 30 s grace (D3.3); single in-flight renewal per tab (D7); tests with concurrent calls |
-| Memory mode loses sessions on restart | Documented; Redis mode is shared and persistent |
+| Memory mode loses sessions on restart | Documented; Redis mode is shared and persistent. Differs from before: a one-year JWT was validated by its signature and survived a restart, now a restart signs everyone out within 15 minutes |
+| Sign-out leaves earlier access tokens valid | Sign-out ends the refresh chain and revokes the access token of that request (FR-007). Access tokens issued by earlier refreshes, and a background token, stay valid until they expire (15 minutes, 1 hour). Accepted: the short lifetime is the protection, per-sign-in revocation would need a session id in every token and a lookup on every request |
 | A WebSocket stays open after the access token expires | Acceptable by design; the connection is bound at handshake. Revocation (logout) still removes `ConnectionId` mapping on disconnect; if immediate cut-off on logout is required, add a hub notification (not in scope) |
 | Background JWT with 1 h lifetime is a bearer credential | Narrow lifetime; carried only in the broker message; same trust boundary as today (previously 1 year) |
 | Clock skew between API and Authentication hosts | All expiry decisions are made inside the Authentication service |
