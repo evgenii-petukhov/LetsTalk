@@ -1,5 +1,6 @@
 using FluentAssertions;
 using LetsTalk.Server.Configuration.Models;
+using LetsTalk.Server.Cors;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Options;
@@ -32,7 +33,7 @@ public class OriginCheckMiddlewareTests
                 ["Cors:AllowedOrigins:1"] = OtherAllowedOrigin
             })
             .Build();
-        _middleware = new OriginCheckMiddleware(_mockRequestDelegate.Object, configuration);
+        _middleware = new OriginCheckMiddleware(_mockRequestDelegate.Object, new AllowedOrigins(configuration));
     }
 
     [TestCase("POST")]

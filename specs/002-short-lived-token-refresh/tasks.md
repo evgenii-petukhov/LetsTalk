@@ -40,9 +40,9 @@ Implementation:
 - [x] **T128** (2026-11-09: Middleware.Tests 41, Core.Tests 311, API.Tests 15 pass; `dotnet build` of the solution 0 errors; `backend/CheckWarnings.ps1` 0 warnings in the changed files) `dotnet test` for API.Core.Tests, API.Middleware.Tests, API tests. Checkpoint 2.
 
 ## Phase 3 - Notifications
-- [ ] **T130** `NotificationHub` tests: `OnConnectedAsync_WhenCookieAndForeignOrigin_ShouldAbort`; `..._WhenCookieAndAllowedOrigin_ShouldRegister`; `..._WhenExpiredAccessCookie_ShouldAbort`. (FR-011, AS3.2)
-- [ ] **T131** Implement the origin check in `NotificationHub.OnConnectedAsync` using `Cors:AllowedOrigins`. (T130)
-- [ ] **T132** `dotnet test` Notifications.Tests. Checkpoint 3.
+- [x] **T130** (plus `..._WhenCookieAndNoOrigin_ShouldAbort`, allowed origin with a trailing slash or other letter case, and `..._WhenNoCookieAndForeignOrigin_ShouldNotAbort` for the explicit-credential path; the existing cookie tests now send an allowed `Origin`) `NotificationHub` tests: `OnConnectedAsync_WhenCookieAndForeignOrigin_ShouldAbort`; `..._WhenCookieAndAllowedOrigin_ShouldRegister`; `..._WhenExpiredAccessCookie_ShouldAbort`. (FR-011, AS3.2)
+- [x] **T131** (the hub uses the shared `AllowedOrigins` helper, which also replaced the list the API's `OriginCheckMiddleware` read on its own: new class in `Infrastructure/LetsTalk.Server.Cors` with `AllowedOriginsTests`, registered by `AddCredentialedCors`, and the Middleware project now references the Cors project; the check runs before the token is validated, so a foreign page cannot even probe the session) Implement the origin check in `NotificationHub.OnConnectedAsync` using `Cors:AllowedOrigins`. (T130)
+- [x] **T132** (2026-11-10: Notifications.Tests 21, Cors.Tests 15 and Middleware.Tests 41 pass; `dotnet build` of the solution 0 errors; `backend/CheckWarnings.ps1` 0 warnings in the changed files) `dotnet test` Notifications.Tests. Checkpoint 3.
 
 ## Phase 4 - Clients
 - [ ] **T140** Regenerate `FE/api-client/api-client.ts` (`nswag/angular.nswag`) and `BE/API/LetsTalk.Server.API.Client/ApiClient.cs` (`nswag/csharp.nswag`). **Not** `nextjs.nswag`. Confirm `refresh()` exists. (T124)

@@ -1,6 +1,6 @@
 using LetsTalk.Server.Configuration.Models;
+using LetsTalk.Server.Cors;
 using Microsoft.AspNetCore.Http;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Options;
 
 namespace LetsTalk.Server.API.Middleware;
@@ -9,18 +9,10 @@ namespace LetsTalk.Server.API.Middleware;
 // A state-changing request that carries the browser session is therefore accepted only when it comes
 // from one of the web app origins. Requests with an explicit credential (Authorization header) are
 // exempt, because the browser never adds that header on its own.
-public class OriginCheckMiddleware
+public class OriginCheckMiddleware(RequestDelegate next, AllowedOrigins allowedOrigins)
 {
-    private readonly RequestDelegate _next;
-    private readonly HashSet<string> _allowedOrigins;
-
-    public OriginCheckMiddleware(RequestDelegate next, IConfiguration configuration)
-    {
-        _next = next;
-        _allowedOrigins = (configuration.GetSection("Cors:AllowedOrigins").Get<string[]>() ?? [])
-            .Select(x => x.TrimEnd('/'))
-            .ToHashSet(StringComparer.OrdinalIgnoreCase);
-    }
+    private readonly RequestDelegate _next = next;
+    private readonly AllowedOrigins _allowedOrigins = allowedOrigins;
 
     public async Task InvokeAsync(HttpContext context, IOptions<AuthCookieSettings> cookieSettingsOptions)
     {
@@ -30,8 +22,7 @@ public class OriginCheckMiddleware
             return;
         }
 
-        var origin = GetRequestOrigin(context.Request);
-        if (origin == null || !_allowedOrigins.Contains(origin))
+        if (!_allowedOrigins.Contains(GetRequestOrigin(context.Request)))
         {
             context.Response.StatusCode = StatusCodes.Status403Forbidden;
             await context.Response.WriteAsJsonAsync(new { message = "Forbidden" });
@@ -57,7 +48,7 @@ public class OriginCheckMiddleware
         var origin = request.Headers.Origin.ToString();
         if (!string.IsNullOrEmpty(origin))
         {
-            return origin.TrimEnd('/');
+            return origin;
         }
 
         // Some browsers omit Origin on same-origin requests, but still send the Referer

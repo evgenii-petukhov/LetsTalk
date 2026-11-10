@@ -17,6 +17,7 @@ public static class CorsServiceCollectionExtensions
         params string[] exposedHeaders)
     {
         services.AddCors();
+        services.AddSingleton(new AllowedOrigins(configuration));
         services.AddOptions<CorsOptions>().Configure<IHostEnvironment>((options, environment) =>
         {
             var origins = configuration.GetSection("Cors:AllowedOrigins").Get<string[]>() ?? [];

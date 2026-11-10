@@ -86,6 +86,7 @@ New abstraction `IRefreshSessionService` in `Applications/LetsTalk.Server.Authen
 - "Carries the browser session" means the access cookie was accepted (`CredentialSource = Cookie`) **or** the request contains the refresh cookie. Refresh and sign-out arrive with the refresh cookie only once the access cookie has expired, so without the second condition they would skip the check.
 - Registration: `UseJwtMiddleware()` adds `OriginCheckMiddleware` right after `JwtMiddleware`, so `Program.cs` needs no change and the check cannot be forgotten. Allowed origins come from `Cors:AllowedOrigins`, the same list as CORS.
 - A refused request gets `403` with `{"message":"Forbidden"}`.
+- The comparison lives once, in `AllowedOrigins` (`Infrastructure/LetsTalk.Server.Cors`, registered by `AddCredentialedCors`): the list from `Cors:AllowedOrigins`, compared without a trailing slash and ignoring letter case. CORS, `OriginCheckMiddleware` and `NotificationHub` all use that list, so the rules cannot drift apart.
 
 ### D7. Front end (FR-004, FR-008, FR-009, US1, US3)
 - `interceptors/auth.interceptor.ts`: on 401 for our API (excluding `refresh`, `email-login`, `logout`), call `SessionService.renew()` and retry the request once; renewals are shared with a single in-flight observable (`shareReplay`/`BehaviorSubject` lock). A failed renewal (401 from `refresh`) -> clear state, navigate to `/sign-in`. A `503` or a network error is not a failed renewal: keep the state and the page and retry later (spec 001 `SessionService` already treats only 401 as "not signed in").
