@@ -12,7 +12,10 @@ namespace LetsTalk.Server.API.Core.Tests.Handlers;
 [TestFixture]
 public class EmailLoginCommandHandlerTests
 {
+    private const string RefreshToken = "refresh-token-123";
+
     private static readonly DateTime ExpiresAt = new(2030, 1, 1, 0, 0, 0, DateTimeKind.Utc);
+    private static readonly DateTime RefreshExpiresAt = new(2030, 1, 31, 0, 0, 0, DateTimeKind.Utc);
 
     private Mock<IAuthenticationClient> _authenticationClientMock;
     private Mock<IAccountAgnosticService> _accountAgnosticServiceMock;
@@ -46,16 +49,18 @@ public class EmailLoginCommandHandlerTests
             .ReturnsAsync(accountId);
 
         _authenticationClientMock
-            .Setup(x => x.GenerateJwtTokenAsync(accountId))
-            .ReturnsAsync((token, ExpiresAt));
+            .Setup(x => x.CreateSessionAsync(accountId))
+            .ReturnsAsync(new AuthSession(token, ExpiresAt, RefreshToken, RefreshExpiresAt));
 
         // Act
         var result = await _handler.Handle(command, cancellationToken);
 
         // Assert
         result.Should().NotBeNull();
-        result.ExpiresAt.Should().Be(ExpiresAt);
-        result.Token.Should().Be(token);
+        result.AccessToken.Should().Be(token);
+        result.AccessExpiresAt.Should().Be(ExpiresAt);
+        result.RefreshToken.Should().Be(RefreshToken);
+        result.RefreshExpiresAt.Should().Be(RefreshExpiresAt);
     }
 
     [Test]
@@ -79,16 +84,18 @@ public class EmailLoginCommandHandlerTests
             .ReturnsAsync(accountId);
 
         _authenticationClientMock
-            .Setup(x => x.GenerateJwtTokenAsync(accountId))
-            .ReturnsAsync((token, ExpiresAt));
+            .Setup(x => x.CreateSessionAsync(accountId))
+            .ReturnsAsync(new AuthSession(token, ExpiresAt, RefreshToken, RefreshExpiresAt));
 
         // Act
         var result = await _handler.Handle(command, cancellationToken);
 
         // Assert
         result.Should().NotBeNull();
-        result.ExpiresAt.Should().Be(ExpiresAt);
-        result.Token.Should().Be(token);
+        result.AccessToken.Should().Be(token);
+        result.AccessExpiresAt.Should().Be(ExpiresAt);
+        result.RefreshToken.Should().Be(RefreshToken);
+        result.RefreshExpiresAt.Should().Be(RefreshExpiresAt);
 
         // Verify that the email was normalized
         _authenticationClientMock.Verify(
@@ -138,8 +145,8 @@ public class EmailLoginCommandHandlerTests
             .ReturnsAsync(accountId);
 
         _authenticationClientMock
-            .Setup(x => x.GenerateJwtTokenAsync(accountId))
-            .ReturnsAsync((token, ExpiresAt));
+            .Setup(x => x.CreateSessionAsync(accountId))
+            .ReturnsAsync(new AuthSession(token, ExpiresAt, RefreshToken, RefreshExpiresAt));
 
         // Act
         await _handler.Handle(command, cancellationToken);
@@ -151,7 +158,7 @@ public class EmailLoginCommandHandlerTests
     }
 
     [Test]
-    public async Task Handle_WhenValidationPasses_ShouldCallGenerateJwtTokenWithCorrectAccountId()
+    public async Task Handle_WhenValidationPasses_ShouldCreateTheSessionForTheAccount()
     {
         // Arrange
         var email = "test@example.com";
@@ -170,15 +177,15 @@ public class EmailLoginCommandHandlerTests
             .ReturnsAsync(accountId);
 
         _authenticationClientMock
-            .Setup(x => x.GenerateJwtTokenAsync(accountId))
-            .ReturnsAsync((token, ExpiresAt));
+            .Setup(x => x.CreateSessionAsync(accountId))
+            .ReturnsAsync(new AuthSession(token, ExpiresAt, RefreshToken, RefreshExpiresAt));
 
         // Act
         await _handler.Handle(command, cancellationToken);
 
         // Assert
         _authenticationClientMock.Verify(
-            x => x.GenerateJwtTokenAsync(accountId),
+            x => x.CreateSessionAsync(accountId),
             Times.Once);
     }
 
@@ -202,8 +209,8 @@ public class EmailLoginCommandHandlerTests
             .ReturnsAsync(accountId);
 
         _authenticationClientMock
-            .Setup(x => x.GenerateJwtTokenAsync(accountId))
-            .ReturnsAsync((token, ExpiresAt));
+            .Setup(x => x.CreateSessionAsync(accountId))
+            .ReturnsAsync(new AuthSession(token, ExpiresAt, RefreshToken, RefreshExpiresAt));
 
         // Act
         await _handler.Handle(command, cancellationToken);
@@ -273,8 +280,8 @@ public class EmailLoginCommandHandlerTests
             .ReturnsAsync(accountId);
 
         _authenticationClientMock
-            .Setup(x => x.GenerateJwtTokenAsync(accountId))
-            .ThrowsAsync(new InvalidOperationException("Token generation error"));
+            .Setup(x => x.CreateSessionAsync(accountId))
+            .ThrowsAsync(new InvalidOperationException("Session creation error"));
 
         // Act & Assert
         Assert.ThrowsAsync<InvalidOperationException>(
@@ -360,16 +367,18 @@ public class EmailLoginCommandHandlerTests
             .ReturnsAsync(accountId);
 
         _authenticationClientMock
-            .Setup(x => x.GenerateJwtTokenAsync(accountId))
-            .ReturnsAsync((token, ExpiresAt));
+            .Setup(x => x.CreateSessionAsync(accountId))
+            .ReturnsAsync(new AuthSession(token, ExpiresAt, RefreshToken, RefreshExpiresAt));
 
         // Act
         var result = await _handler.Handle(command, cancellationToken);
 
         // Assert
         result.Should().NotBeNull();
-        result.ExpiresAt.Should().Be(ExpiresAt);
-        result.Token.Should().Be(token);
+        result.AccessToken.Should().Be(token);
+        result.AccessExpiresAt.Should().Be(ExpiresAt);
+        result.RefreshToken.Should().Be(RefreshToken);
+        result.RefreshExpiresAt.Should().Be(RefreshExpiresAt);
 
         // Verify the complete workflow
         _authenticationClientMock.Verify(
@@ -381,7 +390,7 @@ public class EmailLoginCommandHandlerTests
             Times.Once);
 
         _authenticationClientMock.Verify(
-            x => x.GenerateJwtTokenAsync(accountId),
+            x => x.CreateSessionAsync(accountId),
             Times.Once);
     }
 

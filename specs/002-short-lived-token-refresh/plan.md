@@ -83,6 +83,9 @@ New abstraction `IRefreshSessionService` in `Applications/LetsTalk.Server.Authen
 - New middleware `OriginCheckMiddleware` in `API/LetsTalk.Server.API.Middleware`. Pipeline order: `UseCors` -> `UseJwtMiddleware` -> `OriginCheckMiddleware` -> controllers, because it needs the flag set by `JwtMiddleware` (`Items["CredentialSource"]="Cookie"`). It applies when the credential came from the cookie and the method is not GET/HEAD/OPTIONS: require `Origin` (or, if absent, `Referer`'s origin) to be in `Cors:AllowedOrigins`, else `403`.
 - The same check is applied in `NotificationHub.OnConnectedAsync` on the cookie path (`Context.GetHttpContext().Request.Headers.Origin`), because WebSockets are not governed by CORS; failure aborts the connection.
 - Header-credential requests are exempt (no ambient credential).
+- "Carries the browser session" means the access cookie was accepted (`CredentialSource = Cookie`) **or** the request contains the refresh cookie. Refresh and sign-out arrive with the refresh cookie only once the access cookie has expired, so without the second condition they would skip the check.
+- Registration: `UseJwtMiddleware()` adds `OriginCheckMiddleware` right after `JwtMiddleware`, so `Program.cs` needs no change and the check cannot be forgotten. Allowed origins come from `Cors:AllowedOrigins`, the same list as CORS.
+- A refused request gets `403` with `{"message":"Forbidden"}`.
 
 ### D7. Front end (FR-004, FR-008, FR-009, US1, US3)
 - `interceptors/auth.interceptor.ts`: on 401 for our API (excluding `refresh`, `email-login`, `logout`), call `SessionService.renew()` and retry the request once; renewals are shared with a single in-flight observable (`shareReplay`/`BehaviorSubject` lock). A failed renewal (401 from `refresh`) -> clear state, navigate to `/sign-in`. A `503` or a network error is not a failed renewal: keep the state and the page and retry later (spec 001 `SessionService` already treats only 401 as "not signed in").
@@ -111,7 +114,7 @@ backend/
   Infrastructure/Configuration/LetsTalk.Server.Configuration/Models/{JwtSettings,AuthCookieSettings}.cs
   Applications/LetsTalk.Server.Authentication/{Protos,Abstractions/IRefreshSessionService.cs,Services/Session/*,Services/Cache/Token/JwtStorageService.cs,Services/*GrpcService.cs}  (+ Tests)
   Infrastructure/Authentication/LetsTalk.Server.Authentication.{Abstractions,Client}/*
-  Applications/LetsTalk.Server.API/Controllers/AuthenticationController.cs, Program.cs (middleware order)
+  Applications/LetsTalk.Server.API/Controllers/AuthenticationController.cs (Program.cs is not touched, see D6)
   API/LetsTalk.Server.API.Middleware/{JwtMiddleware,OriginCheckMiddleware,JwtMiddlewareExtension}.cs (+ Tests)
   API/LetsTalk.Server.API.Core/Features/Message/Commands/CreateMessage/CreateMessageCommandHandler.cs (+ Tests)
   Applications/LetsTalk.Server.Notifications/Hubs/NotificationHub.cs (+ Tests)

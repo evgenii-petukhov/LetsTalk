@@ -6,6 +6,7 @@ using LetsTalk.Server.API.Core.Commands;
 using LetsTalk.Server.API.Core.Features.Message.Commands.CreateMessage;
 using LetsTalk.Server.API.Core.Models.HtmlGenerator;
 using LetsTalk.Server.API.Models.Message;
+using LetsTalk.Server.Authentication.Abstractions;
 using LetsTalk.Server.Models.Dtos;
 using LetsTalk.Server.Exceptions;
 using LetsTalk.Server.Models.Kafka;
@@ -19,6 +20,8 @@ namespace LetsTalk.Server.API.Core.Tests.Handlers;
 [TestFixture]
 public class CreateMessageCommandHandlerTests
 {
+    private const string BackgroundToken = "background-token";
+
     private Mock<IChatAgnosticService> _chatAgnosticServiceMock;
     private Mock<IHtmlGenerator> _htmlGeneratorMock;
     private Mock<IMapper> _mapperMock;
@@ -29,6 +32,7 @@ public class CreateMessageCommandHandlerTests
     private Mock<IProducer<Notification>> _notificationProducerMock;
     private Mock<ILinkPreviewLauncher> _linkPreviewLauncherMock;
     private Mock<IImageProcessingLauncher> _imageProcessingLauncherMock;
+    private Mock<IAuthenticationClient> _authenticationClientMock;
     private CreateMessageCommandHandler _handler;
 
     [SetUp]
@@ -44,6 +48,10 @@ public class CreateMessageCommandHandlerTests
         _notificationProducerMock = new Mock<IProducer<Notification>>();
         _linkPreviewLauncherMock = new Mock<ILinkPreviewLauncher>();
         _imageProcessingLauncherMock = new Mock<IImageProcessingLauncher>();
+        _authenticationClientMock = new Mock<IAuthenticationClient>();
+        _authenticationClientMock
+            .Setup(x => x.GenerateBackgroundTokenAsync(It.IsAny<string>()))
+            .ReturnsAsync((BackgroundToken, DateTime.UtcNow.AddHours(1)));
 
         _handler = new CreateMessageCommandHandler(
             _chatAgnosticServiceMock.Object,
@@ -55,7 +63,8 @@ public class CreateMessageCommandHandlerTests
             _chatCacheManagerMock.Object,
             _notificationProducerMock.Object,
             _linkPreviewLauncherMock.Object,
-            _imageProcessingLauncherMock.Object);
+            _imageProcessingLauncherMock.Object,
+            _authenticationClientMock.Object);
     }
 
     [Test]
@@ -198,7 +207,7 @@ public class CreateMessageCommandHandlerTests
             Times.Once);
 
         _imageProcessingLauncherMock.Verify(
-            x => x.LaunchAsync(messageDto.Id, imageRequest.Id, chatId, imageRequest.FileStorageTypeId, It.IsAny<string>(), cancellationToken),
+            x => x.LaunchAsync(messageDto.Id, imageRequest.Id, chatId, imageRequest.FileStorageTypeId, BackgroundToken, cancellationToken),
             Times.Once);
     }
 
@@ -360,8 +369,152 @@ public class CreateMessageCommandHandlerTests
 
         // Assert
         _linkPreviewLauncherMock.Verify(
-            x => x.LaunchAsync(messageDto.Id, url, chatId, It.IsAny<string>(), It.IsAny<CancellationToken>()),
+            x => x.LaunchAsync(messageDto.Id, url, chatId, BackgroundToken, It.IsAny<CancellationToken>()),
             Times.Once);
+    }
+
+    [Test]
+    public async Task Handle_WhenImageOrLink_ShouldPassBackgroundTokenToLaunchers()
+    {
+        // Arrange: the launchers work minutes later, so they get a token that outlives the sender's access token
+        const string chatId = "chat-456";
+
+        var imageRequest = new ImageRequestModel
+        {
+            Id = "image-123",
+            Width = 800,
+            Height = 600,
+            ImageFormat = (int)ImageFormats.Jpeg,
+            FileStorageTypeId = (int)FileStorageTypes.Local
+        };
+        var command = new CreateMessageCommand
+        {
+            SenderId = "sender-123",
+            ChatId = chatId,
+            Text = "Photo and https://newsite.com",
+            Image = imageRequest
+        };
+        var cancellationToken = CancellationToken.None;
+
+        SetupValidValidation();
+
+        var html = "<p>Photo and https://newsite.com</p>";
+        var url = "https://newsite.com";
+        _htmlGeneratorMock
+            .Setup(x => x.GetHtml("Photo and https://newsite.com"))
+            .Returns(new HtmlGeneratorResult(html, url, false, 0));
+
+        _linkPreviewAgnosticServiceMock
+            .Setup(x => x.GetIdByUrlAsync(url, cancellationToken))
+            .ReturnsAsync((string?)null);
+
+        var messageDto = new MessageDto { Id = "msg-789" };
+        var message = new MessageServiceModel { Id = "msg-789" };
+        _messageAgnosticServiceMock
+            .Setup(x => x.CreateMessageAsync(
+                "sender-123", chatId, "Photo and https://newsite.com", html, "image-123", 800, 600,
+                ImageFormats.Jpeg, FileStorageTypes.Local, cancellationToken))
+            .ReturnsAsync(message);
+        _mapperMock
+            .Setup(x => x.Map<MessageDto>(message))
+            .Returns(messageDto);
+        _chatAgnosticServiceMock
+            .Setup(x => x.GetChatMemberAccountIdsAsync(chatId, cancellationToken))
+            .ReturnsAsync(new List<string> { "sender-123", "recipient-456" });
+
+        SetupAsyncOperations(cancellationToken);
+
+        // Act
+        await _handler.Handle(command, cancellationToken);
+
+        // Assert
+        _authenticationClientMock.Verify(x => x.GenerateBackgroundTokenAsync("sender-123"), Times.Once);
+        _linkPreviewLauncherMock.Verify(
+            x => x.LaunchAsync(messageDto.Id, url, chatId, BackgroundToken, It.IsAny<CancellationToken>()),
+            Times.Once);
+        _imageProcessingLauncherMock.Verify(
+            x => x.LaunchAsync(messageDto.Id, imageRequest.Id, chatId, imageRequest.FileStorageTypeId, BackgroundToken, cancellationToken),
+            Times.Once);
+    }
+
+    [Test]
+    public async Task Handle_WhenNoImageAndNoNewLink_ShouldNotRequestBackgroundToken()
+    {
+        // Arrange
+        var command = new CreateMessageCommand
+        {
+            SenderId = "sender-123",
+            ChatId = "chat-456",
+            Text = "Just text"
+        };
+        var cancellationToken = CancellationToken.None;
+
+        SetupValidValidation();
+
+        var html = "<p>Just text</p>";
+        _htmlGeneratorMock
+            .Setup(x => x.GetHtml("Just text"))
+            .Returns(new HtmlGeneratorResult(html, "", false, 0));
+
+        var messageDto = new MessageDto { Id = "msg-789" };
+        var message = new MessageServiceModel { Id = "msg-789" };
+        _messageAgnosticServiceMock
+            .Setup(x => x.CreateMessageAsync("sender-123", "chat-456", "Just text", html, false, 0, null!, cancellationToken))
+            .ReturnsAsync(message);
+        _mapperMock
+            .Setup(x => x.Map<MessageDto>(message))
+            .Returns(messageDto);
+        _chatAgnosticServiceMock
+            .Setup(x => x.GetChatMemberAccountIdsAsync("chat-456", cancellationToken))
+            .ReturnsAsync(new List<string> { "sender-123" });
+
+        SetupAsyncOperations(cancellationToken);
+
+        // Act
+        await _handler.Handle(command, cancellationToken);
+
+        // Assert
+        _authenticationClientMock.Verify(x => x.GenerateBackgroundTokenAsync(It.IsAny<string>()), Times.Never);
+    }
+
+    [Test]
+    public async Task Handle_WhenBackgroundTokenCannotBeIssued_ShouldNotCreateTheMessage()
+    {
+        // Arrange: fail before any side effect, so the user can simply send the message again
+        var command = new CreateMessageCommand
+        {
+            SenderId = "sender-123",
+            ChatId = "chat-456",
+            Text = "Photo",
+            Image = new ImageRequestModel
+            {
+                Id = "image-123",
+                Width = 800,
+                Height = 600,
+                ImageFormat = (int)ImageFormats.Jpeg,
+                FileStorageTypeId = (int)FileStorageTypes.Local
+            }
+        };
+        var cancellationToken = CancellationToken.None;
+
+        SetupValidValidation();
+        _htmlGeneratorMock
+            .Setup(x => x.GetHtml("Photo"))
+            .Returns(new HtmlGeneratorResult("<p>Photo</p>", "", false, 0));
+        _authenticationClientMock
+            .Setup(x => x.GenerateBackgroundTokenAsync("sender-123"))
+            .ThrowsAsync(new InvalidOperationException("Authentication service error"));
+
+        // Act
+        var act = () => _handler.Handle(command, cancellationToken);
+
+        // Assert
+        await act.Should().ThrowAsync<InvalidOperationException>();
+        _messageAgnosticServiceMock.Verify(
+            x => x.CreateMessageAsync(
+                It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(),
+                It.IsAny<int>(), It.IsAny<int>(), It.IsAny<ImageFormats>(), It.IsAny<FileStorageTypes>(), It.IsAny<CancellationToken>()),
+            Times.Never);
     }
 
     [Test]

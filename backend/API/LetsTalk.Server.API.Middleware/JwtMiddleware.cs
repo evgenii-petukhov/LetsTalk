@@ -1,5 +1,4 @@
 ﻿using Grpc.Core;
-using LetsTalk.Server.API.Middleware.Exceptions;
 using LetsTalk.Server.Authentication.Abstractions;
 using LetsTalk.Server.Configuration.Models;
 using Microsoft.AspNetCore.Http;
@@ -26,6 +25,7 @@ public class JwtMiddleware(RequestDelegate next)
             {
                 context.Items["AccountId"] = accountId;
                 context.Items["Token"] = cookieToken;
+                context.Items[CredentialSources.ItemKey] = CredentialSources.Cookie;
                 await _next(context);
                 return;
             }
@@ -42,10 +42,11 @@ public class JwtMiddleware(RequestDelegate next)
                 context.Items["AccountId"] = await authenticationClient.ValidateJwtTokenAsync(headerToken)
                     ?? throw new UnauthorizedAccessException("Invalid token");
                 context.Items["Token"] = headerToken;
+                context.Items[CredentialSources.ItemKey] = CredentialSources.Header;
             }
-            catch (RpcException ex) when (IsUnavailable(ex))
+            catch (RpcException ex) when (ex.IsUnavailable())
             {
-                throw CreateServiceUnavailableException(ex);
+                throw ex.ToServiceUnavailableException();
             }
             catch (RpcException)
             {
@@ -76,9 +77,9 @@ public class JwtMiddleware(RequestDelegate next)
 
             return accountId;
         }
-        catch (RpcException ex) when (IsUnavailable(ex))
+        catch (RpcException ex) when (ex.IsUnavailable())
         {
-            throw CreateServiceUnavailableException(ex);
+            throw ex.ToServiceUnavailableException();
         }
         catch (RpcException)
         {
@@ -86,10 +87,4 @@ public class JwtMiddleware(RequestDelegate next)
             return null;
         }
     }
-
-    private static bool IsUnavailable(RpcException ex) =>
-        ex.StatusCode is StatusCode.Unavailable or StatusCode.DeadlineExceeded;
-
-    private static ServiceUnavailableException CreateServiceUnavailableException(RpcException ex) =>
-        new("The Authentication service is not available", ex);
 }

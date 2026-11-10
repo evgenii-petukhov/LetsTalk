@@ -9,12 +9,12 @@ namespace LetsTalk.Server.API.Core.Features.Authentication.Commands.EmailLogin;
 
 public class EmailLoginCommandHandler(
     IAuthenticationClient authenticationClient,
-    IAccountAgnosticService accountAgnosticService) : IRequestHandler<EmailLoginCommand, EmailLoginResult>
+    IAccountAgnosticService accountAgnosticService) : IRequestHandler<EmailLoginCommand, SessionResult>
 {
     private readonly IAuthenticationClient _authenticationClient = authenticationClient;
     private readonly IAccountAgnosticService _accountAgnosticService = accountAgnosticService;
 
-    public async Task<EmailLoginResult> Handle(EmailLoginCommand request, CancellationToken cancellationToken)
+    public async Task<SessionResult> Handle(EmailLoginCommand request, CancellationToken cancellationToken)
     {
         var validator = new EmailLoginCommandValidator(_authenticationClient);
         var validationResult = await validator.ValidateAsync(request, cancellationToken);
@@ -29,8 +29,8 @@ public class EmailLoginCommandHandler(
             request.Email?.Trim().ToLowerInvariant()!,
             cancellationToken);
 
-        var (token, expiresAt) = await _authenticationClient.GenerateJwtTokenAsync(accountId);
+        var session = await _authenticationClient.CreateSessionAsync(accountId);
 
-        return new EmailLoginResult(token, expiresAt);
+        return session.ToResult();
     }
 }

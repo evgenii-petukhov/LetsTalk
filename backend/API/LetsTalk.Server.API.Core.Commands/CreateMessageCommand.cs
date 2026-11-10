@@ -12,6 +12,4 @@ public class CreateMessageCommand : IRequest<CreateMessageResponse>
     public string? Text { get; set; }
 
     public ImageRequestModel? Image { get; set; }
-
-    public string? Token { get; set; }
 }
