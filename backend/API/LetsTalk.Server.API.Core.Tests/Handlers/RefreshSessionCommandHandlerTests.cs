@@ -1,3 +1,4 @@
+using AutoMapper;
 using FluentAssertions;
 using LetsTalk.Server.API.Core.Commands;
 using LetsTalk.Server.API.Core.Features.Authentication.Commands.RefreshSession;
@@ -17,13 +18,15 @@ public class RefreshSessionCommandHandlerTests
     private static readonly DateTime RefreshExpiresAt = new(2030, 1, 31, 0, 0, 0, DateTimeKind.Utc);
 
     private Mock<IAuthenticationClient> _authenticationClientMock;
+    private Mock<IMapper> _mapperMock;
     private RefreshSessionCommandHandler _handler;
 
     [SetUp]
     public void SetUp()
     {
         _authenticationClientMock = new Mock<IAuthenticationClient>();
-        _handler = new RefreshSessionCommandHandler(_authenticationClientMock.Object);
+        _mapperMock = new Mock<IMapper>();
+        _handler = new RefreshSessionCommandHandler(_authenticationClientMock.Object, _mapperMock.Object);
     }
 
     [Test]
@@ -33,6 +36,9 @@ public class RefreshSessionCommandHandlerTests
         _authenticationClientMock
             .Setup(x => x.RefreshSessionAsync(RefreshToken))
             .ReturnsAsync(new AuthSession(AccessToken, AccessExpiresAt, NewRefreshToken, RefreshExpiresAt));
+        _mapperMock
+            .Setup(x => x.Map<SessionResult>(It.IsAny<AuthSession>()))
+            .Returns(new SessionResult(AccessToken, AccessExpiresAt, NewRefreshToken, RefreshExpiresAt));
 
         // Act
         var result = await _handler.Handle(new RefreshSessionCommand(RefreshToken), CancellationToken.None);
@@ -48,6 +54,9 @@ public class RefreshSessionCommandHandlerTests
         _authenticationClientMock
             .Setup(x => x.RefreshSessionAsync(RefreshToken))
             .ReturnsAsync(new AuthSession(AccessToken, AccessExpiresAt, null, null));
+        _mapperMock
+            .Setup(x => x.Map<SessionResult>(It.IsAny<AuthSession>()))
+            .Returns(new SessionResult(AccessToken, AccessExpiresAt, null, null));
 
         // Act
         var result = await _handler.Handle(new RefreshSessionCommand(RefreshToken), CancellationToken.None);
@@ -69,6 +78,7 @@ public class RefreshSessionCommandHandlerTests
 
         // Assert
         result.Should().BeNull();
+        _mapperMock.Verify(x => x.Map<SessionResult>(It.IsAny<AuthSession>()), Times.Never);
     }
 
     [Test]

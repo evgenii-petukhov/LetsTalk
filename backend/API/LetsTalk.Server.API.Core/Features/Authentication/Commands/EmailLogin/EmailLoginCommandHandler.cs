@@ -1,4 +1,5 @@
-﻿using LetsTalk.Server.Authentication.Abstractions;
+﻿using AutoMapper;
+using LetsTalk.Server.Authentication.Abstractions;
 using LetsTalk.Server.Exceptions;
 using LetsTalk.Server.Persistence.AgnosticServices.Abstractions;
 using LetsTalk.Server.Persistence.Enums;
@@ -9,10 +10,12 @@ namespace LetsTalk.Server.API.Core.Features.Authentication.Commands.EmailLogin;
 
 public class EmailLoginCommandHandler(
     IAuthenticationClient authenticationClient,
-    IAccountAgnosticService accountAgnosticService) : IRequestHandler<EmailLoginCommand, SessionResult>
+    IAccountAgnosticService accountAgnosticService,
+    IMapper mapper) : IRequestHandler<EmailLoginCommand, SessionResult>
 {
     private readonly IAuthenticationClient _authenticationClient = authenticationClient;
     private readonly IAccountAgnosticService _accountAgnosticService = accountAgnosticService;
+    private readonly IMapper _mapper = mapper;
 
     public async Task<SessionResult> Handle(EmailLoginCommand request, CancellationToken cancellationToken)
     {
@@ -31,6 +34,6 @@ public class EmailLoginCommandHandler(
 
         var session = await _authenticationClient.CreateSessionAsync(accountId);
 
-        return session.ToResult();
+        return _mapper.Map<SessionResult>(session);
     }
 }
