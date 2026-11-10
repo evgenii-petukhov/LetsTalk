@@ -31,8 +31,10 @@ type TypeDto = TypeDtoMap[TypeNames];
 })
 export class SignalrService {
     private readonly sessionService = inject(SessionService);
+    // the handshake carries the access cookie: renew it before SignalR tries to reconnect
     private readonly retryPolicy = new ConstantRetryPolicy(
         environment.services.notifications.connectionInterval,
+        () => void this.sessionService.ensureAccess(),
     );
     private readonly hubConnectionBuilder = new HubConnectionBuilder()
         .withUrl(environment.services.notifications.url, {
@@ -75,12 +77,14 @@ export class SignalrService {
             EstablishConnection: establishConnectionHandler,
         };
 
-        await this.setUpConnection();
+        const sessionActive = await this.setUpConnection();
 
-        if (!this.isInitialized) {
+        if (!this.isInitialized && sessionActive) {
             this.connectionTimerId = window.setInterval(async () => {
-                await this.setUpConnection();
-            }, this.retryPolicy.nextRetryDelayInMilliseconds());
+                if (!(await this.setUpConnection())) {
+                    window.clearInterval(this.connectionTimerId);
+                }
+            }, environment.services.notifications.connectionInterval);
         }
 
         this.hubConnectionBuilder.onreconnected(() => {
@@ -96,7 +100,12 @@ export class SignalrService {
         this.isInitialized = false;
     }
 
-    private async setUpConnection(): Promise<void> {
+    // Resolves false when the session is over, so there is nothing to keep retrying
+    private async setUpConnection(): Promise<boolean> {
+        if (!(await this.sessionService.ensureAccess())) {
+            return false;
+        }
+
         try {
             await this.hubConnectionBuilder.start();
             this.isInitialized = true;
@@ -114,5 +123,7 @@ export class SignalrService {
             // let SessionService drop the session (which stops this service) if so
             void this.sessionService.refresh();
         }
+
+        return true;
     }
 }

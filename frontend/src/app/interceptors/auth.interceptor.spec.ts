@@ -10,9 +10,13 @@ import {
 } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
 import { Router } from '@angular/router';
+import { Store } from '@ngrx/store';
 import { environment } from '../../environments/environment';
 import { authInterceptorProvider } from '../providers/auth-interceptor-provider';
+import { ApiService } from '../services/api.service';
 import { SessionService } from '../services/session.service';
+
+const unauthorized = { status: 401, statusText: 'Unauthorized' };
 
 describe('AuthInterceptor', () => {
     const apiUrl = `${environment.services.api.url}/api/Chat`;
@@ -21,13 +25,12 @@ describe('AuthInterceptor', () => {
     let http: HttpClient;
     let httpTesting: HttpTestingController;
     let sessionService: MockedObject<SessionService>;
-    let router: { url: string; navigate: ReturnType<typeof vi.fn> };
 
     beforeEach(() => {
         sessionService = {
-            onSessionLost: vi.fn().mockName('SessionService.onSessionLost'),
+            renew: vi.fn().mockName('SessionService.renew'),
+            onSessionExpired: vi.fn().mockName('SessionService.onSessionExpired'),
         } as unknown as MockedObject<SessionService>;
-        router = { url: '/messenger', navigate: vi.fn() };
 
         TestBed.configureTestingModule({
             providers: [
@@ -35,7 +38,6 @@ describe('AuthInterceptor', () => {
                 provideHttpClientTesting(),
                 authInterceptorProvider,
                 { provide: SessionService, useValue: sessionService },
-                { provide: Router, useValue: router },
             ],
         });
         http = TestBed.inject(HttpClient);
@@ -63,30 +65,92 @@ describe('AuthInterceptor', () => {
         expect(req.request.headers.has('Authorization')).toBe(false);
     });
 
-    it('should drop the session and go to sign-in on 401', () => {
-        http.get(apiUrl).subscribe({ error: () => undefined });
+    it('should renew the session and retry the request once on 401', async () => {
+        sessionService.renew.mockResolvedValue(true);
+        const onNext = vi.fn();
+        http.get(apiUrl).subscribe(onNext);
 
-        httpTesting
-            .expectOne(apiUrl)
-            .flush(null, { status: 401, statusText: 'Unauthorized' });
+        httpTesting.expectOne(apiUrl).flush(null, unauthorized);
+        const retry = await vi.waitFor(() => httpTesting.expectOne(apiUrl));
+        retry.flush({ ok: true });
 
-        expect(sessionService.onSessionLost).toHaveBeenCalledTimes(1);
-        expect(router.navigate).toHaveBeenCalledWith(['/sign-in']);
+        expect(sessionService.renew).toHaveBeenCalledTimes(1);
+        expect(retry.request.withCredentials).toBe(true);
+        expect(onNext).toHaveBeenCalledWith({ ok: true });
+        expect(sessionService.onSessionExpired).not.toHaveBeenCalled();
+        httpTesting.verify();
     });
 
-    it('should not navigate again when the user is already on a sign-in page', () => {
-        router.url = '/login-by-email';
-        http.get(apiUrl).subscribe({ error: () => undefined });
+    it('should go to sign-in when the retried request is rejected as well', async () => {
+        sessionService.renew.mockResolvedValue(true);
+        const onError = vi.fn();
+        http.get(apiUrl).subscribe({ error: onError });
 
-        httpTesting
-            .expectOne(apiUrl)
-            .flush(null, { status: 401, statusText: 'Unauthorized' });
+        httpTesting.expectOne(apiUrl).flush(null, unauthorized);
+        const retry = await vi.waitFor(() => httpTesting.expectOne(apiUrl));
+        retry.flush(null, unauthorized);
 
-        expect(sessionService.onSessionLost).toHaveBeenCalledTimes(1);
-        expect(router.navigate).not.toHaveBeenCalled();
+        expect(sessionService.renew).toHaveBeenCalledTimes(1);
+        expect(sessionService.onSessionExpired).toHaveBeenCalledTimes(1);
+        expect(onError).toHaveBeenCalledWith(expect.objectContaining({ status: 401 }));
+        httpTesting.verify();
     });
 
-    it('should pass other errors through without dropping the session', () => {
+    it('should pass the 401 through without retrying when the renewal is rejected', async () => {
+        sessionService.renew.mockResolvedValue(false);
+        const onError = vi.fn();
+        http.get(apiUrl).subscribe({ error: onError });
+
+        httpTesting.expectOne(apiUrl).flush(null, unauthorized);
+        await vi.waitFor(() => expect(onError).toHaveBeenCalled());
+
+        // SessionService.renew already dropped the session and went to sign-in
+        expect(onError).toHaveBeenCalledWith(expect.objectContaining({ status: 401 }));
+        expect(sessionService.onSessionExpired).not.toHaveBeenCalled();
+        httpTesting.verify();
+    });
+
+    it('should pass the renewal error through without retrying when the server cannot answer', async () => {
+        const outage = { status: 503 };
+        sessionService.renew.mockRejectedValue(outage);
+        const onError = vi.fn();
+        http.get(apiUrl).subscribe({ error: onError });
+
+        httpTesting.expectOne(apiUrl).flush(null, unauthorized);
+        await vi.waitFor(() => expect(onError).toHaveBeenCalled());
+
+        expect(onError).toHaveBeenCalledWith(outage);
+        expect(sessionService.onSessionExpired).not.toHaveBeenCalled();
+        httpTesting.verify();
+    });
+
+    it.each(['refresh', 'email-login', 'logout'])(
+        'should not renew when the %s request itself is rejected',
+        async (endpoint) => {
+            const url = `${environment.services.api.url}/api/Authentication/${endpoint}`;
+            const onError = vi.fn();
+            http.post(url, null).subscribe({ error: onError });
+
+            httpTesting.expectOne(url).flush(null, unauthorized);
+
+            expect(onError).toHaveBeenCalledWith(expect.objectContaining({ status: 401 }));
+            expect(sessionService.renew).not.toHaveBeenCalled();
+            expect(sessionService.onSessionExpired).not.toHaveBeenCalled();
+            httpTesting.verify();
+        },
+    );
+
+    it('should not renew for a 401 from another origin', () => {
+        const onError = vi.fn();
+        http.get(otherUrl).subscribe({ error: onError });
+
+        httpTesting.expectOne(otherUrl).flush(null, unauthorized);
+
+        expect(onError).toHaveBeenCalled();
+        expect(sessionService.renew).not.toHaveBeenCalled();
+    });
+
+    it('should pass other errors through without renewing', () => {
         const onError = vi.fn();
         http.get(apiUrl).subscribe({ error: onError });
 
@@ -95,7 +159,56 @@ describe('AuthInterceptor', () => {
             .flush(null, { status: 500, statusText: 'Server Error' });
 
         expect(onError).toHaveBeenCalled();
-        expect(sessionService.onSessionLost).not.toHaveBeenCalled();
-        expect(router.navigate).not.toHaveBeenCalled();
+        expect(sessionService.renew).not.toHaveBeenCalled();
+        expect(sessionService.onSessionExpired).not.toHaveBeenCalled();
+    });
+});
+
+describe('AuthInterceptor with the real SessionService', () => {
+    const apiUrl = `${environment.services.api.url}/api/Chat`;
+
+    let http: HttpClient;
+    let httpTesting: HttpTestingController;
+    let apiService: { refreshSession: ReturnType<typeof vi.fn> };
+
+    beforeEach(() => {
+        apiService = { refreshSession: vi.fn().mockName('ApiService.refreshSession') };
+
+        TestBed.configureTestingModule({
+            providers: [
+                provideHttpClient(withInterceptorsFromDi()),
+                provideHttpClientTesting(),
+                authInterceptorProvider,
+                SessionService,
+                { provide: ApiService, useValue: apiService },
+                { provide: Store, useValue: { dispatch: vi.fn() } },
+                { provide: Router, useValue: { url: '/messenger', navigate: vi.fn() } },
+            ],
+        });
+        http = TestBed.inject(HttpClient);
+        httpTesting = TestBed.inject(HttpTestingController);
+    });
+
+    it('should renew only once when several requests are rejected together', async () => {
+        apiService.refreshSession.mockResolvedValue(undefined);
+        const first = vi.fn();
+        const second = vi.fn();
+        http.get(apiUrl).subscribe(first);
+        http.get(apiUrl).subscribe(second);
+
+        for (const request of httpTesting.match(apiUrl)) {
+            request.flush(null, unauthorized);
+        }
+        const retries = await vi.waitFor(() => {
+            const pending = httpTesting.match(apiUrl);
+            expect(pending).toHaveLength(2);
+            return pending;
+        });
+        retries.forEach((retry) => retry.flush({ ok: true }));
+
+        expect(apiService.refreshSession).toHaveBeenCalledTimes(1);
+        expect(first).toHaveBeenCalledWith({ ok: true });
+        expect(second).toHaveBeenCalledWith({ ok: true });
+        httpTesting.verify();
     });
 });

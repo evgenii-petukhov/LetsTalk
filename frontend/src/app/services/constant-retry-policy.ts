@@ -1,11 +1,16 @@
 import { IRetryPolicy } from '@microsoft/signalr';
 
 export class ConstantRetryPolicy implements IRetryPolicy {
-    constructor(private interval: number) {
+    // beforeRetry runs each time SignalR asks how long to wait before the next reconnect attempt
+    constructor(
+        private interval: number,
+        private beforeRetry?: () => void,
+    ) {
         this.interval = interval;
     }
 
     nextRetryDelayInMilliseconds(): number {
+        this.beforeRetry?.();
         return this.interval;
     }
 }

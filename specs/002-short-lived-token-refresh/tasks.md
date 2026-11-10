@@ -50,17 +50,17 @@ Implementation:
 
 ## Phase 5 - Angular
 Tests first:
-- [ ] **T150** `FE/services/session.service.spec.ts`: `renew_WhenCalledConcurrently_ShouldCallApiOnce`; `renew_WhenRefreshFails_ShouldClearStateAndGoToSignIn`. (FR-004, FR-008)
-- [ ] **T151** [P] `FE/interceptors/auth.interceptor.spec.ts`: `intercept_When401_ShouldRenewAndRetryOnce`; `..._WhenRetryAlso401_ShouldGoToSignIn`; `..._WhenRequestIsRefreshOrLogin_ShouldNotRenew`; `..._WhenParallel401s_ShouldRenewOnce`. (AS1.1, AS1.4)
-- [ ] **T152** [P] `FE/services/file-storage.service.spec.ts`: `UNAUTHENTICATED` -> renew + retry once. (AS1.1)
-- [ ] **T153** [P] `FE/services/signalr.service.spec.ts`: `start_WhenAccessMayHaveExpired_ShouldRenewFirst`; `reconnect_ShouldRenewBeforeRetry`. (FR-009, AS3.2)
+- [x] **T150** (renewal and expiry are in `SessionService`: `renew()` returns `false` after a rejected refresh token, having cleared the state and opened the sign-in page through the new `onSessionExpired()`; `ApiService.refreshSession()` wraps the generated `refresh()`; also specs for `ensureAccess` and `onSessionExpired`) `FE/services/session.service.spec.ts`: `renew_WhenCalledConcurrently_ShouldCallApiOnce`; `renew_WhenRefreshFails_ShouldClearStateAndGoToSignIn`. (FR-004, FR-008)
+- [x] **T151** (spec rewritten; the parallel case runs against the real `SessionService`, so it checks that the API is called once; the three authentication calls `refresh`, `email-login` and `logout` are never renewed) [P] `FE/interceptors/auth.interceptor.spec.ts`: `intercept_When401_ShouldRenewAndRetryOnce`; `..._WhenRetryAlso401_ShouldGoToSignIn`; `..._WhenRequestIsRefreshOrLogin_ShouldNotRenew`; `..._WhenParallel401s_ShouldRenewOnce`. (AS1.1, AS1.4)
+- [x] **T152** (upload and download, a rejected retry, a rejected refresh token, a server outage and other errors) [P] `FE/services/file-storage.service.spec.ts`: `UNAUTHENTICATED` -> renew + retry once. (AS1.1)
+- [x] **T153** (`ConstantRetryPolicy` gets a hook that runs before every reconnect attempt; extra case: a session that has ended neither starts nor keeps retrying) [P] `FE/services/signalr.service.spec.ts`: `start_WhenAccessMayHaveExpired_ShouldRenewFirst`; `reconnect_ShouldRenewBeforeRetry`. (FR-009, AS3.2)
 
 Implementation:
-- [ ] **T154** `SessionService.renew()` with a shared in-flight observable. (T150, T140)
-- [ ] **T155** `auth.interceptor.ts` renew-and-retry. (T151, T154)
-- [ ] **T156** [P] `file-storage.service.ts` retry on `UNAUTHENTICATED`. (T152) Also, first: `BE/Applications/LetsTalk.Server.FileStorage.Service/GrpcInterceptors/JwtInterceptor.cs` must throw `RpcException(StatusCode.Unauthenticated)` instead of `UnauthorizedAccessException` (update the four "throws" tests in `JwtInterceptorTests` first), otherwise the browser sees `Unknown`.
-- [ ] **T157** [P] `signalr.service.ts` renewal before (re)start and in the reconnect policy. (T153)
-- [ ] **T158** `npm run test:run`, `npm run lint`, `npm run build`. Checkpoint 5.
+- [x] **T154** (plus `ensureAccess()`, which renews only when the access token may have expired, using the new `environment.session` settings in both environment files) `SessionService.renew()` with a shared in-flight observable. (T150, T140)
+- [x] **T155** (rewritten: `renew()` then one retry; a second 401 calls `onSessionExpired()`) `auth.interceptor.ts` renew-and-retry. (T151, T154)
+- [x] **T156** (backend first: `JwtInterceptor` throws `RpcException(Unauthenticated)`, three "throws" tests updated, file storage tests 10 pass; the gRPC status is compared as the number 16, because importing the `grpc-web` enum added a CommonJS build warning) [P] `file-storage.service.ts` retry on `UNAUTHENTICATED`. (T152) Also, first: `BE/Applications/LetsTalk.Server.FileStorage.Service/GrpcInterceptors/JwtInterceptor.cs` must throw `RpcException(StatusCode.Unauthenticated)` instead of `UnauthorizedAccessException` (update the four "throws" tests in `JwtInterceptorTests` first), otherwise the browser sees `Unknown`.
+- [x] **T157** (`setUpConnection()` calls `ensureAccess()` first and returns `false` when the session is over, so the retry timer is not created or is cleared) [P] `signalr.service.ts` renewal before (re)start and in the reconnect policy. (T153)
+- [x] **T158** (2026-11-10: vitest 63 files / 771 tests pass; `ng lint` still reports the 17 older errors, none new in the changed files; `npm run build` succeeds without warnings) `npm run test:run`, `npm run lint`, `npm run build`. Checkpoint 5.
 
 ## Phase 6 - Verification
 - [ ] **T160** Add manual steps to `specs/002-short-lived-token-refresh/quickstart.md` (create it) with these checks, using a short test lifetime (access 1 min, grace 10 s):

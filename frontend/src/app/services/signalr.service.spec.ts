@@ -23,7 +23,7 @@ import { IncomingCall } from '../models/incoming-call';
 
 describe('SignalrService', () => {
     let service: SignalrService;
-    let mockSessionService: { sessionLost: Subject<void>; refresh: Mock };
+    let mockSessionService: { sessionLost: Subject<void>; refresh: Mock; ensureAccess: Mock };
     let mockHubConnection: any;
 
     const mockMessageDto: IMessageDto = {
@@ -65,6 +65,7 @@ describe('SignalrService', () => {
         mockSessionService = {
             sessionLost: new Subject<void>(),
             refresh: vi.fn().mockName('SessionService.refresh').mockResolvedValue(true),
+            ensureAccess: vi.fn().mockName('SessionService.ensureAccess').mockResolvedValue(true),
         };
 
         // Mock HubConnectionBuilder
@@ -113,6 +114,45 @@ describe('SignalrService', () => {
 
     it('should be created', () => {
         expect(service).toBeTruthy();
+    });
+
+    describe('renewing the session', () => {
+        const handlers = () =>
+            [vi.fn(), vi.fn(), vi.fn(), vi.fn(), vi.fn()] as const;
+
+        it('should renew the session before it starts the connection', async () => {
+            const [message, link, image, call, establish] = handlers();
+
+            await service.init(message, link, image, call, establish);
+
+            expect(mockSessionService.ensureAccess).toHaveBeenCalledTimes(1);
+            expect(mockSessionService.ensureAccess.mock.invocationCallOrder[0]).toBeLessThan(
+                mockHubConnection.start.mock.invocationCallOrder[0],
+            );
+        });
+
+        it('should neither start nor keep retrying when the session has ended', async () => {
+            mockSessionService.ensureAccess.mockResolvedValue(false);
+            const setIntervalSpy = vi.spyOn(window, 'setInterval');
+            const [message, link, image, call, establish] = handlers();
+
+            await service.init(message, link, image, call, establish);
+
+            expect(mockHubConnection.start).not.toHaveBeenCalled();
+            expect(setIntervalSpy).not.toHaveBeenCalled();
+        });
+
+        it('should renew the session before every reconnect attempt', () => {
+            // the spy is shared by all tests of this file: the last call belongs to the service created for this test
+            const retryPolicy = vi.mocked(HubConnectionBuilder.prototype.withAutomaticReconnect).mock.calls.at(-1)![0] as {
+                nextRetryDelayInMilliseconds: () => number;
+            };
+
+            const delay = retryPolicy.nextRetryDelayInMilliseconds();
+
+            expect(mockSessionService.ensureAccess).toHaveBeenCalledTimes(1);
+            expect(delay).toBe(environment.services.notifications.connectionInterval);
+        });
     });
 
     describe('init', () => {

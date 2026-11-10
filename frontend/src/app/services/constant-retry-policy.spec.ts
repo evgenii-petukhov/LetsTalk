@@ -19,4 +19,14 @@ describe('ConstantRetryPolicy', () => {
     it('should return the correct retry delay', () => {
         expect(retryPolicy.nextRetryDelayInMilliseconds()).toBe(interval);
     });
+
+    it('should call the hook before every retry', () => {
+        const beforeRetry = vi.fn();
+        const policy = new ConstantRetryPolicy(interval, beforeRetry);
+
+        expect(policy.nextRetryDelayInMilliseconds()).toBe(interval);
+        expect(policy.nextRetryDelayInMilliseconds()).toBe(interval);
+
+        expect(beforeRetry).toHaveBeenCalledTimes(2);
+    });
 });

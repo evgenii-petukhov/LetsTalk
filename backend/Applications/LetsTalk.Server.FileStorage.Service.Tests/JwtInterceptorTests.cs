@@ -93,7 +93,7 @@ public class JwtInterceptorTests
     }
 
     [Test]
-    public async Task UnaryServerHandler_WhenNone_ShouldThrowUnauthorized()
+    public async Task UnaryServerHandler_WhenNone_ShouldThrowUnauthenticated()
     {
         // Arrange
         var context = CreateContext();
@@ -102,12 +102,12 @@ public class JwtInterceptorTests
         var act = () => Invoke(context);
 
         // Assert
-        await act.Should().ThrowAsync<UnauthorizedAccessException>();
+        (await act.Should().ThrowAsync<RpcException>()).Which.StatusCode.Should().Be(StatusCode.Unauthenticated);
         _authenticationClientMock.Verify(x => x.ValidateJwtTokenAsync(It.IsAny<string>()), Times.Never);
     }
 
     [Test]
-    public async Task UnaryServerHandler_WhenCredentialInvalid_ShouldThrowUnauthorized()
+    public async Task UnaryServerHandler_WhenCredentialInvalid_ShouldThrowUnauthenticated()
     {
         // Arrange
         var context = CreateContext(cookieToken: CookieToken);
@@ -116,7 +116,7 @@ public class JwtInterceptorTests
         var act = () => Invoke(context);
 
         // Assert
-        await act.Should().ThrowAsync<UnauthorizedAccessException>();
+        (await act.Should().ThrowAsync<RpcException>()).Which.StatusCode.Should().Be(StatusCode.Unauthenticated);
     }
 
     [Test]
@@ -155,7 +155,7 @@ public class JwtInterceptorTests
     }
 
     [Test]
-    public async Task UnaryServerHandler_WhenCookieAndMetadataInvalid_ShouldThrowUnauthorized()
+    public async Task UnaryServerHandler_WhenCookieAndMetadataInvalid_ShouldThrowUnauthenticated()
     {
         // Arrange
         var context = CreateContext(cookieToken: CookieToken, metadataToken: MetadataToken);
@@ -164,7 +164,7 @@ public class JwtInterceptorTests
         var act = () => Invoke(context);
 
         // Assert
-        await act.Should().ThrowAsync<UnauthorizedAccessException>();
+        (await act.Should().ThrowAsync<RpcException>()).Which.StatusCode.Should().Be(StatusCode.Unauthenticated);
     }
 
     [TestCase(StatusCode.Unavailable)]

@@ -5,12 +5,16 @@ import {
     HttpRequest,
     HttpEvent,
 } from '@angular/common/http';
-import { Router } from '@angular/router';
-import { Observable, catchError, throwError } from 'rxjs';
+import { Observable, catchError, from, switchMap, throwError } from 'rxjs';
 import { environment } from '../../environments/environment';
 import { SessionService } from '../services/session.service';
 
-const SIGN_IN_URLS = ['/sign-in', '/login-by-email'];
+// A 401 from these calls is their own answer (an unknown refresh token, a wrong code), not an expired access token
+const OWN_AUTHENTICATION_URLS = [
+    `${environment.services.api.url}/api/Authentication/refresh`,
+    `${environment.services.api.url}/api/Authentication/email-login`,
+    `${environment.services.api.url}/api/Authentication/logout`,
+];
 
 @Injectable()
 export class AuthInterceptor implements HttpInterceptor {
@@ -27,22 +31,45 @@ export class AuthInterceptor implements HttpInterceptor {
             : request;
 
         return next.handle(authRequest).pipe(
-            catchError((e) => {
-                if (e.status === 401) {
-                    this.handleUnauthorized();
-                }
-
-                return throwError(() => e);
-            }),
+            catchError((error) =>
+                error.status === 401 && this.canBeRenewed(authRequest)
+                    ? this.renewAndRetry(authRequest, next, error)
+                    : throwError(() => error),
+            ),
         );
     }
 
-    private handleUnauthorized(): void {
-        this.injector.get(SessionService).onSessionLost();
+    private canBeRenewed<T>(request: HttpRequest<T>): boolean {
+        return (
+            request.url.startsWith(environment.services.api.url) &&
+            !OWN_AUTHENTICATION_URLS.some((url) => request.url.startsWith(url))
+        );
+    }
 
-        const router = this.injector.get(Router);
-        if (!SIGN_IN_URLS.some((url) => router.url.startsWith(url))) {
-            router.navigate(['/sign-in']);
-        }
+    // The access token lives only minutes: renew it with the refresh cookie and send the request again,
+    // once. SessionService shares one renewal among all requests that fail at the same time.
+    private renewAndRetry<T>(
+        request: HttpRequest<T>,
+        next: HttpHandler,
+        unauthorized: unknown,
+    ): Observable<HttpEvent<T>> {
+        const sessionService = this.injector.get(SessionService);
+
+        return from(sessionService.renew()).pipe(
+            switchMap((renewed) =>
+                // false: the refresh token was rejected, SessionService has already ended the session
+                renewed
+                    ? next.handle(request).pipe(
+                          catchError((error) => {
+                              if (error.status === 401) {
+                                  sessionService.onSessionExpired();
+                              }
+
+                              return throwError(() => error);
+                          }),
+                      )
+                    : throwError(() => unauthorized),
+            ),
+        );
     }
 }
