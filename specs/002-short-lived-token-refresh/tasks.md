@@ -45,8 +45,8 @@ Implementation:
 - [x] **T132** (2026-11-10: Notifications.Tests 21, Cors.Tests 15 and Middleware.Tests 41 pass; `dotnet build` of the solution 0 errors; `backend/CheckWarnings.ps1` 0 warnings in the changed files) `dotnet test` Notifications.Tests. Checkpoint 3.
 
 ## Phase 4 - Clients
-- [ ] **T140** Regenerate `FE/api-client/api-client.ts` (`nswag/angular.nswag`) and `BE/API/LetsTalk.Server.API.Client/ApiClient.cs` (`nswag/csharp.nswag`). **Not** `nextjs.nswag`. Confirm `refresh()` exists. (T124)
-- [ ] **T141** `dotnet build BE/LetsTalk.Server.sln`. Checkpoint 4.
+- [x] **T140** (done by the owner on 2026-11-10; verified: `refresh()` exists in `api-client.ts` and `RefreshAsync` in `ApiClient.cs`, they contain only added lines (47 and 73), and the two `.nswag` files differ only in the stored spec snapshot; `nextjs.nswag` was not run) Regenerate `FE/api-client/api-client.ts` (`nswag/angular.nswag`) and `BE/API/LetsTalk.Server.API.Client/ApiClient.cs` (`nswag/csharp.nswag`). **Not** `nextjs.nswag`. Confirm `refresh()` exists. (T124)
+- [x] **T141** (2026-11-10: `dotnet build` of the solution 0 errors, 5 older warnings in files this spec does not touch; `backend/CheckWarnings.ps1` 0 warnings in the changed files) `dotnet build BE/LetsTalk.Server.sln`. Checkpoint 4.
 
 ## Phase 5 - Angular
 Tests first:
