@@ -2,12 +2,14 @@ using FluentAssertions;
 using Grpc.Core;
 using LetsTalk.Server.Authentication.Abstractions;
 using LetsTalk.Server.Configuration.Models;
+using LetsTalk.Server.Cors;
 using LetsTalk.Server.Notifications.Abstractions;
 using LetsTalk.Server.Notifications.Hubs;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.Connections.Features;
 using Microsoft.AspNetCore.Http.Features;
 using Microsoft.AspNetCore.SignalR;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Options;
 using Moq;
 
@@ -21,6 +23,8 @@ public class NotificationHubTests
     private const string ExplicitToken = "explicit-token";
     private const string AccountId = "42";
     private const string ConnectionId = "connection-1";
+    private const string AllowedOrigin = "https://app.example.com";
+    private const string ForeignOrigin = "https://evil.example";
 
     private Mock<IConnectionManager> _connectionManagerMock;
     private Mock<IAuthenticationClient> _authenticationClientMock;
@@ -44,7 +48,10 @@ public class NotificationHubTests
         _hub = new NotificationHub(
             _connectionManagerMock.Object,
             _authenticationClientMock.Object,
-            Options.Create(new AuthCookieSettings()))
+            Options.Create(new AuthCookieSettings()),
+            new AllowedOrigins(new ConfigurationBuilder()
+                .AddInMemoryCollection(new Dictionary<string, string?> { ["Cors:AllowedOrigins:0"] = AllowedOrigin })
+                .Build()))
         {
             Context = _contextMock.Object
         };
@@ -61,6 +68,7 @@ public class NotificationHubTests
     {
         // Arrange
         _httpContext.Request.Headers.Cookie = $"{CookieName}={CookieToken}";
+        _httpContext.Request.Headers.Origin = AllowedOrigin;
         _authenticationClientMock
             .Setup(x => x.ValidateJwtTokenAsync(CookieToken))
             .ReturnsAsync(AccountId);
@@ -90,6 +98,7 @@ public class NotificationHubTests
     {
         // Arrange
         _httpContext.Request.Headers.Cookie = $"{CookieName}={CookieToken}";
+        _httpContext.Request.Headers.Origin = AllowedOrigin;
 
         // Act
         await _hub.OnConnectedAsync();
@@ -104,6 +113,7 @@ public class NotificationHubTests
     {
         // Arrange
         _httpContext.Request.Headers.Cookie = $"{CookieName}={CookieToken}";
+        _httpContext.Request.Headers.Origin = AllowedOrigin;
         _authenticationClientMock
             .Setup(x => x.ValidateJwtTokenAsync(CookieToken))
             .ThrowsAsync(new RpcException(new Status(StatusCode.Unknown, "Invalid token")));
@@ -114,6 +124,94 @@ public class NotificationHubTests
         // Assert
         _connectionManagerMock.Verify(x => x.AddConnectionId(It.IsAny<string>(), It.IsAny<string>()), Times.Never);
         _contextMock.Verify(x => x.Abort(), Times.Once);
+    }
+
+    [Test]
+    public async Task OnConnectedAsync_WhenCookieAndForeignOrigin_ShouldAbort()
+    {
+        // Arrange: WebSockets are not governed by CORS, so a page on another site could open the connection with the user's cookie
+        _httpContext.Request.Headers.Cookie = $"{CookieName}={CookieToken}";
+        _httpContext.Request.Headers.Origin = ForeignOrigin;
+        _authenticationClientMock
+            .Setup(x => x.ValidateJwtTokenAsync(CookieToken))
+            .ReturnsAsync(AccountId);
+
+        // Act
+        await _hub.OnConnectedAsync();
+
+        // Assert
+        _connectionManagerMock.Verify(x => x.AddConnectionId(It.IsAny<string>(), It.IsAny<string>()), Times.Never);
+        _contextMock.Verify(x => x.Abort(), Times.Once);
+        _authenticationClientMock.Verify(x => x.ValidateJwtTokenAsync(It.IsAny<string>()), Times.Never);
+    }
+
+    [Test]
+    public async Task OnConnectedAsync_WhenCookieAndNoOrigin_ShouldAbort()
+    {
+        // Arrange: browsers always send an Origin header with the handshake
+        _httpContext.Request.Headers.Cookie = $"{CookieName}={CookieToken}";
+        _httpContext.Request.Headers.Origin = default;
+        _authenticationClientMock
+            .Setup(x => x.ValidateJwtTokenAsync(CookieToken))
+            .ReturnsAsync(AccountId);
+
+        // Act
+        await _hub.OnConnectedAsync();
+
+        // Assert
+        _connectionManagerMock.Verify(x => x.AddConnectionId(It.IsAny<string>(), It.IsAny<string>()), Times.Never);
+        _contextMock.Verify(x => x.Abort(), Times.Once);
+    }
+
+    [TestCase("https://app.example.com/")]
+    [TestCase("HTTPS://APP.EXAMPLE.COM")]
+    public async Task OnConnectedAsync_WhenCookieAndAllowedOrigin_ShouldRegister(string origin)
+    {
+        // Arrange: host names are case-insensitive and a trailing slash does not change the origin
+        _httpContext.Request.Headers.Cookie = $"{CookieName}={CookieToken}";
+        _httpContext.Request.Headers.Origin = origin;
+        _authenticationClientMock
+            .Setup(x => x.ValidateJwtTokenAsync(CookieToken))
+            .ReturnsAsync(AccountId);
+
+        // Act
+        await _hub.OnConnectedAsync();
+
+        // Assert
+        _connectionManagerMock.Verify(x => x.AddConnectionId(AccountId, ConnectionId), Times.Once);
+        _contextMock.Verify(x => x.Abort(), Times.Never);
+    }
+
+    [Test]
+    public async Task OnConnectedAsync_WhenExpiredAccessCookie_ShouldAbort()
+    {
+        // Arrange: the Authentication service no longer knows an expired token, so the client has to renew and reconnect
+        _httpContext.Request.Headers.Cookie = $"{CookieName}={CookieToken}";
+        _httpContext.Request.Headers.Origin = AllowedOrigin;
+        _authenticationClientMock
+            .Setup(x => x.ValidateJwtTokenAsync(CookieToken))
+            .ReturnsAsync((string?)null);
+
+        // Act
+        await _hub.OnConnectedAsync();
+
+        // Assert
+        _connectionManagerMock.Verify(x => x.AddConnectionId(It.IsAny<string>(), It.IsAny<string>()), Times.Never);
+        _contextMock.Verify(x => x.Abort(), Times.Once);
+    }
+
+    [Test]
+    public async Task OnConnectedAsync_WhenNoCookieAndForeignOrigin_ShouldNotAbort()
+    {
+        // Arrange: without a cookie there is no browser session to protect, the client has to call AuthorizeAsync
+        _httpContext.Request.Headers.Origin = ForeignOrigin;
+
+        // Act
+        await _hub.OnConnectedAsync();
+
+        // Assert
+        _contextMock.Verify(x => x.Abort(), Times.Never);
+        _connectionManagerMock.Verify(x => x.AddConnectionId(It.IsAny<string>(), It.IsAny<string>()), Times.Never);
     }
 
     [Test]

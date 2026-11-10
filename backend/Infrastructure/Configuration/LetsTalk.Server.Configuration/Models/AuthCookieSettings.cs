@@ -9,4 +9,8 @@ public class AuthCookieSettings
     public bool Secure { get; set; } = true;
 
     public string SameSite { get; set; } = "Strict";
+
+    public string RefreshName { get; set; } = "auth-refresh";
+
+    public string RefreshPath { get; set; } = "/api/Authentication";
 }

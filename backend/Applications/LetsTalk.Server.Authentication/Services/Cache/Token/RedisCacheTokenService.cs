@@ -48,9 +48,9 @@ public class RedisCacheTokenService(
         return JsonSerializer.Deserialize<string?>(cachedAccountId!.ToString())!;
     }
 
-    public async ValueTask<StoredToken> GenerateAsync(string accountId)
+    public async ValueTask<StoredToken> GenerateAsync(string accountId, TimeSpan lifetime)
     {
-        var storedToken = _jwtStorageService.Generate(accountId);
+        var storedToken = _jwtStorageService.Generate(accountId, lifetime);
 
         var key = new RedisKey(GetTokenKey(storedToken.Token!));
 

@@ -1,4 +1,6 @@
-﻿using AutoMapper;
+﻿using LetsTalk.Server.Models.Dtos;
+using AutoMapper;
+using LetsTalk.Server.Authentication.Abstractions;
 using LetsTalk.Server.API.Models.Login;
 using LetsTalk.Server.API.Core.Commands;
 
@@ -9,5 +11,6 @@ public class AuthenticationProfile : Profile
     public AuthenticationProfile()
     {
         CreateMap<EmailLoginRequest, EmailLoginCommand>();
+        CreateMap<AuthSession, SessionDto>();
     }
 }

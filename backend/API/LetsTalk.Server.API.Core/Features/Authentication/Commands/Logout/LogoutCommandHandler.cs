@@ -10,7 +10,16 @@ public class LogoutCommandHandler(IAuthenticationClient authenticationClient) : 
 
     public async Task<Unit> Handle(LogoutCommand request, CancellationToken cancellationToken)
     {
-        await _authenticationClient.RevokeJwtTokenAsync(request.Token);
+        // The long-lived refresh chain first: it is the credential that must not survive a failure further down
+        if (request.RefreshToken != null)
+        {
+            await _authenticationClient.EndSessionAsync(request.RefreshToken);
+        }
+
+        if (request.Token != null)
+        {
+            await _authenticationClient.RevokeJwtTokenAsync(request.Token);
+        }
 
         return Unit.Value;
     }

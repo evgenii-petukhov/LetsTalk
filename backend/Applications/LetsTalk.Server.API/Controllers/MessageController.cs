@@ -54,7 +54,6 @@ public class MessageController(
 
         var cmd = _mapper.Map<CreateMessageCommand>(request);
         cmd.SenderId = GetAccountId();
-        cmd.Token = GetToken();
         var response = await _mediator.Send(cmd, cancellationToken);
         return Ok(response.Dto);
     }

@@ -47,6 +47,11 @@ export class ApiService {
         return firstValueFrom(this.client.logout());
     }
 
+    // Exchanges the refresh cookie for new cookies, see SessionService.renew
+    refreshSession(): Promise<void> {
+        return firstValueFrom(this.client.refresh());
+    }
+
     getChats(): Promise<IChatDto[]> {
         return firstValueFrom(this.client.chatAll());
     }

@@ -24,7 +24,8 @@ public class JwtInterceptor(
         var accountId = await GetAccountIdAsync(context);
         if (string.IsNullOrEmpty(accountId))
         {
-            throw new UnauthorizedAccessException();
+            // gRPC-web clients read this status to renew the session; UnauthorizedAccessException would reach them as Unknown
+            throw new RpcException(new Status(StatusCode.Unauthenticated, "Invalid or missing credential"));
         }
 
         context.UserState.Add("AccountId", accountId);

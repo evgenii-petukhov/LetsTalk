@@ -27,9 +27,9 @@ public class MemoryCacheTokenService(
             });
     }
 
-    public ValueTask<StoredToken> GenerateAsync(string accountId)
+    public ValueTask<StoredToken> GenerateAsync(string accountId, TimeSpan lifetime)
     {
-        var storedToken = _jwtStorageService.Generate(accountId);
+        var storedToken = _jwtStorageService.Generate(accountId, lifetime);
         _memoryCache.Set(GetTokenKey(storedToken.Token!), storedToken.AccountId, storedToken.ValidTo);
         return new ValueTask<StoredToken>(storedToken);
     }

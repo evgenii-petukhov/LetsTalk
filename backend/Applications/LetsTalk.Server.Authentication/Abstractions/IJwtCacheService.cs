@@ -6,7 +6,7 @@ public interface IJwtCacheService
 {
     Task<string?> GetAccountIdAsync(string? token);
 
-    ValueTask<StoredToken> GenerateAsync(string accountId);
+    ValueTask<StoredToken> GenerateAsync(string accountId, TimeSpan lifetime);
 
     Task RevokeAsync(string token);
 }

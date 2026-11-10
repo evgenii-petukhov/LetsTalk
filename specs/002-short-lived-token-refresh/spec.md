@@ -59,6 +59,7 @@ As a user, I keep using the app for days without being asked to sign in, even th
 
 ## Edge Cases
 - Browser is offline during renewal: the app keeps the current page, retries when back online, and signs the user out only on an explicit rejection.
+- The server is temporarily unable to check the session (an internal service is down): the user stays signed in, the app keeps the current page and retries later. Only an explicit rejection of the renewal credential returns the user to sign-in.
 - The renewal credential is missing (cleared cookies): the app returns to sign-in.
 - Clock differences between servers: lifetimes are checked on the server that issues and validates them.
 - The session reaches its absolute maximum while the user is active: they are asked to sign in once; the app shows the sign-in page, not an error.

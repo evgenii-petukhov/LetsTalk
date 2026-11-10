@@ -84,6 +84,50 @@ public class AuthCookieSettingsRegistrationTests
         act.Should().Throw<InvalidOperationException>().WithMessage("*AuthCookie*Name*");
     }
 
+    [Test]
+    public void AddAuthCookieSettings_WhenRefreshNameIsEmpty_ShouldThrow()
+    {
+        // Act
+        var act = () => Register(("RefreshName", " "));
+
+        // Assert
+        act.Should().Throw<InvalidOperationException>().WithMessage("*AuthCookie*RefreshName*");
+    }
+
+    [Test]
+    public void AddAuthCookieSettings_WhenRefreshNameEqualsName_ShouldThrow()
+    {
+        // Act: two cookies with one name would overwrite each other
+        var act = () => Register(("Name", "session"), ("RefreshName", "SESSION"));
+
+        // Assert
+        act.Should().Throw<InvalidOperationException>().WithMessage("*AuthCookie*RefreshName*Name*");
+    }
+
+    [TestCase("/api/Authentication")]
+    [TestCase("/")]
+    public void AddAuthCookieSettings_WhenRefreshPathIsAbsolute_ShouldNotThrow(string path)
+    {
+        // Act
+        var act = () => Register(("RefreshPath", path));
+
+        // Assert
+        act.Should().NotThrow();
+    }
+
+    [TestCase("")]
+    [TestCase("api/Authentication")]
+    [TestCase("/api;Authentication")]
+    [TestCase("/api Authentication")]
+    public void AddAuthCookieSettings_WhenRefreshPathIsNotAnAbsolutePath_ShouldThrow(string path)
+    {
+        // Act
+        var act = () => Register(("RefreshPath", path));
+
+        // Assert
+        act.Should().Throw<InvalidOperationException>().WithMessage("*AuthCookie*RefreshPath*");
+    }
+
     [TestCase("example.com")]
     [TestCase(".example.com")]
     public void AddAuthCookieSettings_WhenDomainIsAHostName_ShouldNotThrow(string domain)

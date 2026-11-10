@@ -139,7 +139,7 @@ public class RedisCacheTokenServiceTests
     {
         // Arrange: ValidTo is UTC, so the lifetime must be measured against UtcNow whatever the server time zone is
         _jwtStorageServiceMock
-            .Setup(x => x.Generate(AccountId))
+            .Setup(x => x.Generate(AccountId, TimeSpan.FromMinutes(LifetimeMinutes)))
             .Returns(new StoredToken
             {
                 AccountId = AccountId,
@@ -148,7 +148,7 @@ public class RedisCacheTokenServiceTests
             });
 
         // Act
-        await _service.GenerateAsync(AccountId);
+        await _service.GenerateAsync(AccountId, TimeSpan.FromMinutes(LifetimeMinutes));
 
         // Assert
         _databaseMock.Verify(x => x.StringSetAsync(

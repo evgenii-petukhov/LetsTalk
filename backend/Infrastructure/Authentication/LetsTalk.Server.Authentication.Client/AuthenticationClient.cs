@@ -1,4 +1,5 @@
-﻿using LetsTalk.Server.Authentication.Abstractions;
+﻿using Grpc.Core;
+using LetsTalk.Server.Authentication.Abstractions;
 using static LetsTalk.Server.Authentication.JwtTokenGrpcService;
 using static LetsTalk.Server.Authentication.LoginCodeGrpcService;
 
@@ -18,7 +19,53 @@ public class AuthenticationClient(
             AccountId = accountId
         });
 
-        return (response.Token, DateTimeOffset.FromUnixTimeSeconds(response.ExpiresAtUnixSeconds).UtcDateTime);
+        return (response.Token, ToUtc(response.ExpiresAtUnixSeconds));
+    }
+
+    public async Task<(string token, DateTime expiresAt)> GenerateBackgroundTokenAsync(string accountId)
+    {
+        var response = await _tokenClient.GenerateJwtTokenAsync(new GenerateJwtTokenRequest
+        {
+            AccountId = accountId,
+            Kind = TokenKind.Background
+        });
+
+        return (response.Token, ToUtc(response.ExpiresAtUnixSeconds));
+    }
+
+    public async Task<AuthSession> CreateSessionAsync(string accountId)
+    {
+        var response = await _tokenClient.CreateSessionAsync(new CreateSessionRequest
+        {
+            AccountId = accountId
+        });
+
+        return ToSession(response);
+    }
+
+    public async Task<AuthSession?> RefreshSessionAsync(string refreshToken)
+    {
+        try
+        {
+            var response = await _tokenClient.RefreshSessionAsync(new RefreshSessionRequest
+            {
+                RefreshToken = refreshToken
+            });
+
+            return ToSession(response);
+        }
+        catch (RpcException ex) when (ex.StatusCode == StatusCode.Unauthenticated)
+        {
+            return null;
+        }
+    }
+
+    public async Task EndSessionAsync(string refreshToken)
+    {
+        await _tokenClient.EndSessionAsync(new EndSessionRequest
+        {
+            RefreshToken = refreshToken
+        });
     }
 
     public async Task<string?> ValidateJwtTokenAsync(string token)
@@ -58,5 +105,18 @@ public class AuthenticationClient(
         });
 
         return response.IsValid;
+    }
+
+    private static DateTime ToUtc(long unixSeconds) => DateTimeOffset.FromUnixTimeSeconds(unixSeconds).UtcDateTime;
+
+    private static AuthSession ToSession(SessionResponse response)
+    {
+        var hasRefreshToken = !string.IsNullOrEmpty(response.RefreshToken);
+
+        return new AuthSession(
+            response.AccessToken,
+            ToUtc(response.AccessExpiresAtUnixSeconds),
+            hasRefreshToken ? response.RefreshToken : null,
+            hasRefreshToken ? ToUtc(response.RefreshExpiresAtUnixSeconds) : null);
     }
 }

@@ -37,6 +37,22 @@ public static class AuthCookieSettingsRegistration
             yield return "Name must not be empty.";
         }
 
+        if (string.IsNullOrWhiteSpace(settings.RefreshName))
+        {
+            yield return "RefreshName must not be empty.";
+        }
+        else if (string.Equals(settings.RefreshName, settings.Name, StringComparison.OrdinalIgnoreCase))
+        {
+            yield return "RefreshName must differ from Name, otherwise the two cookies overwrite each other.";
+        }
+
+        if (string.IsNullOrWhiteSpace(settings.RefreshPath)
+            || !settings.RefreshPath.StartsWith('/')
+            || settings.RefreshPath.Any(c => c == ';' || char.IsWhiteSpace(c)))
+        {
+            yield return $"RefreshPath must be an absolute path such as /api/Authentication, but is '{settings.RefreshPath}'.";
+        }
+
         var sameSite = SameSiteValues.FirstOrDefault(x =>
             string.Equals(x, settings.SameSite, StringComparison.OrdinalIgnoreCase));
         if (sameSite == null)

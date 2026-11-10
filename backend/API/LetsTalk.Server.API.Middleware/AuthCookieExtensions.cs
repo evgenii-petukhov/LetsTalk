@@ -5,23 +5,51 @@ namespace LetsTalk.Server.API.Middleware;
 
 public static class AuthCookieExtensions
 {
+    private const string AccessCookiePath = "/";
+
     public static void AppendAuthCookie(
         this HttpResponse response,
         AuthCookieSettings settings,
         string token,
         DateTime expiresAt)
     {
-        var options = CreateOptions(settings);
-        options.Expires = new DateTimeOffset(DateTime.SpecifyKind(expiresAt, DateTimeKind.Utc));
-        response.Cookies.Append(settings.Name, token, options);
+        Append(response, settings, settings.Name, AccessCookiePath, token, expiresAt);
+    }
+
+    // Only the sign-in, refresh and sign-out endpoints receive this cookie (RefreshPath)
+    public static void AppendRefreshCookie(
+        this HttpResponse response,
+        AuthCookieSettings settings,
+        string token,
+        DateTime expiresAt)
+    {
+        Append(response, settings, settings.RefreshName, settings.RefreshPath, token, expiresAt);
     }
 
     public static void DeleteAuthCookie(this HttpResponse response, AuthCookieSettings settings)
     {
-        response.Cookies.Delete(settings.Name, CreateOptions(settings));
+        response.Cookies.Delete(settings.Name, CreateOptions(settings, AccessCookiePath));
     }
 
-    private static CookieOptions CreateOptions(AuthCookieSettings settings)
+    public static void DeleteRefreshCookie(this HttpResponse response, AuthCookieSettings settings)
+    {
+        response.Cookies.Delete(settings.RefreshName, CreateOptions(settings, settings.RefreshPath));
+    }
+
+    private static void Append(
+        HttpResponse response,
+        AuthCookieSettings settings,
+        string name,
+        string path,
+        string token,
+        DateTime expiresAt)
+    {
+        var options = CreateOptions(settings, path);
+        options.Expires = new DateTimeOffset(DateTime.SpecifyKind(expiresAt, DateTimeKind.Utc));
+        response.Cookies.Append(name, token, options);
+    }
+
+    private static CookieOptions CreateOptions(AuthCookieSettings settings, string path)
     {
         return new CookieOptions
         {
@@ -31,7 +59,7 @@ public static class AuthCookieExtensions
                 ? sameSite
                 : SameSiteMode.Strict,
             Domain = string.IsNullOrEmpty(settings.Domain) ? null : settings.Domain,
-            Path = "/"
+            Path = path
         };
     }
 }

@@ -18,6 +18,9 @@ public class JwtMiddlewareTests
     private const string AuthorizationHeaderValue = $"Bearer {SampleToken}";
     private const string AccountIdKey = "AccountId";
     private const string TokenKey = "Token";
+    private const string CredentialSourceKey = "CredentialSource";
+    private const string CookieSource = "Cookie";
+    private const string HeaderSource = "Header";
     private const string AccountIdValue = "1";
     private const string CookieAccountIdValue = "2";
     private const string CookieName = "auth-token";
@@ -54,7 +57,8 @@ public class JwtMiddlewareTests
         ctx.Items.Should().BeEquivalentTo(new Dictionary<string, string>
         {
             { AccountIdKey, CookieAccountIdValue },
-            { TokenKey, CookieToken }
+            { TokenKey, CookieToken },
+            { CredentialSourceKey, CookieSource }
         });
         _mockRequestDelegate.Verify(x => x.Invoke(ctx), Times.Once);
     }
@@ -75,7 +79,8 @@ public class JwtMiddlewareTests
         ctx.Items.Should().BeEquivalentTo(new Dictionary<string, string>
         {
             { AccountIdKey, AccountIdValue },
-            { TokenKey, SampleToken }
+            { TokenKey, SampleToken },
+            { CredentialSourceKey, HeaderSource }
         });
         _mockRequestDelegate.Verify(x => x.Invoke(ctx), Times.Once);
     }
@@ -98,6 +103,7 @@ public class JwtMiddlewareTests
         // Assert
         ctx.Items[AccountIdKey].Should().Be(CookieAccountIdValue);
         ctx.Items[TokenKey].Should().Be(CookieToken);
+        ctx.Items[CredentialSourceKey].Should().Be(CookieSource);
         _mockAuthenticationClient.Verify(x => x.ValidateJwtTokenAsync(SampleToken), Times.Never);
     }
 
@@ -129,6 +135,33 @@ public class JwtMiddlewareTests
         // Assert
         await f.Should().ThrowAsync<UnauthorizedAccessException>();
         _mockRequestDelegate.Verify(x => x.Invoke(ctx), Times.Never);
+    }
+
+    [Test]
+    public async Task InvokeAsync_WhenHeaderTokenInvalid_ShouldNotSetCredentialSource()
+    {
+        // Arrange
+        var ctx = CreateContext(authorizationHeader: AuthorizationHeaderValue);
+
+        // Act
+        Func<Task> f = async () => await Invoke(ctx);
+
+        // Assert
+        await f.Should().ThrowAsync<UnauthorizedAccessException>();
+        ctx.Items.Should().NotContainKey(CredentialSourceKey);
+    }
+
+    [Test]
+    public async Task InvokeAsync_WhenCookieInvalid_ShouldNotSetCredentialSource()
+    {
+        // Arrange
+        var ctx = CreateContext(cookieToken: CookieToken);
+
+        // Act
+        await Invoke(ctx);
+
+        // Assert: a rejected cookie is not a session, so the origin check has nothing to protect
+        ctx.Items.Should().NotContainKey(CredentialSourceKey);
     }
 
     [Test]
@@ -268,6 +301,7 @@ public class JwtMiddlewareTests
         // Assert
         ctx.Items[AccountIdKey].Should().Be(AccountIdValue);
         ctx.Items[TokenKey].Should().Be(SampleToken);
+        ctx.Items[CredentialSourceKey].Should().Be(HeaderSource);
         GetSetCookie(ctx).Should().Contain($"{CookieName}=;");
     }
 

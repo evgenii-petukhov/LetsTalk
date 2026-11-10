@@ -1,6 +1,7 @@
 ﻿using LetsTalk.Server.Authentication.Abstractions;
 using LetsTalk.Server.Authentication.Services.Cache.LoginCodes;
 using LetsTalk.Server.Authentication.Services.Cache.Token;
+using LetsTalk.Server.Authentication.Services.Session;
 using LetsTalk.Server.Configuration.Models;
 using LetsTalk.Server.Logging;
 using LetsTalk.Server.Persistence.Redis;
@@ -29,6 +30,7 @@ namespace LetsTalk.Server.Authentication
             services.AddScoped<ILoginCodeGenerator, LoginCodeGenerator>();
             services.Configure<JwtSettings>(configuration.GetSection("JwtSettings"));
             services.AddMemoryCache();
+            services.AddSingleton(TimeProvider.System);
             services.AddLoggingServices();
             services.Configure<CachingSettings>(configuration.GetSection("Caching"));
             switch (configuration.GetValue<string>("Features:CachingMode"))
@@ -36,11 +38,13 @@ namespace LetsTalk.Server.Authentication
                 case "redis":
                     services.AddRedisCache();
                     services.AddScoped<IJwtCacheService, RedisCacheTokenService>();
+                    services.AddScoped<IRefreshSessionService, RedisRefreshSessionService>();
                     services.AddScoped<ILoginCodeCacheService, LoginCodeRedisCacheService>();
                     break;
                 default:
                     services.AddMemoryCache();
                     services.AddScoped<IJwtCacheService, MemoryCacheTokenService>();
+                    services.AddScoped<IRefreshSessionService, MemoryRefreshSessionService>();
                     services.AddScoped<ILoginCodeCacheService, LoginCodeMemoryCacheService>();
                     break;
             }

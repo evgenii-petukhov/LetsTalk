@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using LetsTalk.Server.API.Models.Message;
 using LetsTalk.Server.API.Core.Abstractions;
+using LetsTalk.Server.Authentication.Abstractions;
 using LetsTalk.Server.Models.Dtos;
 using LetsTalk.Server.Exceptions;
 using LetsTalk.Server.Models.Kafka;
@@ -21,7 +22,8 @@ public class CreateMessageCommandHandler(
     IChatCacheManager chatCacheManager,
     IProducer<Notification> notificationProducer,
     ILinkPreviewLauncher linkPreviewLauncher,
-    IImageProcessingLauncher imageProcessingLauncher
+    IImageProcessingLauncher imageProcessingLauncher,
+    IAuthenticationClient authenticationClient
 ) : IRequestHandler<CreateMessageCommand, CreateMessageResponse>
 {
     private readonly IChatAgnosticService _chatAgnosticService = chatAgnosticService;
@@ -34,6 +36,7 @@ public class CreateMessageCommandHandler(
     private readonly IProducer<Notification> _notificationProducer = notificationProducer;
     private readonly ILinkPreviewLauncher _linkPreviewLauncher = linkPreviewLauncher;
     private readonly IImageProcessingLauncher _imageProcessingLauncher = imageProcessingLauncher;
+    private readonly IAuthenticationClient _authenticationClient = authenticationClient;
 
     public async Task<CreateMessageResponse> Handle(CreateMessageCommand request, CancellationToken cancellationToken)
     {
@@ -50,6 +53,15 @@ public class CreateMessageCommandHandler(
         var linkPreviewId = string.IsNullOrWhiteSpace(url)
             ? null
             : await _linkPreviewAgnosticService.GetIdByUrlAsync(url, cancellationToken);
+
+        var launchLinkPreview = !string.IsNullOrWhiteSpace(url) && string.IsNullOrWhiteSpace(linkPreviewId);
+        var launchImageProcessing = request.Image != null;
+
+        // The launchers work minutes later, long after the sender's access token has expired. They get a separate,
+        // longer-lived token, requested before anything is saved so that a failure here leaves no half-sent message.
+        var backgroundToken = launchLinkPreview || launchImageProcessing
+            ? (await _authenticationClient.GenerateBackgroundTokenAsync(request.SenderId!)).token
+            : null;
 
         var message = request.Image == null
             ? await _messageAgnosticService.CreateMessageAsync(
@@ -89,23 +101,23 @@ public class CreateMessageCommandHandler(
                 }
             }, cancellationToken))),
             Task.WhenAll(accountIds.Select(_chatCacheManager.ClearAsync)),
-            (string.IsNullOrWhiteSpace(url) || !string.IsNullOrWhiteSpace(linkPreviewId))
-                ? Task.CompletedTask
-                : _linkPreviewLauncher.LaunchAsync(
+            launchLinkPreview
+                ? _linkPreviewLauncher.LaunchAsync(
                     messageDto.Id!,
-                    url,
+                    url!,
                     request.ChatId!,
-                    request.Token!,
-                    cancellationToken),
-            request.Image == null
-                ? Task.CompletedTask
-                : _imageProcessingLauncher.LaunchAsync(
+                    backgroundToken!,
+                    cancellationToken)
+                : Task.CompletedTask,
+            launchImageProcessing
+                ? _imageProcessingLauncher.LaunchAsync(
                     messageDto.Id!,
-                    request.Image.Id!,
+                    request.Image!.Id!,
                     request.ChatId!,
                     request.Image.FileStorageTypeId,
-                    request.Token!,
-                    cancellationToken));
+                    backgroundToken!,
+                    cancellationToken)
+                : Task.CompletedTask);
 
         return new CreateMessageResponse
         {

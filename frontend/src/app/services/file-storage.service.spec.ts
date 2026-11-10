@@ -1,7 +1,9 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { TestBed } from '@angular/core/testing';
+import { StatusCode } from 'grpc-web';
 import { FileStorageService } from './file-storage.service';
+import { SessionService } from './session.service';
 import { environment } from '../../environments/environment';
 import { DownloadImageRequest, DownloadImageResponse, ImageRoles, UploadImageRequest, UploadImageResponse, } from '../protos/file_upload_pb';
 import { IImageDto } from '../api-client/api-client';
@@ -18,6 +20,7 @@ vi.mock('../protos/file_upload_grpc_web_pb', () => ({
 
 describe('FileStorageService', () => {
     let service: FileStorageService;
+    let sessionService: { renew: ReturnType<typeof vi.fn> };
 
     const mockImageKey: IImageDto = {
         id: 'test-image-id',
@@ -27,9 +30,12 @@ describe('FileStorageService', () => {
     beforeEach(() => {
         clientConstructor.mockClear();
 
+        sessionService = { renew: vi.fn().mockName('SessionService.renew') };
+
         TestBed.configureTestingModule({
             providers: [
                 FileStorageService,
+                { provide: SessionService, useValue: sessionService },
             ],
         });
 
@@ -196,6 +202,90 @@ describe('FileStorageService', () => {
             await service.download(customImageKey);
 
             expect(mockFileUploadService.downloadImageAsync).toHaveBeenCalled();
+        });
+    });
+
+    describe('when the access token has expired', () => {
+        const unauthenticated = { code: StatusCode.UNAUTHENTICATED, message: 'expired' };
+        const response = new UploadImageResponse();
+        let fileUploadService: { uploadImageAsync: ReturnType<typeof vi.fn>; downloadImageAsync: ReturnType<typeof vi.fn> };
+
+        beforeEach(() => {
+            fileUploadService = {
+                uploadImageAsync: vi.fn().mockName('FileUploadGrpcEndpointClient.uploadImageAsync'),
+                downloadImageAsync: vi.fn().mockName('FileUploadGrpcEndpointClient.downloadImageAsync'),
+            };
+            (service as any).fileUploadService = fileUploadService;
+        });
+
+        it('upload should renew the session and retry once on UNAUTHENTICATED', async () => {
+            sessionService.renew.mockResolvedValue(true);
+            fileUploadService.uploadImageAsync
+                .mockImplementationOnce((_r: any, _m: any, callback: any) => callback(unauthenticated, null))
+                .mockImplementationOnce((_r: any, _m: any, callback: any) => callback(null, response));
+
+            const result = await service.upload(new Uint8Array([1]), ImageRoles.AVATAR);
+
+            expect(result).toBe(response);
+            expect(sessionService.renew).toHaveBeenCalledTimes(1);
+            expect(fileUploadService.uploadImageAsync).toHaveBeenCalledTimes(2);
+        });
+
+        it('download should renew the session and retry once on UNAUTHENTICATED', async () => {
+            const downloadResponse = new DownloadImageResponse();
+            sessionService.renew.mockResolvedValue(true);
+            fileUploadService.downloadImageAsync
+                .mockImplementationOnce((_r: any, _m: any, callback: any) => callback(unauthenticated, null))
+                .mockImplementationOnce((_r: any, _m: any, callback: any) => callback(null, downloadResponse));
+
+            const result = await service.download(mockImageKey);
+
+            expect(result).toBe(downloadResponse);
+            expect(sessionService.renew).toHaveBeenCalledTimes(1);
+            expect(fileUploadService.downloadImageAsync).toHaveBeenCalledTimes(2);
+        });
+
+        it('should reject with the second error when the retry is rejected as well', async () => {
+            sessionService.renew.mockResolvedValue(true);
+            fileUploadService.uploadImageAsync
+                .mockImplementation((_r: any, _m: any, callback: any) => callback(unauthenticated, null));
+
+            await expect(service.upload(new Uint8Array([1]), ImageRoles.AVATAR)).rejects.toEqual(unauthenticated);
+
+            expect(sessionService.renew).toHaveBeenCalledTimes(1);
+            expect(fileUploadService.uploadImageAsync).toHaveBeenCalledTimes(2);
+        });
+
+        it('should reject without a retry when the refresh token is rejected', async () => {
+            sessionService.renew.mockResolvedValue(false);
+            fileUploadService.uploadImageAsync
+                .mockImplementation((_r: any, _m: any, callback: any) => callback(unauthenticated, null));
+
+            await expect(service.upload(new Uint8Array([1]), ImageRoles.AVATAR)).rejects.toEqual(unauthenticated);
+
+            expect(fileUploadService.uploadImageAsync).toHaveBeenCalledTimes(1);
+        });
+
+        it('should reject with the renewal error when the server cannot answer', async () => {
+            const outage = { status: 503 };
+            sessionService.renew.mockRejectedValue(outage);
+            fileUploadService.uploadImageAsync
+                .mockImplementation((_r: any, _m: any, callback: any) => callback(unauthenticated, null));
+
+            await expect(service.upload(new Uint8Array([1]), ImageRoles.AVATAR)).rejects.toEqual(outage);
+
+            expect(fileUploadService.uploadImageAsync).toHaveBeenCalledTimes(1);
+        });
+
+        it('should not renew for other errors', async () => {
+            const other = { code: StatusCode.INTERNAL, message: 'boom' };
+            fileUploadService.downloadImageAsync
+                .mockImplementation((_r: any, _m: any, callback: any) => callback(other, null));
+
+            await expect(service.download(mockImageKey)).rejects.toEqual(other);
+
+            expect(sessionService.renew).not.toHaveBeenCalled();
+            expect(fileUploadService.downloadImageAsync).toHaveBeenCalledTimes(1);
         });
     });
 });

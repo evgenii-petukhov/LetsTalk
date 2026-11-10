@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using Grpc.Core;
 using LetsTalk.Server.API.Models.Login;
 using LetsTalk.Server.Models.Dtos;
 using MediatR;
@@ -39,9 +40,41 @@ public class AuthenticationController(
 
         var result = await _mediator.Send(_mapper.Map<EmailLoginCommand>(request), cancellationToken);
 
-        Response.AppendAuthCookie(_authCookieSettings, result.Token, result.ExpiresAt);
+        AppendSessionCookies(result);
 
         return Ok(new LoginResponseDto { Success = true });
+    }
+
+    [AllowAnonymous]
+    [HttpPost("refresh")]
+    public async Task<IActionResult> RefreshAsync(CancellationToken cancellationToken)
+    {
+        // Only the refresh cookie counts: an access token in the header is no reason to issue a new session
+        var refreshToken = Request.Cookies[_authCookieSettings.RefreshName];
+
+        SessionDto? session = null;
+        if (!string.IsNullOrEmpty(refreshToken))
+        {
+            try
+            {
+                session = await _mediator.Send(new RefreshSessionCommand(refreshToken), cancellationToken);
+            }
+            catch (RpcException ex) when (ex.IsUnavailable())
+            {
+                // An outage is not a sign-out: keep the cookies and let the client retry later
+                throw ex.ToServiceUnavailableException();
+            }
+        }
+
+        if (session == null)
+        {
+            DeleteSessionCookies();
+            return Unauthorized();
+        }
+
+        AppendSessionCookies(session);
+
+        return NoContent();
     }
 
     [AllowAnonymous]
@@ -49,12 +82,19 @@ public class AuthenticationController(
     public async Task<IActionResult> LogoutAsync(CancellationToken cancellationToken)
     {
         // JwtMiddleware stores the token only when the session cookie or the header was valid
-        if (HttpContext.Items["Token"] is string token)
+        var token = HttpContext.Items["Token"] as string;
+        var refreshToken = Request.Cookies[_authCookieSettings.RefreshName];
+        if (string.IsNullOrEmpty(refreshToken))
         {
-            await _mediator.Send(new LogoutCommand(token), cancellationToken);
+            refreshToken = null;
         }
 
-        Response.DeleteAuthCookie(_authCookieSettings);
+        if (token != null || refreshToken != null)
+        {
+            await _mediator.Send(new LogoutCommand(token, refreshToken), cancellationToken);
+        }
+
+        DeleteSessionCookies();
 
         return NoContent();
     }
@@ -73,5 +113,22 @@ public class AuthenticationController(
         var result = await _mediator.Send(new GenerateLoginCodeCommand(request.Email!), cancellationToken);
 
         return Ok(result);
+    }
+
+    private void AppendSessionCookies(SessionDto session)
+    {
+        Response.AppendAuthCookie(_authCookieSettings, session.AccessToken, session.AccessExpiresAt);
+
+        // Absent when the refresh token was reused a moment ago: the browser already holds its successor
+        if (session.RefreshToken != null && session.RefreshExpiresAt.HasValue)
+        {
+            Response.AppendRefreshCookie(_authCookieSettings, session.RefreshToken, session.RefreshExpiresAt.Value);
+        }
+    }
+
+    private void DeleteSessionCookies()
+    {
+        Response.DeleteAuthCookie(_authCookieSettings);
+        Response.DeleteRefreshCookie(_authCookieSettings);
     }
 }
