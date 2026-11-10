@@ -1,3 +1,4 @@
+using LetsTalk.Server.Models.Dtos;
 using AutoMapper;
 using FluentAssertions;
 using LetsTalk.Server.API.Core.Commands;
@@ -30,8 +31,8 @@ public class EmailLoginCommandHandlerTests
         _accountAgnosticServiceMock = new Mock<IAccountAgnosticService>();
         _mapperMock = new Mock<IMapper>();
         _mapperMock
-            .Setup(x => x.Map<SessionResult>(It.IsAny<AuthSession>()))
-            .Returns(new SessionResult("jwt-token-123", ExpiresAt, RefreshToken, RefreshExpiresAt));
+            .Setup(x => x.Map<SessionDto>(It.IsAny<AuthSession>()))
+            .Returns(new SessionDto("jwt-token-123", ExpiresAt, RefreshToken, RefreshExpiresAt));
         _handler = new EmailLoginCommandHandler(_authenticationClientMock.Object, _accountAgnosticServiceMock.Object, _mapperMock.Object);
     }
 

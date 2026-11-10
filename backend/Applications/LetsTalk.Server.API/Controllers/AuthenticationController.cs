@@ -52,7 +52,7 @@ public class AuthenticationController(
         // Only the refresh cookie counts: an access token in the header is no reason to issue a new session
         var refreshToken = Request.Cookies[_authCookieSettings.RefreshName];
 
-        SessionResult? session = null;
+        SessionDto? session = null;
         if (!string.IsNullOrEmpty(refreshToken))
         {
             try
@@ -115,7 +115,7 @@ public class AuthenticationController(
         return Ok(result);
     }
 
-    private void AppendSessionCookies(SessionResult session)
+    private void AppendSessionCookies(SessionDto session)
     {
         Response.AppendAuthCookie(_authCookieSettings, session.AccessToken, session.AccessExpiresAt);
 

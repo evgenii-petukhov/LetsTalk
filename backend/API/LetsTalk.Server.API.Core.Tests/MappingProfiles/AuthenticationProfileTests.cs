@@ -1,3 +1,4 @@
+using LetsTalk.Server.Models.Dtos;
 using AutoMapper;
 using FluentAssertions;
 using LetsTalk.Server.API.Core.Commands;
@@ -29,9 +30,9 @@ public class AuthenticationProfileTests
     {
         var session = new AuthSession("access", AccessExpiresAt, "refresh", RefreshExpiresAt);
 
-        var result = _mapper.Map<SessionResult>(session);
+        var result = _mapper.Map<SessionDto>(session);
 
-        result.Should().Be(new SessionResult("access", AccessExpiresAt, "refresh", RefreshExpiresAt));
+        result.Should().Be(new SessionDto("access", AccessExpiresAt, "refresh", RefreshExpiresAt));
     }
 
     [Test]
@@ -39,8 +40,8 @@ public class AuthenticationProfileTests
     {
         var session = new AuthSession("access", AccessExpiresAt, null, null);
 
-        var result = _mapper.Map<SessionResult>(session);
+        var result = _mapper.Map<SessionDto>(session);
 
-        result.Should().Be(new SessionResult("access", AccessExpiresAt, null, null));
+        result.Should().Be(new SessionDto("access", AccessExpiresAt, null, null));
     }
 }

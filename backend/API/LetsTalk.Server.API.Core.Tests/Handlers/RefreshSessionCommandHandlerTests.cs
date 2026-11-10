@@ -1,3 +1,4 @@
+using LetsTalk.Server.Models.Dtos;
 using AutoMapper;
 using FluentAssertions;
 using LetsTalk.Server.API.Core.Commands;
@@ -37,14 +38,14 @@ public class RefreshSessionCommandHandlerTests
             .Setup(x => x.RefreshSessionAsync(RefreshToken))
             .ReturnsAsync(new AuthSession(AccessToken, AccessExpiresAt, NewRefreshToken, RefreshExpiresAt));
         _mapperMock
-            .Setup(x => x.Map<SessionResult>(It.IsAny<AuthSession>()))
-            .Returns(new SessionResult(AccessToken, AccessExpiresAt, NewRefreshToken, RefreshExpiresAt));
+            .Setup(x => x.Map<SessionDto>(It.IsAny<AuthSession>()))
+            .Returns(new SessionDto(AccessToken, AccessExpiresAt, NewRefreshToken, RefreshExpiresAt));
 
         // Act
         var result = await _handler.Handle(new RefreshSessionCommand(RefreshToken), CancellationToken.None);
 
         // Assert
-        result.Should().Be(new SessionResult(AccessToken, AccessExpiresAt, NewRefreshToken, RefreshExpiresAt));
+        result.Should().Be(new SessionDto(AccessToken, AccessExpiresAt, NewRefreshToken, RefreshExpiresAt));
     }
 
     [Test]
@@ -55,14 +56,14 @@ public class RefreshSessionCommandHandlerTests
             .Setup(x => x.RefreshSessionAsync(RefreshToken))
             .ReturnsAsync(new AuthSession(AccessToken, AccessExpiresAt, null, null));
         _mapperMock
-            .Setup(x => x.Map<SessionResult>(It.IsAny<AuthSession>()))
-            .Returns(new SessionResult(AccessToken, AccessExpiresAt, null, null));
+            .Setup(x => x.Map<SessionDto>(It.IsAny<AuthSession>()))
+            .Returns(new SessionDto(AccessToken, AccessExpiresAt, null, null));
 
         // Act
         var result = await _handler.Handle(new RefreshSessionCommand(RefreshToken), CancellationToken.None);
 
         // Assert
-        result.Should().Be(new SessionResult(AccessToken, AccessExpiresAt, null, null));
+        result.Should().Be(new SessionDto(AccessToken, AccessExpiresAt, null, null));
     }
 
     [Test]
@@ -78,7 +79,7 @@ public class RefreshSessionCommandHandlerTests
 
         // Assert
         result.Should().BeNull();
-        _mapperMock.Verify(x => x.Map<SessionResult>(It.IsAny<AuthSession>()), Times.Never);
+        _mapperMock.Verify(x => x.Map<SessionDto>(It.IsAny<AuthSession>()), Times.Never);
     }
 
     [Test]

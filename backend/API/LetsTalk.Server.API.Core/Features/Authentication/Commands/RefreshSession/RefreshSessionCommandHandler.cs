@@ -1,3 +1,4 @@
+using LetsTalk.Server.Models.Dtos;
 using AutoMapper;
 using LetsTalk.Server.API.Core.Commands;
 using LetsTalk.Server.Authentication.Abstractions;
@@ -7,15 +8,15 @@ namespace LetsTalk.Server.API.Core.Features.Authentication.Commands.RefreshSessi
 
 public class RefreshSessionCommandHandler(
     IAuthenticationClient authenticationClient,
-    IMapper mapper) : IRequestHandler<RefreshSessionCommand, SessionResult?>
+    IMapper mapper) : IRequestHandler<RefreshSessionCommand, SessionDto?>
 {
     private readonly IAuthenticationClient _authenticationClient = authenticationClient;
     private readonly IMapper _mapper = mapper;
 
-    public async Task<SessionResult?> Handle(RefreshSessionCommand request, CancellationToken cancellationToken)
+    public async Task<SessionDto?> Handle(RefreshSessionCommand request, CancellationToken cancellationToken)
     {
         var session = await _authenticationClient.RefreshSessionAsync(request.RefreshToken);
 
-        return session is null ? null : _mapper.Map<SessionResult>(session);
+        return session is null ? null : _mapper.Map<SessionDto>(session);
     }
 }

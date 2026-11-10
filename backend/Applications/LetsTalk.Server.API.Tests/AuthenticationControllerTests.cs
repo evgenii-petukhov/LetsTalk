@@ -67,7 +67,7 @@ public class AuthenticationControllerTests
         // Arrange
         _mediatorMock
             .Setup(x => x.Send(It.IsAny<EmailLoginCommand>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(new SessionResult(Token, AccessExpiresAt, RefreshToken, RefreshExpiresAt));
+            .ReturnsAsync(new SessionDto(Token, AccessExpiresAt, RefreshToken, RefreshExpiresAt));
 
         // Act
         var result = await _controller.EmailLoginAsync(CreateRequest(), CancellationToken.None);
@@ -103,7 +103,7 @@ public class AuthenticationControllerTests
         // Arrange
         _mediatorMock
             .Setup(x => x.Send(It.IsAny<EmailLoginCommand>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(new SessionResult(Token, AccessExpiresAt, RefreshToken, RefreshExpiresAt));
+            .ReturnsAsync(new SessionDto(Token, AccessExpiresAt, RefreshToken, RefreshExpiresAt));
 
         // Act
         var result = await _controller.EmailLoginAsync(CreateRequest(), CancellationToken.None);
@@ -136,7 +136,7 @@ public class AuthenticationControllerTests
         _httpContext.Request.Headers.Cookie = $"{RefreshCookieName}={RefreshToken}";
         _mediatorMock
             .Setup(x => x.Send(It.Is<RefreshSessionCommand>(c => c.RefreshToken == RefreshToken), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(new SessionResult(NewToken, AccessExpiresAt, NewRefreshToken, RefreshExpiresAt));
+            .ReturnsAsync(new SessionDto(NewToken, AccessExpiresAt, NewRefreshToken, RefreshExpiresAt));
 
         // Act
         var result = await _controller.RefreshAsync(CancellationToken.None);
@@ -157,7 +157,7 @@ public class AuthenticationControllerTests
         _httpContext.Request.Headers.Cookie = $"{RefreshCookieName}={RefreshToken}";
         _mediatorMock
             .Setup(x => x.Send(It.IsAny<RefreshSessionCommand>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(new SessionResult(NewToken, AccessExpiresAt, null, null));
+            .ReturnsAsync(new SessionDto(NewToken, AccessExpiresAt, null, null));
 
         // Act
         var result = await _controller.RefreshAsync(CancellationToken.None);
@@ -174,7 +174,7 @@ public class AuthenticationControllerTests
         _httpContext.Request.Headers.Cookie = $"{RefreshCookieName}={RefreshToken}";
         _mediatorMock
             .Setup(x => x.Send(It.IsAny<RefreshSessionCommand>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync((SessionResult?)null);
+            .ReturnsAsync((SessionDto?)null);
 
         // Act
         var result = await _controller.RefreshAsync(CancellationToken.None);
