@@ -14,7 +14,7 @@ public class MemoryRefreshSessionService(
     IMemoryCache memoryCache) : RefreshSessionServiceBase(jwtCacheService, jwtSettings, timeProvider, logger)
 {
     // The service is scoped but the cache is shared, so the lock that makes "mark as used" atomic is static
-    private static readonly object UsedLock = new();
+    private static readonly Lock UsedLock = new();
 
     private readonly IMemoryCache _memoryCache = memoryCache;
 
