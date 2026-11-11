@@ -18,20 +18,6 @@
 
 LetsTalk is a messaging app for exchanging text messages, images, and video calls.
 
-This project showcases my technical skills for potential employers and IT recruiters. It demonstrates that:
-
-- I can:
-  - Design event-driven system architectures
-  - Work with cloud services such as AWS SNS/SQS, S3, Lambda, and DocumentDB
-  - Build single-page web applications with Angular and TypeScript
-  - Implement reactive state management with NgRx in Angular
-  - Work with NoSQL databases such as MongoDB, Azure CosmosDB, and Redis
-- I understand:
-  - The OpenAPI Specification
-  - Microservice communication patterns and protocols such as gRPC
-  - Microservice architecture and event-driven development principles, with hands-on experience using Apache Kafka
-  - Domain-driven design and data consistency ([see my article on DDD](https://www.linkedin.com/pulse/how-i-practiced-ddd-principles-ignoring-them-evgenii-petukhov/) on LinkedIn)
-
 ## Technical stack
 
 **Back end**
@@ -46,8 +32,11 @@ This project showcases my technical skills for potential employers and IT recrui
 **Front end**
 - TypeScript, Angular 21, NgRx
 - Testing: Vitest
+- In progress: a new front end in `frontend-next/` (Next.js, React 19, Zustand, TanStack Query)
 
 ## Architecture
+
+The diagram shows the production deployment, which uses managed cloud services wherever possible.
 
 ```mermaid
 flowchart TB
@@ -55,6 +44,7 @@ flowchart TB
     classDef svc fill:#e8f1fb,stroke:#2f6fb5,color:#0b2e55
     classDef broker fill:#fff4d6,stroke:#d19a00,color:#5a4200
     classDef db fill:#e6f4ea,stroke:#2e7d32,color:#143d17
+    classDef alt fill:#f4f4f4,stroke:#999,color:#444,stroke-dasharray: 4 3
     classDef aws fill:#fff0e0,stroke:#e07b00,color:#5c3000
 
     user(["Browser<br/><b>Angular SPA</b> · NgRx"]):::client
@@ -65,23 +55,23 @@ flowchart TB
         auth["<b>Authentication</b><br/>gRPC · JWT"]:::svc
         files["<b>File Storage</b><br/>gRPC"]:::svc
         notif["<b>Notifications</b><br/>SignalR hub"]:::svc
-        img["<b>Image Processing</b><br/>SkiaSharp"]:::svc
-        link["<b>Link Preview</b>"]:::svc
+        email["<b>Email Service</b>"]:::svc
     end
 
-    broker{{"Event broker<br/>Apache Kafka <i>or</i> AWS SNS/SQS<br/>(MassTransit)"}}:::broker
+    broker{{"<b>AWS SNS/SQS</b><br/>event broker (MassTransit)"}}:::broker
 
-    subgraph data["Data stores"]
+    subgraph data["Persistence"]
         direction LR
-        sql[("MySQL<br/>EF Core")]:::db
-        mongo[("MongoDB / Azure CosmosDB<br/>AWS DocumentDB")]:::db
-        redis[("Redis")]:::db
+        mongo[("<b>MongoDB Atlas</b><br/>production")]:::db
+        sql[("MySQL<br/>EF Core")]:::alt
+        cosmos[("Azure CosmosDB")]:::alt
+        redis[("Redis<br/>cache")]:::db
     end
 
     subgraph aws["AWS"]
         direction LR
-        s3[/"S3<br/>avatars & images"/]:::aws
-        lambdaImg["Lambda<br/>image resize"]:::aws
+        s3[/"S3<br/>avatars and images"/]:::aws
+        lambdaImg["Lambda<br/>image preview<br/>(SkiaSharp)"]:::aws
         lambdaLink["Lambda<br/>link preview"]:::aws
     end
 
@@ -91,45 +81,74 @@ flowchart TB
     user <-. "SignalR (WebSocket)" .-> notif
     api -- "gRPC" --> auth
     files -- "gRPC" --> auth
-    notif -- "gRPC" --> auth
-    api --> sql & mongo & redis
+    notif -- "gRPC: validate token" --> auth
+    api --> mongo
+    api -.-> sql
+    api -.-> cosmos
+    api --> redis
     files --> s3
+
+    %% Direct Lambda invocation (no broker)
+    api -- "invoke" --> lambdaImg
+    api -- "invoke" --> lambdaLink
+    lambdaImg --> s3
+    lambdaImg -. "REST: result (background JWT)" .-> api
+    lambdaLink -. "REST: result (background JWT)" .-> api
 
     %% Asynchronous events
     api == "publish events" ==> broker
-    broker == "new message" ==> notif
-    broker == "image resize" ==> img
-    broker == "link preview" ==> link
-    img --> lambdaImg
-    link --> lambdaLink
-    img -. "result (REST, background JWT)" .-> api
-    link -. "result (REST, background JWT)" .-> api
+    broker == "Notification" ==> notif
+    broker == "SendEmailRequest" ==> email
+    broker == "RemoveImageRequest" ==> files
 
-    linkStyle 0,1,2,3,4,5,6,7,8,9 stroke:#2f6fb5
-    linkStyle 10,11,12,13 stroke:#d19a00,stroke-width:3px
+    linkStyle 0,1,2,3,4,5 stroke:#2f6fb5
+    linkStyle 11,12 stroke:#e07b00
+    linkStyle 16,17,18,19 stroke:#d19a00,stroke-width:3px
 ```
 
-The front end is an Angular single-page application using NgRx for reactive state management.
+The front end is an Angular single-page application that uses NgRx for reactive state management. It talks to the Chat API over REST, to File Storage over gRPC-web, and receives real-time updates from Notifications over SignalR. (A new Next.js front end is in progress in `frontend-next/`.)
 
-The back end follows a microservice, event-driven architecture. Depending on the configuration, it uses Apache Kafka or AWS SNS/SQS as the event broker. The table below describes each microservice:
+The back end follows a microservice, event-driven architecture. In production the event broker is AWS SNS/SQS, and image and link-preview processing runs in AWS Lambda functions that the Chat API invokes directly. The Chat API supports several persistence providers (MongoDB, MySQL via Entity Framework Core, Azure CosmosDB) behind one provider-neutral contract. Production uses MongoDB Atlas.
 
-| Microservice name | Protocol                    | Description                                                                                                                    |
-| ----------------- | --------------------------- | ------------------------------------------------------------------------------------------------------------------------------ |
-| Chat API          | REST                        | Responsible for sending messages and account management                                                                        |
-| Authentication    | gRPC                        | Generates and validates JSON Web Tokens                                                                                        |
-| Notification      | Apache Kafka or AWS SNS/SQS | Sends notifications about new messages to the front-end via SignalR                                                            |
-| Link preview      | Apache Kafka or AWS SNS/SQS | Decorates messages with a website's name and a picture preview in the cloud by calling AWS Lambda, if a message contains links |
-| File storage      | gRPC                        | Saves avatars and images uploaded by users in the cloud (AWS S3) and serves them when requested                                |
-| Image processing  | Apache Kafka or AWS SNS/SQS | Generates image previews in the cloud by calling AWS Lambda; uses [SkiaSharp](https://github.com/mono/SkiaSharp)               |
+### Microservices
+
+| Service        | Protocol             | Description                                                                                                                                                 |
+| -------------- | -------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Chat API       | REST                 | Entry point for the front end: sends messages, manages accounts, profiles and sign-in. Publishes events and invokes the Lambda functions.                   |
+| Authentication | gRPC                 | Generates and validates JSON Web Tokens. Called by the Chat API, File Storage and Notifications to validate the caller.                                     |
+| Notifications  | AWS SNS/SQS, SignalR | Consumes new-message events and pushes them to the front end via SignalR. Validates each user's token through Authentication when the connection is opened. |
+| File Storage   | gRPC, AWS SNS/SQS    | Saves avatars and images uploaded by users to AWS S3 and serves them on request. Consumes image-removal events.                                             |
+| Email Service  | AWS SNS/SQS          | Consumes send-email events and sends emails, such as sign-in codes.                                                                                         |
+
+### AWS Lambda functions
+
+| Function         | Invoked by | Description                                                                                                                                         |
+| ---------------- | ---------- | --------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Image processing | Chat API   | Generates image previews with [SkiaSharp](https://github.com/mono/SkiaSharp), stores them in S3, then reports the result to the Chat API over REST. |
+| Link preview     | Chat API   | Decorates messages that contain links with the website's name and a picture preview, then reports the result to the Chat API over REST.             |
+
+Both functions authenticate their callback with a separate one-hour background JWT, not the user's session token.
+
+## Secure session management
+
+Sign-in uses a one-time code sent by email. The session was hardened in two spec-driven steps (see [specs/001-httponly-cookie-auth](specs/001-httponly-cookie-auth/spec.md) and [specs/002-short-lived-token-refresh](specs/002-short-lived-token-refresh/spec.md)):
+
+- **Credentials that scripts cannot read.** The access token lives in an `HttpOnly`, `SameSite=Strict` cookie, so an XSS flaw cannot steal it. The Angular app learns whether the user is signed in by asking the server.
+- **Short-lived access tokens with silent renewal.** The JWT expires after 15 minutes. A separate rotating refresh token, also an `HttpOnly` cookie and scoped to the authentication endpoints, renews it without interrupting the user. The server stores only a hash of each refresh token.
+- **Token theft detection.** Every renewal replaces the refresh token. If an already-replaced token is presented after a 30-second grace period (to tolerate several open tabs), the whole sign-in chain is revoked.
+- **Real sign-out.** Logging out revokes the session on the server, so a copied token stops working in every service.
+- **CSRF protection.** State-changing requests that carry the browser session are accepted only from configured origins, and CORS allows credentials only for an explicit list of origins. The same origin check covers the SignalR handshake.
+- **Background jobs.** Lambda functions receive a separate one-hour token, so they keep working after the user's 15-minute token expires and never see the user's session.
 
 ## Local deployment
 
-The instructions below are for Windows.
+The instructions below are for Windows and set up the development configuration, which runs entirely on local resources: Kafka, MySQL, local disk storage, and the Image Processing and Link Preview services instead of Lambda.
 
 ### Prerequisites
 - [.NET 10 SDK](https://dotnet.microsoft.com/download)
 - [Node.js](https://nodejs.org/) and npm
 - [Docker Desktop](https://www.docker.com/products/docker-desktop/) (`RunAll.ps1` starts the `redis` and `kafka` containers)
+- [MySQL Server](https://dev.mysql.com/downloads/mysql/)
 - PowerShell
 
 ### Back end
@@ -139,19 +158,32 @@ The instructions below are for Windows.
    docker run -d --name kafka -p 9092:9092 apache/kafka
    ```
 
-2. Trust the ASP.NET Core development certificate (in an elevated PowerShell):
+2. Install MySQL Server and make sure it is running on `localhost:3306`.
+
+3. Set the MySQL connection string (`ConnectionStrings:MySql`) to match your server's user and password. It appears in two files:
+   - `backend/Applications/LetsTalk.Server.API/appsettings.json`
+   - `backend/Persistence/EntityFramework/LetsTalk.Server.Persistence.EntityFramework.MigrationTool/appsettings.json`
+
+4. Create the database schema. Either restore a database backup, or apply the Entity Framework migrations. To apply the migrations, install the EF Core tool once and run the update from the MigrationTool folder:
+   ```powershell
+   dotnet tool install --global dotnet-ef
+   cd backend\Persistence\EntityFramework\LetsTalk.Server.Persistence.EntityFramework.MigrationTool
+   dotnet ef database update
+   ```
+
+5. Trust the ASP.NET Core development certificate (in an elevated PowerShell):
    ```powershell
    dotnet dev-certs https --trust
    ```
 
-3. Create a system-level environment variable `LetsTalk_Server_FileStorage` pointing to the folder where uploaded files are stored (for example, `C:\LetsTalk.Server.FileStorage`). Restart your terminal or IDE afterwards so it picks up the variable.
+6. Create a system-level environment variable `LetsTalk_Server_FileStorage` pointing to the folder where uploaded files are stored (for example, `C:\LetsTalk.Server.FileStorage`). Restart your terminal or IDE afterwards so it picks up the variable.
 
-4. Allow running local scripts in PowerShell:
+7. Allow running local scripts in PowerShell:
    ```powershell
    Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
    ```
 
-5. Start all services:
+8. Start all services:
    ```powershell
    cd backend
    .\RunAll.ps1
@@ -178,7 +210,7 @@ The instructions below are for Windows.
 4. Install dependencies and start the development server:
    ```powershell
    npm install
-   npm start
+   npm run start
    ```
 
 5. Open <https://127.0.0.1:4200>.
