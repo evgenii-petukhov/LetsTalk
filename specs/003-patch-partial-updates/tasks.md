@@ -7,16 +7,16 @@
 **One commit per phase**, made only when the owner approves, with the ticked `tasks.md` included. Stage files by explicit path.
 
 ## Phase 0 - Setup
-- [ ] **T300** Branch `003-patch-partial-updates` from the updated `master`; confirm the working tree is clean and nothing unrelated is staged.
+- [x] **T300** (branch created from `master`; the spec files were committed first as `540d388c`) Branch `003-patch-partial-updates` from the updated `master`; confirm the working tree is clean and nothing unrelated is staged.
 
 ## Phase 1 - API
 Tests first:
-- [ ] **T310** `MessageControllerTests` in `BE/Applications/LetsTalk.Server.API.Tests` (reflection on the action attributes): `MarkAsReadAsync_ShouldBePatchWithTemplateMarkAsRead`; `SetLinkPreviewAsync_ShouldBePatchWithTemplateSetLinkPreview`; `SetImagePreviewAsync_ShouldBePatchWithTemplateSetImagePreview`; `MessageController_ShouldHaveNoPutActions`. Run them and see them fail. (FR-001, FR-002)
-- [ ] **T311** [P] `OriginCheckMiddlewareTests` in `BE/API/LetsTalk.Server.API.Middleware.Tests`: add `InvokeAsync_WhenCookieAndPatchAndForeignOrigin_ShouldReturn403` and `..._WhenCookieAndPatchAndAllowedOrigin_ShouldContinue` if no existing case uses `PATCH`; fix the middleware only if they fail. (NFR-001, plan D2)
+- [x] **T310** (new `MessageControllerTests`, 4 cases; first run failed for the right reason: the actions were still `HttpPut`) `MessageControllerTests` in `BE/Applications/LetsTalk.Server.API.Tests` (reflection on the action attributes): `MarkAsReadAsync_ShouldBePatchWithTemplateMarkAsRead`; `SetLinkPreviewAsync_ShouldBePatchWithTemplateSetLinkPreview`; `SetImagePreviewAsync_ShouldBePatchWithTemplateSetImagePreview`; `MessageController_ShouldHaveNoPutActions`. Run them and see them fail. (FR-001, FR-002)
+- [x] **T311** (no new tests needed: `OriginCheckMiddlewareTests` already runs `PATCH` among the state-changing methods, both refused and, via the shared logic, allowed; the middleware treats only GET/HEAD/OPTIONS/TRACE as safe) [P] `OriginCheckMiddlewareTests` in `BE/API/LetsTalk.Server.API.Middleware.Tests`: add `InvokeAsync_WhenCookieAndPatchAndForeignOrigin_ShouldReturn403` and `..._WhenCookieAndPatchAndAllowedOrigin_ShouldContinue` if no existing case uses `PATCH`; fix the middleware only if they fail. (NFR-001, plan D2)
 
 Implementation:
-- [ ] **T312** Replace the three `[HttpPut(...)]` with `[HttpPatch(...)]` in `BE/Applications/LetsTalk.Server.API/Controllers/MessageController.cs`. (T310; FR-001, FR-002)
-- [ ] **T313** `dotnet test` for `LetsTalk.Server.API.Tests` and `LetsTalk.Server.API.Middleware.Tests`; `dotnet build BE/LetsTalk.Server.sln`. **Checkpoint 1.**
+- [x] **T312** Replace the three `[HttpPut(...)]` with `[HttpPatch(...)]` in `BE/Applications/LetsTalk.Server.API/Controllers/MessageController.cs`. (T310; FR-001, FR-002)
+- [x] **T313** (2026-11-11: API.Tests 19 pass, Middleware.Tests 44 pass, `dotnet build` of the solution 0 errors) `dotnet test` for `LetsTalk.Server.API.Tests` and `LetsTalk.Server.API.Middleware.Tests`; `dotnet build BE/LetsTalk.Server.sln`. **Checkpoint 1.**
 
 ## Phase 2 - Clients
 - [ ] **T320** Owner regenerates `nswag/angular.nswag` and `nswag/csharp.nswag` (the API must be running to serve the OpenAPI document). **Not** `nextjs.nswag`. (T312; FR-003)
