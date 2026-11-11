@@ -49,7 +49,65 @@ This project showcases my technical skills for potential employers and IT recrui
 
 ## Architecture
 
-![scheme](scheme-compressed.svg)
+```mermaid
+flowchart TB
+    classDef client fill:#dd0031,stroke:#a30022,color:#fff
+    classDef svc fill:#e8f1fb,stroke:#2f6fb5,color:#0b2e55
+    classDef broker fill:#fff4d6,stroke:#d19a00,color:#5a4200
+    classDef db fill:#e6f4ea,stroke:#2e7d32,color:#143d17
+    classDef aws fill:#fff0e0,stroke:#e07b00,color:#5c3000
+
+    user(["Browser<br/><b>Angular SPA</b> · NgRx"]):::client
+
+    subgraph services["Microservices (.NET 10)"]
+        direction TB
+        api["<b>Chat API</b><br/>REST · CQRS (MediatR)"]:::svc
+        auth["<b>Authentication</b><br/>gRPC · JWT"]:::svc
+        files["<b>File Storage</b><br/>gRPC"]:::svc
+        notif["<b>Notifications</b><br/>SignalR hub"]:::svc
+        img["<b>Image Processing</b><br/>SkiaSharp"]:::svc
+        link["<b>Link Preview</b>"]:::svc
+    end
+
+    broker{{"Event broker<br/>Apache Kafka <i>or</i> AWS SNS/SQS<br/>(MassTransit)"}}:::broker
+
+    subgraph data["Data stores"]
+        direction LR
+        sql[("MySQL<br/>EF Core")]:::db
+        mongo[("MongoDB / Azure CosmosDB<br/>AWS DocumentDB")]:::db
+        redis[("Redis")]:::db
+    end
+
+    subgraph aws["AWS"]
+        direction LR
+        s3[/"S3<br/>avatars & images"/]:::aws
+        lambdaImg["Lambda<br/>image resize"]:::aws
+        lambdaLink["Lambda<br/>link preview"]:::aws
+    end
+
+    %% Synchronous calls
+    user -- "REST" --> api
+    user -- "gRPC-web" --> files
+    user <-. "SignalR (WebSocket)" .-> notif
+    api -- "gRPC" --> auth
+    files -- "gRPC" --> auth
+    notif -- "gRPC" --> auth
+    api --> sql & mongo & redis
+    files --> s3
+
+    %% Asynchronous events
+    api == "publish events" ==> broker
+    broker == "new message" ==> notif
+    broker == "image resize" ==> img
+    broker == "link preview" ==> link
+    img --> lambdaImg
+    link --> lambdaLink
+    img -. "result (REST, background JWT)" .-> api
+    link -. "result (REST, background JWT)" .-> api
+
+    linkStyle 0,1,2,3,4,5,6,7,8,9 stroke:#2f6fb5
+    linkStyle 10,11,12,13 stroke:#d19a00,stroke-width:3px
+```
 
 The front end is an Angular single-page application using NgRx for reactive state management.
 
