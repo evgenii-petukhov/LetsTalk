@@ -63,3 +63,64 @@ The back end follows a microservice, event-driven architecture. Depending on the
 | Link preview      | Apache Kafka or AWS SNS/SQS | Decorates messages with a website's name and a picture preview in the cloud by calling AWS Lambda, if a message contains links |
 | File storage      | gRPC                        | Saves avatars and images uploaded by users in the cloud (AWS S3) and serves them when requested                                |
 | Image processing  | Apache Kafka or AWS SNS/SQS | Generates image previews in the cloud by calling AWS Lambda; uses [SkiaSharp](https://github.com/mono/SkiaSharp)               |
+
+## Local deployment
+
+The instructions below are for Windows.
+
+### Prerequisites
+- [.NET 10 SDK](https://dotnet.microsoft.com/download)
+- [Node.js](https://nodejs.org/) and npm
+- [Docker Desktop](https://www.docker.com/products/docker-desktop/) (`RunAll.ps1` starts the `redis` and `kafka` containers)
+- PowerShell
+
+### Back end
+1. Create the Redis and Kafka containers. They must be named `redis` and `kafka`, because `RunAll.ps1` starts them by name, and must expose the default ports (6379 for Redis, 9092 for Kafka):
+   ```powershell
+   docker run -d --name redis -p 6379:6379 redis
+   docker run -d --name kafka -p 9092:9092 apache/kafka
+   ```
+
+2. Trust the ASP.NET Core development certificate (in an elevated PowerShell):
+   ```powershell
+   dotnet dev-certs https --trust
+   ```
+
+3. Create a system-level environment variable `LetsTalk_Server_FileStorage` pointing to the folder where uploaded files are stored (for example, `C:\LetsTalk.Server.FileStorage`). Restart your terminal or IDE afterwards so it picks up the variable.
+
+4. Allow running local scripts in PowerShell:
+   ```powershell
+   Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
+   ```
+
+5. Start all services:
+   ```powershell
+   cd backend
+   .\RunAll.ps1
+   ```
+
+### Front end
+1. Install mkcert (in an elevated PowerShell):
+   ```powershell
+   winget install FiloSottile.mkcert
+   ```
+
+2. Install the local certificate authority:
+   ```powershell
+   mkcert -install
+   ```
+
+3. Generate a certificate for `127.0.0.1` and `localhost`:
+   ```powershell
+   cd frontend
+   mkdir certs
+   mkcert -cert-file certs/127.0.0.1.pem -key-file certs/127.0.0.1-key.pem 127.0.0.1 localhost
+   ```
+
+4. Install dependencies and start the development server:
+   ```powershell
+   npm install
+   npm start
+   ```
+
+5. Open <https://127.0.0.1:4200>.
