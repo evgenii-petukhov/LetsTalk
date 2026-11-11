@@ -58,7 +58,7 @@ public class MessageController(
         return Ok(response.Dto);
     }
 
-    [HttpPut("MarkAsRead")]
+    [HttpPatch("MarkAsRead")]
     public async Task<ActionResult> MarkAsReadAsync(
         string chatId,
         string messageId,
@@ -74,7 +74,7 @@ public class MessageController(
         return Ok();
     }
 
-    [HttpPut("SetLinkPreview")]
+    [HttpPatch("SetLinkPreview")]
     public async Task<ActionResult> SetLinkPreviewAsync(
         SetLinkPreviewRequest request,
         CancellationToken cancellationToken)
@@ -84,7 +84,7 @@ public class MessageController(
         return Ok();
     }
 
-    [HttpPut("SetImagePreview")]
+    [HttpPatch("SetImagePreview")]
     public async Task<ActionResult> SetImagePreviewAsync(
         SetImagePreviewRequest request,
         CancellationToken cancellationToken)
