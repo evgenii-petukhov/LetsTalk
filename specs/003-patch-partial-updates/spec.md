@@ -1,7 +1,7 @@
 # Feature Spec: Partial message updates use PATCH
 
 **Feature folder**: `specs/003-patch-partial-updates`\
-**Status**: Draft, decisions confirmed 2026-11-11 (hard switch, all three endpoints, verb only)\
+**Status**: Implemented and verified 2026-11-11 (hard switch, all three endpoints, verb only); ready to merge and deploy\
 **Created**: 2026-11-11\
 **Depends on**: `specs/002-short-lived-token-refresh` (merged)
 
