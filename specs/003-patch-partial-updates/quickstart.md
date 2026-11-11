@@ -4,11 +4,11 @@ Run the back end with `RunAll.ps1` and the Angular app with `npm start`; open `h
 
 | # | Steps | Expected | Covers | Result |
 |---|---|---|---|---|
-| Q1 | Open `/swagger` and expand the `Message` section | No `PUT` under `/api/Message`; `MarkAsRead`, `SetLinkPreview` and `SetImagePreview` show `PATCH` | AS1.1, SC-001 | |
-| Q2 | In the browser console on the app origin, run `fetch('/api/Message/MarkAsRead?chatId=x&messageId=y', {method: 'PUT', credentials: 'include'})` (adjust the base URL to the API host) | Status `405` | AS1.2, FR-002 | |
-| Q3 | Sign in on two accounts. Open a chat on the first, send a message from the second | The message arrives live and is marked as read; the `MarkAsRead` request in DevTools is `PATCH` and answers `200` | AS2.1, FR-003 | |
-| Q4 | Local-service mode: send an image and a link from one account | Both previews arrive on the message; the service logs show no `405` | AS3.1, AS3.2 | |
-| Q5 | Cloud-function mode, after redeploying both functions: send an image and a link | Both previews arrive; CloudWatch shows no `405` | AS3.1, AS3.2 | |
-| Q6 | Optional, old front end build against the new API: call `markAsRead` from a tab loaded before the release | The call fails with `405`; reloading the tab fixes it | spec edge cases | |
+| Q1 | Open `/swagger` and expand the `Message` section | No `PUT` under `/api/Message`; `MarkAsRead`, `SetLinkPreview` and `SetImagePreview` show `PATCH` | AS1.1, SC-001 | Pass, 2026-11-11 (owner) |
+| Q2 | In the browser console on the app origin, run `fetch('/api/Message/MarkAsRead?chatId=x&messageId=y', {method: 'PUT', credentials: 'include'})` (adjust the base URL to the API host) | Status `405` | AS1.2, FR-002 | Pass, 2026-11-11 (owner) |
+| Q3 | Sign in on two accounts. Open a chat on the first, send a message from the second | The message arrives live and is marked as read; the `MarkAsRead` request in DevTools is `PATCH` and answers `200` | AS2.1, FR-003 | Pass, 2026-11-11 (owner) |
+| Q4 | Local-service mode: send an image and a link from one account | Both previews arrive on the message; the service logs show no `405` | AS3.1, AS3.2 | Pass, 2026-11-11 (owner) |
+| Q5 | Cloud-function mode, after redeploying both functions: send an image and a link | Both previews arrive; CloudWatch shows no `405` | AS3.1, AS3.2 | Pass, 2026-11-11 (owner) |
+| Q6 | Optional, old front end build against the new API: call `markAsRead` from a tab loaded before the release | The call fails with `405`; reloading the tab fixes it | spec edge cases | Skipped (optional) |
 
-Record the date and outcome in the Result column when you run each row.
+Results recorded by the owner on 2026-11-11: Q1 to Q5 behaved as expected; Q6 is optional and was not run.

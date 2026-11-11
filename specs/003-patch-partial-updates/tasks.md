@@ -25,7 +25,7 @@ Implementation:
 
 ## Phase 3 - Deployment notes and verification
 - [x] **T330** (written; the log text is the `ApiException` message of the generated client, the mode of each service is chosen in its `appsettings.json`) Write `deployment.md` (release order from the spec's Breaking change section; which Lambdas to redeploy; what a failed preview looks like in the logs: HTTP 405 from `SetLinkPreview`/`SetImagePreview`). (D6)
-- [ ] **T331** (`quickstart.md` is written; Q1 to Q6 still have to be run by the owner and their results recorded) Write `quickstart.md` with the table below, run it in both modes and record the result in the table. (SC-002)
+- [x] **T331** (`quickstart.md` written; owner ran Q1 to Q5 on 2026-11-11, all as expected, in both local-service and cloud-function modes; Q6 is optional and was skipped) Write `quickstart.md` with the table below, run it in both modes and record the result in the table. (SC-002)
 - [x] **T332** (skipped: `README.md`, `CLAUDE.md` and `backend/AGENTS.md` contain no `PUT` wording) Add one sentence to the API paragraph of `README.md`/`CLAUDE.md` only if either describes these endpoints as `PUT` (grep first); otherwise skip.
 - [x] **T333** (2026-11-11: no code changed after the full run of T322, which passed; only documents were added since) Final `dotnet test BE/LetsTalk.Server.sln`. **Checkpoint 3.** Propose the commit message and file list; wait for approval.
 
