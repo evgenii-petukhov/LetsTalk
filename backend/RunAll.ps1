@@ -1,5 +1,21 @@
-Write-Host "Starting Docker Desktop..."
-Start-Process -FilePath "$env:USERPROFILE\AppData\Local\Programs\DockerDesktop\Docker Desktop.exe"
+# Docker Desktop may be installed for all users or only for the current user.
+$dockerDesktopPaths = @(
+    "$env:ProgramFiles\Docker\Docker\Docker Desktop.exe",
+    "$env:LOCALAPPDATA\Programs\Docker\Docker\Docker Desktop.exe",
+    "$env:USERPROFILE\AppData\Local\Programs\DockerDesktop\Docker Desktop.exe"
+)
+
+$dockerExe = $dockerDesktopPaths | Where-Object { Test-Path $_ } | Select-Object -First 1
+
+if (-not $dockerExe) {
+    Write-Host "Docker Desktop executable not found in any known install location." -ForegroundColor Red
+    Write-Host "Checked paths:"
+    $dockerDesktopPaths | ForEach-Object { Write-Host "  - $_" }
+    exit 1
+}
+
+Write-Host "Starting Docker Desktop from: $dockerExe"
+Start-Process -FilePath $dockerExe
 
 Write-Host "Waiting for Docker engine to be ready..."
 while (-not (docker info 2>$null)) {
