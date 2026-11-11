@@ -24,10 +24,10 @@ Implementation:
 - [x] **T322** (2026-11-11: `dotnet build` of the solution 0 errors; `dotnet test` of the solution passes in every project; frontend `npm run test:run` 772 pass; `npm run lint` reports 17 errors that are identical without this change (checked with `git stash`) and modified no file) `dotnet build BE/LetsTalk.Server.sln` and `dotnet test BE/LetsTalk.Server.sln`; `npm run test:run` in `frontend/`; `npm run lint` in `frontend/` (check that it only touches the generated file or nothing). **Checkpoint 2.**
 
 ## Phase 3 - Deployment notes and verification
-- [ ] **T330** Write `deployment.md` (release order from the spec's Breaking change section; which Lambdas to redeploy; what a failed preview looks like in the logs: HTTP 405 from `SetLinkPreview`/`SetImagePreview`). (D6)
-- [ ] **T331** Write `quickstart.md` with the table below, run it in both modes and record the result in the table. (SC-002)
-- [ ] **T332** Add one sentence to the API paragraph of `README.md`/`CLAUDE.md` only if either describes these endpoints as `PUT` (grep first); otherwise skip.
-- [ ] **T333** Final `dotnet test BE/LetsTalk.Server.sln`. **Checkpoint 3.** Propose the commit message and file list; wait for approval.
+- [x] **T330** (written; the log text is the `ApiException` message of the generated client, the mode of each service is chosen in its `appsettings.json`) Write `deployment.md` (release order from the spec's Breaking change section; which Lambdas to redeploy; what a failed preview looks like in the logs: HTTP 405 from `SetLinkPreview`/`SetImagePreview`). (D6)
+- [ ] **T331** (`quickstart.md` is written; Q1 to Q6 still have to be run by the owner and their results recorded) Write `quickstart.md` with the table below, run it in both modes and record the result in the table. (SC-002)
+- [x] **T332** (skipped: `README.md`, `CLAUDE.md` and `backend/AGENTS.md` contain no `PUT` wording) Add one sentence to the API paragraph of `README.md`/`CLAUDE.md` only if either describes these endpoints as `PUT` (grep first); otherwise skip.
+- [x] **T333** (2026-11-11: no code changed after the full run of T322, which passed; only documents were added since) Final `dotnet test BE/LetsTalk.Server.sln`. **Checkpoint 3.** Propose the commit message and file list; wait for approval.
 
 ### Quickstart table (for T331)
 | # | Steps | Expected | Covers |
