@@ -1,7 +1,7 @@
 # Feature Spec: Keep the free-tier data stores awake
 
 **Feature folder**: `specs/004-keep-alive-pings`\
-**Status**: Reworked 2026-11-12: every store has its own `Enabled` and its own `Interval` (decision of the owner, after the first implementation); the rest as confirmed on 2026-11-11 (a lightweight keep-alive signal run by the API only: a tiny write and read for Redis, a ping for MongoDB; changed after checking the providers' documentation)\
+**Status**: Reworked 2026-11-12: every store has its own `Enabled` and its own `Interval`, and a store is pinged only when it is listed in the settings (decisions of the owner, after the first implementation); the rest as confirmed on 2026-11-11 (a lightweight keep-alive signal run by the API only: a tiny write and read for Redis, a ping for MongoDB; changed after checking the providers' documentation)\
 **Created**: 2026-11-11\
 **Depends on**: none
 
@@ -34,13 +34,13 @@ As the operator, I never have to resume the cluster by hand because of a quiet p
 ### US4 - Only configured stores are pinged (P2)
 - **AS4.1** Given the app runs with the in-memory cache instead of the hosted one, then no cache ping is attempted.
 - **AS4.2** Given the app uses another database provider (MySQL, Cosmos DB), then no document-database ping is attempted.
-- **AS4.3** Given the operator switches off every store in configuration, then nothing is pinged.
+- **AS4.3** Given the operator switches off every store, or lists none, in configuration, then nothing is pinged.
 
 ### US5 - Each store is treated separately (P2)
 As the operator, I can switch a store off, or give it its own interval, without touching the other. For example, after moving the cache to a paid plan I stop pinging it and keep pinging the free document database.
 - **AS5.1** Given the keep-alive is switched off for one store, then only the other store is pinged.
 - **AS5.2** Given the two stores have different intervals, then each is pinged on its own schedule.
-- **AS5.3** Given a store has no settings of its own, then it is pinged with its own defaults (enabled, one day); the other store's settings, and any setting shared by both, never change its interval.
+- **AS5.3** Given a store is not listed in the keep-alive settings, then it is not pinged (the keep-alive is opt-in for each store) and an information line at the start says so; a listed store that leaves out its interval is pinged once a day, and the other store's settings never change it.
 - **AS5.4** Given the configuration names a store that does not exist or is not in use (for example a misspelled name, or the cache while the in-memory cache is selected), then a warning at the start names it, and nothing else changes.
 - **AS5.5** Given a store's interval is zero or negative, then that store is not pinged, a warning says why, and the other store is not affected.
 
@@ -50,7 +50,7 @@ As the operator, I can switch a store off, or give it its own interval, without 
 - **FR-003** A ping MUST NOT read, write or change any application data. The only data it may write is one dedicated key with a short expiry in the cache; it writes nothing to the document database.
 - **FR-004** A failed ping MUST be logged as a warning with the store name and MUST NOT stop the schedule, stop the other store's ping or stop the API. A slow or hung store MUST NOT delay another store's ping.
 - **FR-005** A successful ping MUST be logged at the debug level only, so the daily log is not filled with noise.
-- **FR-006** The keep-alive MUST be switchable off for each store, and the interval MUST be configurable for each store, all with defaults in code (no secret or connection string is involved). There is no switch for the whole keep-alive: it is off when every store is off. A store without settings of its own uses its own defaults and does not inherit anything from another store or from a shared value.
+- **FR-006** The keep-alive MUST be switchable off for each store, and the interval MUST be configurable for each store, with defaults in code for what a listed store leaves out (enabled, one day; no secret or connection string is involved). A store is pinged only when it is listed in the settings (opt-in). There is no switch for the whole keep-alive: it is off when every store is off or not listed. A listed store does not inherit anything from another store or from a shared value.
 - **FR-009** Settings are given per store, under the store's name as the logs show it (`Redis`, `MongoDB`); names are compared ignoring letter case. One value stays shared by all stores because it is not a property of a store: the wait after the start of the API (default 30 seconds).
 - **FR-010** A configuration entry that names no store in use, and a store whose interval is zero or negative, MUST be reported as a warning at the start and MUST NOT stop the API or any other store.
 - **FR-011** At the start, the log MUST show one information line for each store that will be pinged, with its interval, so the operator can see what runs without waiting for the first ping.

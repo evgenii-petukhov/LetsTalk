@@ -16,7 +16,7 @@ public class KeepAliveRegistrationTests
         var configuration = new ConfigurationBuilder()
             .AddInMemoryCollection(new Dictionary<string, string?>
             {
-                ["KeepAlive:Interval"] = "12:00:00",
+                ["KeepAlive:StartupDelay"] = "00:00:10",
             })
             .Build();
         var services = new ServiceCollection().AddLogging();
@@ -26,9 +26,33 @@ public class KeepAliveRegistrationTests
         using var provider = services.BuildServiceProvider();
 
         // Assert
-        provider.GetRequiredService<IOptions<KeepAliveSettings>>().Value.Interval
-            .Should().Be(TimeSpan.FromHours(12));
+        provider.GetRequiredService<IOptions<KeepAliveSettings>>().Value.StartupDelay
+            .Should().Be(TimeSpan.FromSeconds(10));
         provider.GetServices<IHostedService>().Should().ContainSingle(service => service is KeepAliveService);
+    }
+
+    [Test]
+    public void AddKeepAlive_WhenTargetsGiven_ShouldBindThem()
+    {
+        // Arrange
+        var configuration = new ConfigurationBuilder()
+            .AddInMemoryCollection(new Dictionary<string, string?>
+            {
+                ["KeepAlive:Targets:Redis:Interval"] = "12:00:00",
+                ["KeepAlive:Targets:MongoDB:Enabled"] = "false",
+            })
+            .Build();
+        var services = new ServiceCollection().AddLogging();
+
+        // Act
+        services.AddKeepAlive(configuration);
+        using var provider = services.BuildServiceProvider();
+
+        // Assert
+        var targets = provider.GetRequiredService<IOptions<KeepAliveSettings>>().Value.Targets;
+        targets["Redis"].Interval.Should().Be(TimeSpan.FromHours(12));
+        targets["redis"].Enabled.Should().BeTrue();
+        targets["MongoDB"].Enabled.Should().BeFalse();
     }
 
     [Test]

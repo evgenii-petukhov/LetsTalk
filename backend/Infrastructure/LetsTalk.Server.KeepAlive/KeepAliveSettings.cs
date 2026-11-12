@@ -1,13 +1,11 @@
 namespace LetsTalk.Server.KeepAlive;
 
-// Configuration section "KeepAlive". Every value has a default in code, so no appsettings entry is needed.
+// Configuration section "KeepAlive". A store is pinged only when it is listed under Targets
 public class KeepAliveSettings
 {
-    public bool Enabled { get; set; } = true;
-
-    // The free-tier limits are 14 days (Redis Cloud) and 30 days (MongoDB Atlas), so a day leaves a wide margin.
-    public TimeSpan Interval { get; set; } = TimeSpan.FromDays(1);
-
-    // Lets the stores connect before the first signal.
     public TimeSpan StartupDelay { get; set; } = TimeSpan.FromSeconds(30);
+
+    // Settings of each store, keyed by IKeepAliveTarget.Name ("Redis", "MongoDB"), ignoring letter case.
+    // A store is pinged only when it has an entry here (opt-in).
+    public Dictionary<string, KeepAliveTargetSettings> Targets { get; set; } = new(StringComparer.OrdinalIgnoreCase);
 }
