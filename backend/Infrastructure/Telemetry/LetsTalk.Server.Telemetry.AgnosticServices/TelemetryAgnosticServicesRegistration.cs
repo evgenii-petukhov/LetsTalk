@@ -1,4 +1,5 @@
-﻿using LetsTalk.Server.Telemetry.Azure.Services;
+using LetsTalk.Server.Telemetry.Abstractions;
+using LetsTalk.Server.Telemetry.Azure.Services;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -7,15 +8,29 @@ namespace LetsTalk.Server.Telemetry.AgnosticServices;
 
 public static class TelemetryAgnosticServicesRegistration
 {
+    private const string ModeKey = "Features:Telemetry";
+    private const string ConnectionStringKey = "ApplicationInsights:ConnectionString";
+    private const string AzureMode = "Azure";
+    private const string NoneMode = "None";
+
     public static IServiceCollection AddTelemetryAgnosticServices(
         this IServiceCollection services,
         IConfiguration configuration)
     {
-        switch (configuration.GetValue<string>("Features:Telemetry"))
+        switch (GetMode(configuration))
         {
-            case "Azure":
-            default:
+            case AzureMode:
+                if (string.IsNullOrWhiteSpace(configuration[ConnectionStringKey]))
+                {
+                    throw new InvalidOperationException(
+                        $"{ModeKey} is {AzureMode}, but {ConnectionStringKey} is not set. " +
+                        $"Set it, or set {ModeKey} to {NoneMode} to run without telemetry.");
+                }
+
                 services.AddAzureTelemetryServices();
+                break;
+            default:
+                services.AddScoped<ITelemetryService, NullTelemetryService>();
                 break;
         }
 
@@ -24,12 +39,26 @@ public static class TelemetryAgnosticServicesRegistration
 
     public static WebApplication UseTelemetryFlush(this WebApplication app, IConfiguration configuration)
     {
-        switch (configuration.GetValue<string>("Features:Telemetry"))
+        return GetMode(configuration) == AzureMode
+            ? app.UseAzureTelemetryFlush()
+            : app;
+    }
+
+    private static string GetMode(IConfiguration configuration)
+    {
+        var mode = configuration[ModeKey];
+
+        if (string.IsNullOrWhiteSpace(mode) || string.Equals(mode, NoneMode, StringComparison.OrdinalIgnoreCase))
         {
-            case "Azure":
-            default:
-                return app.UseAzureTelemetryFlush();
+            return NoneMode;
         }
-        
+
+        if (string.Equals(mode, AzureMode, StringComparison.OrdinalIgnoreCase))
+        {
+            return AzureMode;
+        }
+
+        throw new InvalidOperationException(
+            $"{ModeKey} has the unknown value '{mode}'. Use {AzureMode} or {NoneMode}.");
     }
 }

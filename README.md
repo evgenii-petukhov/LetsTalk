@@ -210,11 +210,13 @@ Secrets are not stored in the `appsettings.json` files. Every back-end service a
 | `LetsTalk_SignPackage__Pepper` | Pepper of the package signatures |
 | `LetsTalk_MySql__Password` | Password of the MySQL user |
 | `LetsTalk_Cloudflare__ApiToken`, `LetsTalk_Cloudflare__TurnTokenId` | TURN credentials for video calls |
-| `LetsTalk_ApplicationInsights__ConnectionString` | Telemetry (when `Features:Telemetry` is `Azure`) |
+| `LetsTalk_ApplicationInsights__ConnectionString` | Application Insights, needed only when `Features:Telemetry` is `Azure` |
 | `LetsTalk_AutoMapper__LicenseKey`, `LetsTalk_MediatR__LicenseKey` | Library licence keys |
 | `LetsTalk_FileStorage__BasePath` | Folder for local file storage |
 
 The AWS, email, link preview and Cosmos DB settings (`Aws__AccessKey`, `EmailService__Password`, `LinkPreview__SecretKey`, `CosmosDB__PrimaryKey`, and so on) use the same scheme when you enable those features.
+
+Telemetry is off by default: `Features:Telemetry` is `None` in `appsettings.json`, so the API starts without an Application Insights account. To send video-call telemetry, set `Features:Telemetry` to `Azure` (for example with `LetsTalk_Features__Telemetry=Azure`) and provide the connection string. With `Azure` and no connection string the API stops at start-up with a message that says so.
 
 On a server, add the same sections (without the prefix) to `appsettings.json` at deployment, or use prefixed environment variables.
 
