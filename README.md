@@ -160,9 +160,11 @@ The instructions below are for Windows and set up the development configuration,
 
 2. Install MySQL Server and make sure it is running on `localhost:3306`.
 
-3. Set the MySQL connection string (`ConnectionStrings:MySql`) to match your server's user and password. It appears in two files:
+3. Set the MySQL user, host and database in the connection string (`ConnectionStrings:MySql`) if they differ from the defaults. It appears in two files:
    - `backend/Applications/LetsTalk.Server.API/appsettings.json`
    - `backend/Persistence/EntityFramework/LetsTalk.Server.Persistence.EntityFramework.MigrationTool/appsettings.json`
+
+   The password is not stored in these files. Provide it in the `MySql:Password` setting, locally through the `LetsTalk_MySql__Password` environment variable (see [Secrets](#secrets)). Set the variable before you start the services (`RunAll.ps1`) or run `dotnet ef`, because a process only sees the variables that existed when it started. On a server, add `"MySql": { "Password": "..." }` to `appsettings.json` at deployment.
 
 4. Create the database schema. Either restore a database backup, or apply the Entity Framework migrations. To apply the migrations, install the EF Core tool once and run the update from the MigrationTool folder:
    ```powershell
@@ -176,7 +178,16 @@ The instructions below are for Windows and set up the development configuration,
    dotnet dev-certs https --trust
    ```
 
-6. Create a system-level environment variable `LetsTalk_Server_FileStorage` pointing to the folder where uploaded files are stored (for example, `C:\LetsTalk.Server.FileStorage`). Restart your terminal or IDE afterwards so it picks up the variable.
+6. Create a user-level environment variables. Restart your terminal or IDE afterwards so it picks up the variable.
+  - LetsTalk_ApplicationInsights__ConnectionString
+  - LetsTalk_AutoMapper__LicenseKey
+  - LetsTalk_Cloudflare__ApiToken
+  - LetsTalk_Cloudflare__TurnTokenId
+  - LetsTalk_FileStorage__BasePath
+  - LetsTalk_JwtSettings__Key
+  - LetsTalk_MediatR__LicenseKey
+  - LetsTalk_SignPackage__Pepper
+  - LetsTalk_MySQL__Password
 
 7. Allow running local scripts in PowerShell:
    ```powershell
@@ -188,6 +199,24 @@ The instructions below are for Windows and set up the development configuration,
    cd backend
    .\RunAll.ps1
    ```
+
+### Secrets
+
+Secrets are not stored in the `appsettings.json` files. Every back-end service also reads the environment variables that start with `LetsTalk_`. The prefix is removed and `__` stands for a colon, so `LetsTalk_JwtSettings__Key` sets `JwtSettings:Key`. These values win over `appsettings.json` and over variables without the prefix. Set them for your user, then open a new terminal, because a process only sees the variables that existed when it started.
+
+| Variable | Used for |
+| --- | --- |
+| `LetsTalk_JwtSettings__Key` | Signing key of the access tokens (Authentication service) |
+| `LetsTalk_SignPackage__Pepper` | Pepper of the package signatures |
+| `LetsTalk_MySql__Password` | Password of the MySQL user |
+| `LetsTalk_Cloudflare__ApiToken`, `LetsTalk_Cloudflare__TurnTokenId` | TURN credentials for video calls |
+| `LetsTalk_ApplicationInsights__ConnectionString` | Telemetry (when `Features:Telemetry` is `Azure`) |
+| `LetsTalk_AutoMapper__LicenseKey`, `LetsTalk_MediatR__LicenseKey` | Library licence keys |
+| `LetsTalk_FileStorage__BasePath` | Folder for local file storage |
+
+The AWS, email, link preview and Cosmos DB settings (`Aws__AccessKey`, `EmailService__Password`, `LinkPreview__SecretKey`, `CosmosDB__PrimaryKey`, and so on) use the same scheme when you enable those features.
+
+On a server, add the same sections (without the prefix) to `appsettings.json` at deployment, or use prefixed environment variables.
 
 ### Front end
 1. Install mkcert (in an elevated PowerShell):

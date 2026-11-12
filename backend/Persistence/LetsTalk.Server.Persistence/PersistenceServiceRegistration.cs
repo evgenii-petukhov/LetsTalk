@@ -13,7 +13,7 @@ public static class PersistenceServiceRegistration
     {
         services.AddDbContext<LetsTalkDbContext>(options =>
         {
-            var connectionString = configuration.GetConnectionString("MySql")!;
+            var connectionString = configuration.GetMySqlConnectionString();
             options
                 .UseMySQL(
                     connectionString,

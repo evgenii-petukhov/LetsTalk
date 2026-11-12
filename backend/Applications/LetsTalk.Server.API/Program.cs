@@ -1,3 +1,4 @@
+using LetsTalk.Server.Configuration;
 using LetsTalk.Server.API;
 using LetsTalk.Server.API.Middleware;
 using LetsTalk.Server.Telemetry.AgnosticServices;
@@ -8,7 +9,8 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Configuration
     .AddJsonFile(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "appsettings.json"), optional: false)
-    .AddJsonFile(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, $"appsettings.{builder.Environment.EnvironmentName}.json"), optional: true);
+    .AddJsonFile(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, $"appsettings.{builder.Environment.EnvironmentName}.json"), optional: true)
+    .AddLetsTalkEnvironmentVariables();
 
 await builder.Services.AddApiServices(builder.Configuration);
 

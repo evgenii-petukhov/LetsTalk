@@ -30,6 +30,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\Infrastructure\Configuration\LetsTalk.Server.Configuration\LetsTalk.Server.Configuration.csproj" />
     <ProjectReference Include="..\..\API\LetsTalk.Server.API.Core\LetsTalk.Server.API.Core.csproj" />
     <ProjectReference Include="..\..\API\LetsTalk.Server.API.Validation\LetsTalk.Server.API.Validation.csproj" />
     <ProjectReference Include="..\..\Infrastructure\Authentication\LetsTalk.Server.Authentication.Client\LetsTalk.Server.Authentication.Client.csproj" />

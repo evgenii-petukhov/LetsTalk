@@ -1,4 +1,6 @@
-﻿using LetsTalk.Server.Persistence.DatabaseContext;
+﻿using LetsTalk.Server.Configuration;
+using LetsTalk.Server.Persistence;
+using LetsTalk.Server.Persistence.DatabaseContext;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -17,12 +19,13 @@ static IHostBuilder CreateDefaultBuilder()
         {
             var filename = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "appsettings.json");
             app.AddJsonFile(filename, optional: false);
+            app.AddLetsTalkEnvironmentVariables();
         })
         .ConfigureServices((context, services) =>
         {
             services.AddDbContext<LetsTalkDbContext>(options =>
             {
-                var connectionString = context.Configuration.GetConnectionString("MySql")!;
+                var connectionString = context.Configuration.GetMySqlConnectionString();
                 options
                     .UseMySQL(
                         connectionString,

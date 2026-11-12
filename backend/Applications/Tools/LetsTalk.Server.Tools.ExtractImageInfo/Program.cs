@@ -1,4 +1,5 @@
-﻿using LetsTalk.Server.Tools.ExtractImageInfo;
+﻿using LetsTalk.Server.Configuration;
+using LetsTalk.Server.Tools.ExtractImageInfo;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -16,6 +17,7 @@ static IHostBuilder CreateDefaultBuilder()
         {
             var filename = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "appsettings.json");
             app.AddJsonFile(filename, optional: false);
+            app.AddLetsTalkEnvironmentVariables();
         })
         .ConfigureServices((context, services) =>
         {

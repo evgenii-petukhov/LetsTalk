@@ -20,7 +20,7 @@ public class ImageInfoHostedService(
     public async Task StartAsync(CancellationToken cancellationToken)
     {
         var imagePath = Path.Combine(
-            Environment.ExpandEnvironmentVariables(_fileStorageSettings.BasePath!),
+            _fileStorageSettings.BasePath!,
             _fileStorageSettings.ImageFolder!);
 
         foreach (var filepath in Directory.GetFiles(imagePath).Where(x => string.IsNullOrEmpty(Path.GetExtension(x))))

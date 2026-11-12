@@ -1,4 +1,5 @@
-﻿using LetsTalk.Server.EmailService;
+﻿using LetsTalk.Server.Configuration;
+using LetsTalk.Server.EmailService;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
 using Serilog;
@@ -15,6 +16,7 @@ static IHostBuilder CreateDefaultBuilder()
         {
             var filename = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "appsettings.json");
             app.AddJsonFile(filename, optional: false);
+            app.AddLetsTalkEnvironmentVariables();
         })
         .ConfigureServices((context, services) => services.AddEmailServices(context.Configuration))
         .UseSerilog((context, loggerConfig) =>

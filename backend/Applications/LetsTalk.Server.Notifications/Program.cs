@@ -1,3 +1,4 @@
+using LetsTalk.Server.Configuration;
 using LetsTalk.Server.Notifications;
 using LetsTalk.Server.Notifications.Hubs;
 using Serilog;
@@ -7,7 +8,8 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Configuration
     .AddJsonFile(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "appsettings.json"), optional: false)
-    .AddJsonFile(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, $"appsettings.{builder.Environment.EnvironmentName}.json"), optional: true);
+    .AddJsonFile(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, $"appsettings.{builder.Environment.EnvironmentName}.json"), optional: true)
+    .AddLetsTalkEnvironmentVariables();
 
 builder.Services.AddNotificationsServices(builder.Configuration);
 
