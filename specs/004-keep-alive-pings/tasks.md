@@ -1,10 +1,10 @@
 # Tasks: Keep the free-tier data stores awake
 
 **Inputs**: [spec.md](spec.md), [plan.md](plan.md).\
-**Precondition**: `specs/003-patch-partial-updates` is merged (it is).\
+**Precondition**: `specs/003-patch-partial-updates` is merged (it is). Phase 4 reworks Phases 1 to 3 after the owner asked for separate settings per store (2026-11-12); the earlier task notes describe what was built first and stay as history.\
 **Conventions**: as in specs 001 to 003 (tests before code, `Method_WhenCondition_ShouldOutcome`, repeated literals as class-level `private const`; NUnit + Moq + FluentAssertions). `BE` = `backend/`.\
 **Commit message prefix: `Keep-alive: `** (one line, for example `Keep-alive: add the hosted service and the store targets`).\
-**One commit per phase**, made only when the owner approves, with the ticked `tasks.md` included. Stage files by explicit path. Do not edit any `appsettings.json` (the API one holds the owner's uncommitted changes).
+**One commit per phase**, made only when the owner approves, with the ticked `tasks.md` included. Stage files by explicit path. The `appsettings.json` files may be edited: they hold no secrets in the repository (the owner adds secrets by hand for a run and removes them afterwards), so before staging one, check that `git diff` for it shows only the intended lines.
 
 ## Phase 0 - Setup
 - [x] **T400** (branch created from `master` at `a64bf5fe` after a fast-forward pull; the working tree was clean) Branch `004-keep-alive-pings` from the updated `master`; confirm nothing unrelated is staged.
@@ -37,7 +37,27 @@ Implementation:
 - [x] **T432** (one sentence added to the `Infrastructure/` line of `CLAUDE.md`; `README.md` has no natural place and is unchanged) Add one sentence about the keep-alive to the Persistence/back end paragraph of `README.md` or `CLAUDE.md` only if a natural place exists; otherwise skip.
 - [x] **T433** (2026-11-12: no code changed after the full run of T426, which passed; only documents were added since) Final `dotnet test BE/LetsTalk.Server.sln`. **Checkpoint 3.** Propose the commit message and file list; wait for approval.
 
-The quickstart table (rows Q1 to Q7) lives in [quickstart.md](quickstart.md).
+The quickstart table lives in [quickstart.md](quickstart.md).
+
+## Phase 4 - Separate settings and schedule for each store
+Spec: US5, FR-002, FR-004, FR-006, FR-009 to FR-011. Plan: D2, D4. Tests first (they replace or extend the Phase 1 tests):
+- [ ] **T440** [P] Rework `KeepAliveSettingsTests`: `New_ShouldHaveShortStartupDelayAndNoTargets` (the section has no `Enabled` and no `Interval`); `TargetSettings_New_ShouldBeEnabledWithDailyInterval`; `Bind_WhenTargetsGiven_ShouldFillEachTargetSeparately` (for example Redis `12:00:00`, MongoDB disabled); `Bind_WhenTargetNameHasAnotherLetterCase_ShouldStillMatch`; `Bind_WhenSectionMissing_ShouldKeepTheDefaults`. (FR-006, FR-009)
+- [ ] **T441** Rework `KeepAliveServiceTests`. Keep the existing cases, adapted to per-target settings (startup delay, interval passes, one failure does not stop the others, warning with the name, success at debug only, hang cancelled after the timeout, no targets, stopped quickly), and change or add:
+  - `ExecuteAsync_WhenTargetsHaveDifferentIntervals_ShouldPingEachOnItsOwnSchedule` (AS5.2)
+  - `ExecuteAsync_WhenOneTargetHangs_ShouldNotDelayTheOther` (replaces the old behavior where the next store waited for the timeout; AS3.2, FR-004)
+  - `ExecuteAsync_WhenOneTargetDisabled_ShouldPingOnlyTheOther` (AS5.1)
+  - `ExecuteAsync_WhenAllTargetsDisabled_ShouldLogOnceAndNotPing`
+  - `ExecuteAsync_WhenTargetHasNoSettings_ShouldUseItsOwnDefaults` (AS5.3)
+  - `ExecuteAsync_WhenIntervalNotPositive_ShouldSkipThatTargetAndWarn` (AS5.5, FR-010)
+  - `ExecuteAsync_WhenSettingsNameNoTarget_ShouldWarn` and `..._WhenSettingsNameDiffersOnlyInLetterCase_ShouldNotWarn` (AS5.4, FR-010)
+  - `ExecuteAsync_WhenStarted_ShouldLogTheIntervalOfEachRunnableTarget` (FR-011)
+  Use the same `FakeTimeProvider` and the `ExecuteAsync` test subclass as in T411; run the class three times to check for flakiness.
+- [ ] **T442** [P] `KeepAliveRegistrationTests`: `AddKeepAlive_WhenTargetsGiven_ShouldBindThem` (an interval and a switch for a named store reach `IOptions<KeepAliveSettings>`). (FR-009)
+
+Implementation:
+- [ ] **T443** Add `KeepAliveTargetSettings`; reshape `KeepAliveSettings` (remove `Enabled` and `Interval`, add `Targets`); rework `KeepAliveService` into one loop per runnable target with the validation, warnings and information lines of plan D4. Add a `KeepAlive` section to `BE/Applications/LetsTalk.Server.API/appsettings.json` with an explicit entry and an interval of one day for `Redis` and `MongoDB` (plan D2). No change to the Redis and MongoDB targets or to the registrations. (T440 to T442)
+- [ ] **T444** Update `deployment.md` (new settings table and example, the per-store switch and interval, the two new kinds of start-up warnings) and `quickstart.md` (rows Q2 and Q5 for the new settings, Q5 now disables both stores because there is no switch for the whole keep-alive; new rows: switch off one store, different interval for each store, a misspelled store name, an interval of zero; the start-up information line in Q1). State in `deployment.md` that the values now shipped in `appsettings.json` win over `KeepAlive__*` environment variables, so the deployed file is the place to change them. `CLAUDE.md` needs no change. Reopen T431: the owner runs the reworked quickstart. (FR-011, SC-002)
+- [ ] **T445** `dotnet build BE/LetsTalk.Server.sln`, `dotnet test BE/LetsTalk.Server.sln`, `backend/CheckWarnings.ps1` for the changed files. **Checkpoint 4.** Propose the commit message and file list; wait for approval.
 
 ## Dependencies
-T410 to T412 can run in parallel; T413 needs them; T420 to T422 can run in parallel after T413; T423 to T425 need their tests; Phase 3 needs Phase 2.
+T410 to T412 can run in parallel; T413 needs them; T420 to T422 can run in parallel after T413; T423 to T425 need their tests; Phase 3 needs Phase 2. Phase 4: T440 and T442 can run in parallel, T441 shares the test helpers with Phase 1; T443 needs T440 to T442; T444 and T445 need T443.

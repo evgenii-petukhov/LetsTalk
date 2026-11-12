@@ -1,7 +1,7 @@
 # Feature Spec: Keep the free-tier data stores awake
 
 **Feature folder**: `specs/004-keep-alive-pings`\
-**Status**: Draft, decisions confirmed 2026-11-11 (a lightweight keep-alive signal run by the API only, once a day: a tiny write and read for Redis, a ping for MongoDB; changed after checking the providers' documentation)\
+**Status**: Reworked 2026-11-12: every store has its own `Enabled` and its own `Interval` (decision of the owner, after the first implementation); the rest as confirmed on 2026-11-11 (a lightweight keep-alive signal run by the API only: a tiny write and read for Redis, a ping for MongoDB; changed after checking the providers' documentation)\
 **Created**: 2026-11-11\
 **Depends on**: none
 
@@ -19,30 +19,41 @@ As long as the API is running, both stores receive a harmless, regular signal th
 
 ### US1 - The cache is not deleted while the app is up (P1)
 As the operator, I do not receive the "your database will be deleted" email while the API is running.
-- **AS1.1** Given the API is running and nobody uses the app, when a day passes, then the cache has received a ping.
-- **AS1.2** Given the API was restarted, then a ping is sent shortly after the start, and the daily schedule continues.
+- **AS1.1** Given the API is running and nobody uses the app, when the cache's interval (default one day) passes, then the cache has received a ping.
+- **AS1.2** Given the API was restarted, then a ping is sent shortly after the start, and the schedule continues.
 
 ### US2 - The document database is not paused while the app is up (P1)
 As the operator, I never have to resume the cluster by hand because of a quiet period.
-- **AS2.1** Given the API is running and nobody uses the app, when a day passes, then the document database has received a ping.
+- **AS2.1** Given the API is running and nobody uses the app, when the document database's interval (default one day) passes, then it has received a ping.
 - **AS2.2** Given the API was restarted, then a ping is sent shortly after the start.
 
 ### US3 - A failing store does not harm the app or hide the problem (P1)
 - **AS3.1** Given a store is unreachable at the moment of the ping, then the app keeps serving requests, the failure is logged as a warning that names the store, and the next ping happens on schedule.
-- **AS3.2** Given one store fails, then the other store is still pinged.
+- **AS3.2** Given one store fails or hangs, then the other store is still pinged, on time.
 
 ### US4 - Only configured stores are pinged (P2)
 - **AS4.1** Given the app runs with the in-memory cache instead of the hosted one, then no cache ping is attempted.
 - **AS4.2** Given the app uses another database provider (MySQL, Cosmos DB), then no document-database ping is attempted.
-- **AS4.3** Given the operator disables the keep-alive in configuration, then nothing is pinged.
+- **AS4.3** Given the operator switches off every store in configuration, then nothing is pinged.
+
+### US5 - Each store is treated separately (P2)
+As the operator, I can switch a store off, or give it its own interval, without touching the other. For example, after moving the cache to a paid plan I stop pinging it and keep pinging the free document database.
+- **AS5.1** Given the keep-alive is switched off for one store, then only the other store is pinged.
+- **AS5.2** Given the two stores have different intervals, then each is pinged on its own schedule.
+- **AS5.3** Given a store has no settings of its own, then it is pinged with its own defaults (enabled, one day); the other store's settings, and any setting shared by both, never change its interval.
+- **AS5.4** Given the configuration names a store that does not exist or is not in use (for example a misspelled name, or the cache while the in-memory cache is selected), then a warning at the start names it, and nothing else changes.
+- **AS5.5** Given a store's interval is zero or negative, then that store is not pinged, a warning says why, and the other store is not affected.
 
 ## Functional Requirements
 - **FR-001** While the API runs, it MUST send a lightweight keep-alive signal ("ping" in this document) to each configured hosted store: the cache when the hosted cache is selected, the document database when it is the selected database provider.
-- **FR-002** A ping MUST be sent shortly after the API starts and then at a configurable interval (default one day).
+- **FR-002** A ping MUST be sent to each store shortly after the API starts and then at that store's own configurable interval (default one day for each store). There is no interval shared by the stores.
 - **FR-003** A ping MUST NOT read, write or change any application data. The only data it may write is one dedicated key with a short expiry in the cache; it writes nothing to the document database.
-- **FR-004** A failed ping MUST be logged as a warning with the store name and MUST NOT stop the schedule, stop the other store's ping or stop the API.
+- **FR-004** A failed ping MUST be logged as a warning with the store name and MUST NOT stop the schedule, stop the other store's ping or stop the API. A slow or hung store MUST NOT delay another store's ping.
 - **FR-005** A successful ping MUST be logged at the debug level only, so the daily log is not filled with noise.
-- **FR-006** The keep-alive MUST be switchable off and its interval MUST be configurable, both with defaults in code (no secret or connection string is involved).
+- **FR-006** The keep-alive MUST be switchable off for each store, and the interval MUST be configurable for each store, all with defaults in code (no secret or connection string is involved). There is no switch for the whole keep-alive: it is off when every store is off. A store without settings of its own uses its own defaults and does not inherit anything from another store or from a shared value.
+- **FR-009** Settings are given per store, under the store's name as the logs show it (`Redis`, `MongoDB`); names are compared ignoring letter case. One value stays shared by all stores because it is not a property of a store: the wait after the start of the API (default 30 seconds).
+- **FR-010** A configuration entry that names no store in use, and a store whose interval is zero or negative, MUST be reported as a warning at the start and MUST NOT stop the API or any other store.
+- **FR-011** At the start, the log MUST show one information line for each store that will be pinged, with its interval, so the operator can see what runs without waiting for the first ping.
 - **FR-007** Only the API runs the keep-alive. The other services that use the same hosted cache (Authentication, FileStorage) do not, because they share its database (owner's confirmation, 2026-11-11).
 - **FR-008** The keep-alive MUST stop promptly when the API shuts down.
 
@@ -60,13 +71,17 @@ As the operator, I never have to resume the cluster by hand because of a quiet p
 - If the API itself is down for longer than the provider's limit (14 or 30 days), nothing here helps; the deployment notes tell the operator to restart the API or use the provider's console.
 - Several API instances behind one address each ping, which is harmless.
 - A ping at the same moment as the start of the app, when the store is still connecting, may fail once; the next one succeeds (FR-004).
+- The settings are read once, at the start of the API; a change needs a restart.
+- Both stores are pinged after the same wait at the start, but then each follows its own interval, so their pings drift apart or together depending on the intervals; that is harmless.
 
 ## Success Criteria
 - **SC-001** After the release, neither provider sends an inactivity warning during a period with no user traffic.
-- **SC-002** The quickstart shows a ping for each configured store in the API log at the debug level shortly after the start, and a clear warning when a store is unreachable.
+- **SC-002** The quickstart shows, for each configured store, its interval at the start and a ping in the API log at the debug level, a clear warning when a store is unreachable, and the effect of switching one store off or giving it another interval.
 
 ## Out of scope
 - Creating or restoring a deleted database from code (considered, rejected for now).
 - Keep-alive in the Authentication and FileStorage services.
 - Alerting when a ping fails (a warning in the log is enough for now).
+- Changing the settings while the API runs.
+- A separate wait at the start for each store.
 - Other free-tier services (event broker, storage).
