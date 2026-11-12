@@ -3,29 +3,23 @@ using Microsoft.Extensions.Logging;
 
 namespace LetsTalk.Server.LinkPreview;
 
-public class LinkPreviewLogger(ILogger<LinkPreviewLogger> logger) : ILinkPreviewLogger
+public partial class LinkPreviewLogger(ILogger<LinkPreviewLogger> logger) : ILinkPreviewLogger
 {
-    private static readonly Action<ILogger, string, Exception?> _logError =
-        LoggerMessage.Define<string>(
-            LogLevel.Error,
-            new EventId(0, nameof(LinkPreviewLogger)),
-            "{Message}");
-
-    private static readonly Action<ILogger, string, Exception?> _logInformation =
-        LoggerMessage.Define<string>(
-            LogLevel.Information,
-            new EventId(1, nameof(LinkPreviewLogger)),
-            "{Message}");
-
     private readonly ILogger<LinkPreviewLogger> _logger = logger;
 
     public void LogError(Exception exception, string message)
     {
-        _logError(_logger, message, exception);
+        WriteError(_logger, exception, message);
     }
 
     public void LogInformation(string message)
     {
-        _logInformation(_logger, message, null);
+        WriteInformation(_logger, message);
     }
+
+    [LoggerMessage(Level = LogLevel.Error, Message = "{Message}")]
+    private static partial void WriteError(ILogger logger, Exception exception, string message);
+
+    [LoggerMessage(Level = LogLevel.Information, Message = "{Message}")]
+    private static partial void WriteInformation(ILogger logger, string message);
 }

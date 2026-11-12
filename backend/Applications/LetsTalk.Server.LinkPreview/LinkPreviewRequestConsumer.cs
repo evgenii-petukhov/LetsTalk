@@ -8,18 +8,13 @@ using MassTransit;
 
 namespace LetsTalk.Server.LinkPreview;
 
-public class LinkPreviewRequestConsumer(
+public partial class LinkPreviewRequestConsumer(
     ILinkPreviewService linkPreviewService,
     ILogger<LinkPreviewRequestConsumer> logger,
     IHttpClientService httpClientService,
     IOptions<ApplicationUrlSettings> applicationSettingsOptions,
     IOptions<LinkPreviewSettings> linkPreviewSettingsOptions) : IConsumer<LinkPreviewRequest>
 {
-    private static readonly Action<ILogger, string, Exception?> _logTitleEmpty =
-        LoggerMessage.Define<string>(LogLevel.Information, new EventId(1, nameof(LinkPreviewRequestConsumer)), "Title is empty: {Url}");
-    private static readonly Action<ILogger, string, Exception?> _logSuccess =
-        LoggerMessage.Define<string>(LogLevel.Information, new EventId(2, nameof(LinkPreviewRequestConsumer)), "New LinkPreview added: {Url}");
-
     private readonly ILinkPreviewService _linkPreviewService = linkPreviewService;
     private readonly ILogger<LinkPreviewRequestConsumer> _logger = logger;
     private readonly IHttpClientService _httpClientService = httpClientService;
@@ -45,7 +40,7 @@ public class LinkPreviewRequestConsumer(
 
         if (model == null || string.IsNullOrWhiteSpace(model.Title))
         {
-            _logTitleEmpty(_logger, context.Message.Url, null);
+            LogTitleEmpty(_logger, context.Message.Url);
             return;
         }
 
@@ -61,6 +56,12 @@ public class LinkPreviewRequestConsumer(
         client.DefaultRequestHeaders.Add("Authorization", $"Bearer {context.Message.Token}");
         var apiClient = new ApiClient(_applicationUrlSettings.Api, client);
         await apiClient.SetLinkPreviewAsync(payload, context.CancellationToken);
-        _logSuccess(_logger, context.Message.Url, null);
+        LogSuccess(_logger, context.Message.Url);
     }
+
+    [LoggerMessage(Level = LogLevel.Information, Message = "Title is empty: {Url}")]
+    private static partial void LogTitleEmpty(ILogger logger, string url);
+
+    [LoggerMessage(Level = LogLevel.Information, Message = "New LinkPreview added: {Url}")]
+    private static partial void LogSuccess(ILogger logger, string url);
 }

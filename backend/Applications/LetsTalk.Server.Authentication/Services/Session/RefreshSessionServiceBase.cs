@@ -8,19 +8,13 @@ using System.Text;
 
 namespace LetsTalk.Server.Authentication.Services.Session;
 
-public abstract class RefreshSessionServiceBase(
+public abstract partial class RefreshSessionServiceBase(
     IJwtCacheService jwtCacheService,
     IOptions<JwtSettings> jwtSettings,
     TimeProvider timeProvider,
     ILogger logger) : IRefreshSessionService
 {
     private const int RefreshTokenBytes = 32;
-
-    private static readonly Action<ILogger, string, string, Exception?> _logChainEnded =
-        LoggerMessage.Define<string, string>(
-            LogLevel.Warning,
-            new EventId(0, nameof(RefreshSessionServiceBase)),
-            "A refresh token that was already replaced was presented, the session chain {ChainId} of account {AccountId} was ended");
 
     private readonly IJwtCacheService _jwtCacheService = jwtCacheService;
     private readonly JwtSettings _jwtSettings = jwtSettings.Value;
@@ -71,7 +65,7 @@ public abstract class RefreshSessionServiceBase(
         }
 
         await EndChainAsync(record.ChainId);
-        _logChainEnded(_logger, record.ChainId, record.AccountId, null);
+        LogChainEnded(_logger, record.ChainId, record.AccountId);
         return null;
     }
 
@@ -83,6 +77,9 @@ public abstract class RefreshSessionServiceBase(
             await EndChainAsync(record.ChainId);
         }
     }
+
+    [LoggerMessage(Level = LogLevel.Warning, Message = "A refresh token that was already replaced was presented, the session chain {ChainId} of account {AccountId} was ended")]
+    private static partial void LogChainEnded(ILogger logger, string chainId, string accountId);
 
     protected abstract Task<RefreshRecord?> GetRecordAsync(string hash);
 
