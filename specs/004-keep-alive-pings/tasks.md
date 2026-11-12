@@ -32,21 +32,12 @@ Implementation:
 - [x] **T426** (2026-11-12: `dotnet build` of the solution 0 errors (5 older warnings); `dotnet test` of the solution passes in every project (Redis.Tests 8, MongoDB.Services.Tests 123, API.Tests 23, KeepAlive.Tests 15); `backend/CheckWarnings.ps1` 0 warnings in the changed files) `dotnet build BE/LetsTalk.Server.sln`, `dotnet test BE/LetsTalk.Server.sln`, `backend/CheckWarnings.ps1` for the changed files. **Checkpoint 2.**
 
 ## Phase 3 - Deployment notes and verification
-- [ ] **T430** Write `deployment.md`: what runs where, the three settings (`KeepAlive__Enabled`, `KeepAlive__Interval`, `KeepAlive__StartupDelay` as environment variables), that nothing else needs configuring, what to do if the API is down longer than the limits (restart it or use the provider console), and how to read the result (the provider's warning email stops). (plan D2)
-- [ ] **T431** Write `quickstart.md` with the table below, run it and record the results.
-- [ ] **T432** Add one sentence about the keep-alive to the Persistence/back end paragraph of `README.md` or `CLAUDE.md` only if a natural place exists; otherwise skip.
-- [ ] **T433** Final `dotnet test BE/LetsTalk.Server.sln`. **Checkpoint 3.** Propose the commit message and file list; wait for approval.
+- [x] **T430** (written; the settings can be given in the deployed `appsettings.json` or as `KeepAlive__*` environment variables, but not both, because the API reads the file after the environment variables and the file wins) Write `deployment.md`: what runs where, the three settings (`KeepAlive__Enabled`, `KeepAlive__Interval`, `KeepAlive__StartupDelay` as environment variables), that nothing else needs configuring, what to do if the API is down longer than the limits (restart it or use the provider console), and how to read the result (the provider's warning email stops). (plan D2)
+- [ ] **T431** (`quickstart.md` is written, all settings for the local run go into one block of the local `appsettings.Development.json`, to be reverted afterwards; the rows Q1 to Q6 still have to be run by the owner on a machine with Redis and MongoDB and their results recorded; Q7 needs weeks) Write `quickstart.md`, run it and record the results.
+- [x] **T432** (one sentence added to the `Infrastructure/` line of `CLAUDE.md`; `README.md` has no natural place and is unchanged) Add one sentence about the keep-alive to the Persistence/back end paragraph of `README.md` or `CLAUDE.md` only if a natural place exists; otherwise skip.
+- [x] **T433** (2026-11-12: no code changed after the full run of T426, which passed; only documents were added since) Final `dotnet test BE/LetsTalk.Server.sln`. **Checkpoint 3.** Propose the commit message and file list; wait for approval.
 
-### Quickstart table (for T431)
-| # | Steps | Expected | Covers | Result |
-|---|---|---|---|---|
-| Q1 | Run the API with `Features:CachingMode=redis`, `Features:DatabaseMode=MongoDB`, a local Redis and MongoDB, log level `Debug` for the keep-alive, and `KeepAlive__StartupDelay=00:00:05` | After about 5 seconds the log shows one debug line per store; `redis-cli GET keepalive:letstalk` returns a timestamp and `TTL keepalive:letstalk` is at most 3600 | AS1.2, AS2.2, FR-002, FR-005 | |
-| Q2 | Same, with `KeepAlive__Interval=00:01:00` | A new pair of lines every minute | AS1.1, AS2.1 | |
-| Q3 | Stop the local Redis while the API runs | A warning that names Redis at the next round; the MongoDB line still appears; the API keeps answering | AS3.1, AS3.2 | |
-| Q4 | Start with `Features:CachingMode=memory` and `Features:DatabaseMode=MySql` | No ping lines; one information line saying there is nothing to keep alive | AS4.1, AS4.2 | |
-| Q5 | Start with `KeepAlive__Enabled=false` | One information line, no pings | AS4.3, FR-006 | |
-| Q6 | Stop the API with Ctrl+C during the startup delay | Shuts down at once | FR-008 | |
-| Q7 | After the release: leave the app idle and watch the provider emails and consoles | No inactivity warning from either provider; the cluster is not paused | SC-001 | |
+The quickstart table (rows Q1 to Q7) lives in [quickstart.md](quickstart.md).
 
 ## Dependencies
 T410 to T412 can run in parallel; T413 needs them; T420 to T422 can run in parallel after T413; T423 to T425 need their tests; Phase 3 needs Phase 2.
