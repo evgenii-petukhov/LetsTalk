@@ -51,7 +51,7 @@ Event-driven microservices; the event broker is switchable between Apache Kafka 
 Layout of the rest of `backend/`:
 - `API/` — layered API pieces: Core (MediatR CQRS handlers), Core.Commands, Middleware, Models, Validation, Client (gRPC/HTTP clients), each with sibling `*.Tests` projects.
 - `Persistence/` — pluggable database layer. `Features:DatabaseMode` (e.g. `MySql`) picks the provider: EntityFramework (MySQL, with migrations and `MigrationTool`), MongoDB, CosmosDB. Each provider has `Models`, `Repository(.Abstractions)`, and `Services(.Tests)`. Provider-neutral contracts are `Persistence.AgnosticServices.Abstractions` (`I*AgnosticService`) with models in `AgnosticServices.Models`; application code depends only on those. `LetsTalk.Server.Domain` holds entities; `Persistence.Redis` handles Redis.
-- `Infrastructure/` — cross-cutting: Configuration, Authentication, FileStorage, ImageProcessing, LinkPreview, Logging, SignPackage, Telemetry, and `DependencyInjection` (shared service registration).
+- `Infrastructure/` — cross-cutting: Configuration, Authentication, FileStorage, ImageProcessing, KeepAlive, LinkPreview, Logging, SignPackage, Telemetry, and `DependencyInjection` (shared service registration). `KeepAlive` is a hosted service that the API runs once a day to send a small signal to each hosted store (Redis Cloud, MongoDB Atlas free tiers), so the provider neither deletes nor pauses it; each store supplies an `IKeepAliveTarget` (see `specs/004-keep-alive-pings`).
 - `Models/` — DTOs, Kafka/broker message models, exceptions. `Shared/` — helpers.
 
 When adding a persistence feature, implement it across all providers and keep behavior consistent with the agnostic contract.
