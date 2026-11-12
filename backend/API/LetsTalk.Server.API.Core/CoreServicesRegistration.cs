@@ -32,7 +32,11 @@ public static class CoreServicesRegistration
                 cfg.LicenseKey = configuration.GetValue<string>("AutoMapper:LicenseKey");
             },
             Assembly.GetExecutingAssembly());
-        services.AddMediatR(options => options.RegisterServicesFromAssembly(Assembly.GetExecutingAssembly()));
+        services.AddMediatR(options =>
+        {
+            options.RegisterServicesFromAssembly(Assembly.GetExecutingAssembly());
+            options.LicenseKey = configuration.GetValue<string>("MediatR:LicenseKey");
+        });
         services.AddScoped<IRegexService, RegexService>();
         services.AddScoped<IHtmlGenerator, HtmlGenerator>();
         services.AddScoped<IIceServerConfigurationService, IceServerConfigurationService>();
