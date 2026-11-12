@@ -130,7 +130,7 @@ public class KeepAliveServiceTests
     }
 
     [Test]
-    public async Task ExecuteAsync_WhenTargetSucceeds_ShouldLogOnlyAtDebug()
+    public async Task ExecuteAsync_WhenTargetSucceeds_ShouldLogOneInformationLine()
     {
         // Arrange
         var target = new RecordingTarget(FirstTargetName);
@@ -143,7 +143,7 @@ public class KeepAliveServiceTests
 
         // Assert
         _logger.Entries.Where(entry => entry.Message.Contains(SignalSentText))
-            .Should().OnlyContain(entry => entry.Level == LogLevel.Debug);
+            .Should().ContainSingle().Which.Level.Should().Be(LogLevel.Information);
         _logger.Entries.Should().NotContain(entry => entry.Level >= LogLevel.Warning);
     }
 
@@ -317,7 +317,7 @@ public class KeepAliveServiceTests
     }
 
     [Test]
-    public async Task ExecuteAsync_WhenSettingsNameNoTarget_ShouldWarn()
+    public async Task ExecuteAsync_WhenSettingsNameNoTarget_ShouldIgnoreItWithoutAWarning()
     {
         // Arrange
         SetTarget(UnknownTargetName, interval: Interval);
@@ -329,8 +329,8 @@ public class KeepAliveServiceTests
         await target.WaitForCallsAsync(1);
 
         // Assert
-        _logger.Entries.Should().ContainSingle(entry =>
-            entry.Level == LogLevel.Warning && entry.Message.Contains(UnknownTargetName));
+        _logger.Entries.Should().NotContain(entry => entry.Level >= LogLevel.Warning);
+        _logger.Entries.Should().NotContain(entry => entry.Message.Contains(UnknownTargetName));
     }
 
     [Test]

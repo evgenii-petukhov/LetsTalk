@@ -45,14 +45,6 @@ public partial class KeepAliveService(
             }
         }
 
-        foreach (var name in _settings.Targets.Keys)
-        {
-            if (!_targets.Any(target => string.Equals(target.Name, name, StringComparison.OrdinalIgnoreCase)))
-            {
-                LogUnknownStore(_logger, name);
-            }
-        }
-
         if (runnable.Count == 0)
         {
             LogNothingToDo(_logger);
@@ -123,10 +115,7 @@ public partial class KeepAliveService(
     [LoggerMessage(Level = LogLevel.Warning, Message = "Keep-alive for {Target} is skipped: the interval {Interval} is not positive")]
     private static partial void LogInvalidInterval(ILogger logger, string target, TimeSpan interval);
 
-    [LoggerMessage(Level = LogLevel.Warning, Message = "Keep-alive settings name {Name}, which is not a store in use; they have no effect")]
-    private static partial void LogUnknownStore(ILogger logger, string name);
-
-    [LoggerMessage(Level = LogLevel.Debug, Message = "Keep-alive signal sent to {Target}")]
+    [LoggerMessage(Level = LogLevel.Information, Message = "Keep-alive signal sent to {Target}")]
     private static partial void LogSucceeded(ILogger logger, string target);
 
     [LoggerMessage(Level = LogLevel.Warning, Message = "Keep-alive signal to {Target} failed: {Reason}")]

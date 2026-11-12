@@ -58,12 +58,11 @@ The API's `appsettings.json` gets a `KeepAlive` section with the values of the e
 ### D4. The hosted service (FR-002, FR-004, FR-005, FR-008, FR-010, FR-011)
 `KeepAliveService : BackgroundService`:
 1. Resolve each registered target's settings: `Targets[target.Name]`. Skip a target with no entry (information line: not listed). Skip a target whose `Enabled` is false (information line). Skip a target whose `Interval` is zero or negative and log a warning (a `PeriodicTimer` would throw on it). Everything left is *runnable*.
-2. For every key in `Targets` that matches no registered target (ignoring case), log a warning (AS5.4). This also fires for `Redis` while the in-memory cache is selected, which is correct: that entry has no effect.
-3. If nothing is runnable (every store disabled or skipped, or no store registered), log once at `Information` and return.
-4. Log one information line per runnable target with its interval (FR-011).
-5. Wait `StartupDelay` once for all stores (`Task.Delay` with the injected `TimeProvider`). Then run one loop per runnable target and wait for all of them (`Task.WhenAll`). Each loop: ping, then wait for the target's own `PeriodicTimer(interval, timeProvider)`, until the stopping token is cancelled.
-6. A ping has its own try/catch: a failure logs `Warning` with `target.Name` and the exception message, a success logs `Debug`. A hang is bounded by a per-ping timeout (30 seconds, a `CancellationTokenSource` built from the `TimeProvider`). Because every store has its own loop, a failing or hung store cannot delay or skip another (AS3.2, FR-004).
-7. `OperationCanceledException` from the stopping token ends the loops quietly (FR-008).
+2. If nothing is runnable (every store disabled or skipped, or no store registered), log once at `Information` and return.
+3. Log one information line per runnable target with its interval (FR-011).
+4. Wait `StartupDelay` once for all stores (`Task.Delay` with the injected `TimeProvider`). Then run one loop per runnable target and wait for all of them (`Task.WhenAll`). Each loop: ping, then wait for the target's own `PeriodicTimer(interval, timeProvider)`, until the stopping token is cancelled.
+5. A ping has its own try/catch: a failure logs `Warning` with `target.Name` and the exception message, a success logs `Information` (FR-005). A hang is bounded by a per-ping timeout (30 seconds, a `CancellationTokenSource` built from the `TimeProvider`). Because every store has its own loop, a failing or hung store cannot delay or skip another (AS3.2, FR-004).
+6. `OperationCanceledException` from the stopping token ends the loops quietly (FR-008).
 
 ### D5. Registration (FR-001, FR-007, AS4.1, AS4.2)
 - `AddRedisCache()` (already called only when `Features:CachingMode` is `redis`, in `CoreServicesRegistration.cs`) also registers `RedisKeepAliveTarget`. `AddMongoDBRepository()` (called only for `DatabaseMode` `MongoDB`) registers `MongoDBKeepAliveTarget`.
@@ -76,5 +75,5 @@ The API's `appsettings.json` gets a `KeepAlive` section with the values of the e
 ## Risks
 - **Not testable quickly (spec)**: the 14 and 30 day windows cannot be shortened. Mitigation: the Redis signal follows the provider's own recommendation; the provider's warning email is the check; a change is local to D3.
 - **API down**: out of scope, noted in `deployment.md`.
-- **More configuration to get wrong**: a misspelled store name or a bad interval would silently do nothing. Mitigation: both are reported as warnings at the start (D4 steps 1 and 2), and each runnable store is listed with its interval (step 4).
+- **More configuration to get wrong**: a misspelled store name or a bad interval would silently do nothing. Mitigation: a store missing from `Targets` is reported at the start (D4 step 1, so a misspelled name shows as the real store being not listed), a bad interval is a warning (step 1), and each runnable store is listed with its interval (step 3). An entry that names no store in use is ignored without a message, because it is normal when a mode switches a store off.
 - **Free-tier terms**: one ping per day is far from abuse, but the provider's terms are the operator's to check.

@@ -33,12 +33,11 @@ All optional, with defaults in the code. The API's `appsettings.json` now ships 
 The limits to stay under are 14 days (Redis Cloud free plan) and 30 days (MongoDB Atlas free M0 cluster), so keep each interval well below its store's limit.
 
 ## What you will see in the log
-- **Normal run**: nothing. A successful signal is logged at the debug level only, and production runs at `Information`.
+- **Normal run**: one information line per store per interval, for example `Keep-alive signal sent to Redis`. With the default of one day that is one line per store per day. Their presence in the log is the quickest sign that the keep-alive runs.
 - **At the start**: one information line per store that will run, for example `Keep-alive for Redis every 1.00:00:00`, and one for each store that is switched off or not listed.
 - **Failure**: a warning `Keep-alive signal to Redis failed: ...` (or `MongoDB`), once per signal. The next one runs on that store's schedule and the other store is not affected. The warning does not stop the API.
-- **Configuration mistakes** (warnings at the start): a `Targets` entry that names no store in use, for example a misspelled name or `Redis` while the in-memory cache is selected; a store whose interval is zero or negative, which is then not signalled.
+- **Configuration mistakes**: a store whose interval is zero or negative is reported as a warning at the start and is not signalled. A misspelled store name shows as the real store being `not listed in the settings` (information line). A `Targets` entry for a store that is not in use, for example `Redis` while the in-memory cache is selected, is ignored without a message.
 - **Nothing to do**: one information line at the start when no store is enabled with a valid interval or no hosted store is configured.
-- To see every signal while checking a release, set `Serilog__MinimumLevel__Override__LetsTalk.Server.KeepAlive` to `Debug` on the API.
 
 ## How to know it works
 - **Redis Cloud**: the inactivity warning email stops. Before the release you got one; after the release you should not.

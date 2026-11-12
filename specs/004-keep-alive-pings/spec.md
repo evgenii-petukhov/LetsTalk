@@ -41,7 +41,7 @@ As the operator, I can switch a store off, or give it its own interval, without 
 - **AS5.1** Given the keep-alive is switched off for one store, then only the other store is pinged.
 - **AS5.2** Given the two stores have different intervals, then each is pinged on its own schedule.
 - **AS5.3** Given a store is not listed in the keep-alive settings, then it is not pinged (the keep-alive is opt-in for each store) and an information line at the start says so; a listed store that leaves out its interval is pinged once a day, and the other store's settings never change it.
-- **AS5.4** Given the configuration names a store that does not exist or is not in use (for example a misspelled name, or the cache while the in-memory cache is selected), then a warning at the start names it, and nothing else changes.
+- **AS5.4** Given the configuration names a store that is not in use (for example the cache while the in-memory cache is selected, or a misspelled name), then nothing is done for that entry and nothing is logged about it. A misspelled name is still visible: the real store is then not listed, and the log says so (AS5.3).
 - **AS5.5** Given a store's interval is zero or negative, then that store is not pinged, a warning says why, and the other store is not affected.
 
 ## Functional Requirements
@@ -49,10 +49,10 @@ As the operator, I can switch a store off, or give it its own interval, without 
 - **FR-002** A ping MUST be sent to each store shortly after the API starts and then at that store's own configurable interval (default one day for each store). There is no interval shared by the stores.
 - **FR-003** A ping MUST NOT read, write or change any application data. The only data it may write is one dedicated key with a short expiry in the cache; it writes nothing to the document database.
 - **FR-004** A failed ping MUST be logged as a warning with the store name and MUST NOT stop the schedule, stop the other store's ping or stop the API. A slow or hung store MUST NOT delay another store's ping.
-- **FR-005** A successful ping MUST be logged at the debug level only, so the daily log is not filled with noise.
+- **FR-005** A successful ping MUST be logged at the information level, one line per store per interval (owner's decision, 2026-11-12), so the operator can see in the production log that the keep-alive works. With the default of one day this is one line per store per day, so the log is not filled with noise.
 - **FR-006** The keep-alive MUST be switchable off for each store, and the interval MUST be configurable for each store, with defaults in code for what a listed store leaves out (enabled, one day; no secret or connection string is involved). A store is pinged only when it is listed in the settings (opt-in). There is no switch for the whole keep-alive: it is off when every store is off or not listed. A listed store does not inherit anything from another store or from a shared value.
 - **FR-009** Settings are given per store, under the store's name as the logs show it (`Redis`, `MongoDB`); names are compared ignoring letter case. One value stays shared by all stores because it is not a property of a store: the wait after the start of the API (default 30 seconds).
-- **FR-010** A configuration entry that names no store in use, and a store whose interval is zero or negative, MUST be reported as a warning at the start and MUST NOT stop the API or any other store.
+- **FR-010** A store whose interval is zero or negative MUST be reported as a warning at the start and MUST NOT stop the API or any other store. A configuration entry that names no store in use is ignored without a message (owner's decision, 2026-11-12: the warning was noise whenever a store is switched off by its mode, and a misspelled name already shows as an unlisted store).
 - **FR-011** At the start, the log MUST show one information line for each store that will be pinged, with its interval, so the operator can see what runs without waiting for the first ping.
 - **FR-007** Only the API runs the keep-alive. The other services that use the same hosted cache (Authentication, FileStorage) do not, because they share its database (owner's confirmation, 2026-11-11).
 - **FR-008** The keep-alive MUST stop promptly when the API shuts down.
@@ -76,7 +76,7 @@ As the operator, I can switch a store off, or give it its own interval, without 
 
 ## Success Criteria
 - **SC-001** After the release, neither provider sends an inactivity warning during a period with no user traffic.
-- **SC-002** The quickstart shows, for each configured store, its interval at the start and a ping in the API log at the debug level, a clear warning when a store is unreachable, and the effect of switching one store off or giving it another interval.
+- **SC-002** The quickstart shows, for each configured store, its interval at the start and a ping in the API log at the information level, a clear warning when a store is unreachable, and the effect of switching one store off or giving it another interval.
 
 ## Out of scope
 - Creating or restoring a deleted database from code (considered, rejected for now).
