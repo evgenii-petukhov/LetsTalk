@@ -2,7 +2,6 @@
 using LetsTalk.Server.Persistence.CosmosDB.Repository;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using System.Reflection;
 
 namespace LetsTalk.Server.Persistence.CosmosDB.Services;
 
@@ -17,12 +16,6 @@ public static class CosmosDBServicesRegistration
         services.AddScoped<IProfileAgnosticService, ProfileCosmosDBService>();
         services.AddScoped<IChatAgnosticService, ChatCosmosDBService>();
         services.AddScoped<ILinkPreviewAgnosticService, LinkPreviewCosmosDBService>();
-        services.AddAutoMapper(
-            cfg =>
-            {
-                cfg.LicenseKey = configuration.GetValue<string>("AutoMapper:LicenseKey");
-            },
-            Assembly.GetExecutingAssembly());
 
         await services.AddCosmosDBRepository(configuration);
 

@@ -18,12 +18,6 @@ public static class MongoDBServicesRegistration
         services.AddScoped<IProfileAgnosticService, ProfileMongoDBService>();
         services.AddScoped<IChatAgnosticService, ChatMongoDBService>();
         services.AddScoped<ILinkPreviewAgnosticService, LinkPreviewMongoDBService>();
-        services.AddAutoMapper(
-            cfg =>
-            {
-                cfg.LicenseKey = configuration.GetValue<string>("AutoMapper:LicenseKey");
-            },
-            Assembly.GetExecutingAssembly());
 
         services.AddMongoDBRepository(configuration);
 

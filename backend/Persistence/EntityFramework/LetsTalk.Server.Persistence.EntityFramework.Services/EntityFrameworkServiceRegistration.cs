@@ -1,7 +1,6 @@
 ﻿using LetsTalk.Server.Persistence.AgnosticServices.Abstractions;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Configuration;
-using System.Reflection;
 using LetsTalk.Server.Persistence.EntityFramework.Repository;
 
 namespace LetsTalk.Server.Persistence.EntityFramework.Services;
@@ -17,12 +16,6 @@ public static class EntityFrameworkServiceRegistration
         services.AddScoped<IProfileAgnosticService, ProfileEntityFrameworkService>();
         services.AddScoped<IChatAgnosticService, ChatEntityFrameworkService>();
         services.AddScoped<ILinkPreviewAgnosticService, LinkPreviewEntityFrameworkService>();
-        services.AddAutoMapper(
-            cfg =>
-            {
-                cfg.LicenseKey = configuration.GetValue<string>("AutoMapper:LicenseKey");
-            },
-            Assembly.GetExecutingAssembly());
         services.AddPersistenceRepositoryServices(configuration);
 
         return services;

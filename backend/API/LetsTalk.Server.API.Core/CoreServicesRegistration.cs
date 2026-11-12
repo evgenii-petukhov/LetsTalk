@@ -31,7 +31,8 @@ public static class CoreServicesRegistration
             {
                 cfg.LicenseKey = configuration.GetValue<string>("AutoMapper:LicenseKey");
             },
-            Assembly.GetExecutingAssembly());
+            Assembly.GetExecutingAssembly(),
+            PersistenceAgnosticServicesRegistration.GetMappingProfilesAssembly(configuration));
         services.AddMediatR(options =>
         {
             options.RegisterServicesFromAssembly(Assembly.GetExecutingAssembly());
