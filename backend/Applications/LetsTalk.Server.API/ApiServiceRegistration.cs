@@ -3,6 +3,7 @@ using LetsTalk.Server.Configuration;
 using LetsTalk.Server.Configuration.Models;
 using LetsTalk.Server.API.Core;
 using LetsTalk.Server.Cors;
+using LetsTalk.Server.KeepAlive;
 using LetsTalk.Server.Logging;
 using LetsTalk.Server.SignPackage;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -25,6 +26,7 @@ public static class ApiServiceRegistration
             Assembly.GetExecutingAssembly());
         await services.AddCoreServices(configuration);
         services.AddLoggingServices();
+        services.AddKeepAlive(configuration);
         services.AddAuthenticationClientServices(configuration);
         services.AddSignPackageServices(configuration);
         services.AddControllers();

@@ -1,4 +1,5 @@
 ﻿using LetsTalk.Server.Configuration.Models;
+using LetsTalk.Server.KeepAlive;
 using LetsTalk.Server.Persistence.MongoDB.Repository.Abstractions;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -13,7 +14,7 @@ public static class MongoDBRepositoryRegistration
         IConfiguration configuration)
     {
         services.AddSingleton<IMongoClient>(new MongoClient(configuration.GetConnectionString("MongoDB")));
-
+        services.AddSingleton<IKeepAliveTarget, MongoDBKeepAliveTarget>();
         services.AddScoped<IAccountRepository, AccountRepository>();
         services.AddScoped<IChatRepository, ChatRepository>();
         services.AddScoped<IMessageRepository, MessageRepository>();

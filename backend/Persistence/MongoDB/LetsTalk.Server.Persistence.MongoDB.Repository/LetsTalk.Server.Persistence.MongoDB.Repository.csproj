@@ -15,6 +15,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\..\Infrastructure\Configuration\LetsTalk.Server.Configuration\LetsTalk.Server.Configuration.csproj" />
+    <ProjectReference Include="..\..\..\Infrastructure\LetsTalk.Server.KeepAlive\LetsTalk.Server.KeepAlive.csproj" />
     <ProjectReference Include="..\..\LetsTalk.Server.Persistence.Enums\LetsTalk.Server.Persistence.Enums.csproj" />
     <ProjectReference Include="..\LetsTalk.Server.Persistence.MongoDB.Repository.Abstractions\LetsTalk.Server.Persistence.MongoDB.Repository.Abstractions.csproj" />
     <ProjectReference Include="..\..\..\Shared\LetsTalk.Server.DateHelpers\LetsTalk.Server.DateHelpers.csproj" />
