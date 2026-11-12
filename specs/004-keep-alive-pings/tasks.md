@@ -11,13 +11,13 @@
 
 ## Phase 1 - Keep-alive library
 Tests first, in the new `BE/Infrastructure/LetsTalk.Server.KeepAlive.Tests`:
-- [ ] **T410** `KeepAliveSettingsTests` (defaults: enabled, one day, 30 seconds; binding from configuration) [P]. (FR-006)
-- [ ] **T411** `KeepAliveServiceTests`, with a fake `TimeProvider` and mocked `IKeepAliveTarget`s: `ExecuteAsync_WhenStarted_ShouldPingAllTargetsAfterTheStartupDelay`; `..._WhenIntervalPasses_ShouldPingAgain`; `..._WhenOneTargetFails_ShouldStillPingTheOthers`; `..._WhenTargetFails_ShouldLogAWarningWithTheNameAndKeepRunning`; `..._WhenTargetSucceeds_ShouldLogOnlyAtDebug`; `..._WhenTargetHangs_ShouldCancelThePingAfterTheTimeout`; `..._WhenDisabled_ShouldNotPing`; `..._WhenNoTargets_ShouldNotPing`; `..._WhenStopped_ShouldEndQuickly`. (FR-002, FR-004, FR-005, FR-006, FR-008, AS3.1, AS3.2)
-- [ ] **T412** `KeepAliveRegistrationTests`: `AddKeepAlive_ShouldBindSettingsAndRegisterTheHostedService`. (FR-006, FR-007) [P]
+- [x] **T410** (3 tests: defaults, binding, missing section) `KeepAliveSettingsTests` (defaults: enabled, one day, 30 seconds; binding from configuration) [P]. (FR-006)
+- [x] **T411** (9 tests with `FakeTimeProvider` (package `Microsoft.Extensions.TimeProvider.Testing`) and a recording target; the tests call `ExecuteAsync` through a small subclass instead of `StartAsync`, because .NET 10 starts `ExecuteAsync` asynchronously and the startup timer would otherwise be registered after the test has already moved the clock; run 3 times to check for flakiness) `KeepAliveServiceTests`, with a fake `TimeProvider` and mocked `IKeepAliveTarget`s: `ExecuteAsync_WhenStarted_ShouldPingAllTargetsAfterTheStartupDelay`; `..._WhenIntervalPasses_ShouldPingAgain`; `..._WhenOneTargetFails_ShouldStillPingTheOthers`; `..._WhenTargetFails_ShouldLogAWarningWithTheNameAndKeepRunning`; `..._WhenTargetSucceeds_ShouldLogOnlyAtDebug`; `..._WhenTargetHangs_ShouldCancelThePingAfterTheTimeout`; `..._WhenDisabled_ShouldNotPing`; `..._WhenNoTargets_ShouldNotPing`; `..._WhenStopped_ShouldEndQuickly`. (FR-002, FR-004, FR-005, FR-006, FR-008, AS3.1, AS3.2)
+- [x] **T412** (3 tests: settings bound and hosted service registered; resolves with no target; a registered target reaches the service) `KeepAliveRegistrationTests`: `AddKeepAlive_ShouldBindSettingsAndRegisterTheHostedService`. (FR-006, FR-007) [P]
 
 Implementation:
-- [ ] **T413** Create `LetsTalk.Server.KeepAlive` (`IKeepAliveTarget`, `KeepAliveSettings`, `KeepAliveService`, `AddKeepAlive`) and the test project; add both to `LetsTalk.Server.sln` by hand. (T410 to T412; plan D1, D2, D4)
-- [ ] **T414** `dotnet test BE/Infrastructure/LetsTalk.Server.KeepAlive.Tests`. **Checkpoint 1.**
+- [x] **T413** (new projects `LetsTalk.Server.KeepAlive` and `LetsTalk.Server.KeepAlive.Tests`; added to the solution by editing `LetsTalk.Server.sln` because `dotnet sln add` refused ("Solution folder Infrastructure already contains a project with the filename"); `KeepAliveService` logs through `[LoggerMessage]` and pings the targets one after another, so a hung store delays the next one by at most the 30 second timeout) Create `LetsTalk.Server.KeepAlive` (`IKeepAliveTarget`, `KeepAliveSettings`, `KeepAliveService`, `AddKeepAlive`) and the test project; add both to `LetsTalk.Server.sln` by hand. (T410 to T412; plan D1, D2, D4)
+- [x] **T414** (2026-11-12: 15 tests pass; `backend/CheckWarnings.ps1` 0 warnings in the changed files) `dotnet test BE/Infrastructure/LetsTalk.Server.KeepAlive.Tests`. **Checkpoint 1.**
 
 ## Phase 2 - Store targets and wiring
 Tests first:
