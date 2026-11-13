@@ -1,5 +1,6 @@
-﻿using LetsTalk.Server.Configuration;
+using LetsTalk.Server.Configuration;
 using LetsTalk.Server.Configuration.Models;
+using LetsTalk.Server.Configuration.Validation;
 using LetsTalk.Server.EmailService.Abstractions;
 using LetsTalk.Server.EmailService.Services;
 using LetsTalk.Server.Models.Kafka;
@@ -75,7 +76,7 @@ public static class EmailServiceRegistration
             }
         });
 
-        services.Configure<EmailServiceSettings>(configuration.GetSection("EmailService"));
+        services.AddValidatedSettings<EmailServiceSettings, EmailServiceSettingsValidator>(configuration, EmailServiceSettingsValidator.Section);
         services.AddScoped<IEmailService, DefaultEmailService>();
 
         return services;

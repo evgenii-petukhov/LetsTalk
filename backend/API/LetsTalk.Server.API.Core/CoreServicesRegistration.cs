@@ -150,9 +150,9 @@ public static class CoreServicesRegistration
         switch (configuration.GetValue<string>("Features:LinkPreviewMode"))
         {
             case "aws":
-                services.Configure<AwsSettings>(configuration.GetSection("Aws"));
+                services.AddValidatedSettings<AwsSettings, AwsSettingsValidator>(configuration, AwsSettingsValidator.Section);
                 services.Configure<ApplicationUrlSettings>(configuration.GetSection("ApplicationUrls"));
-                services.Configure<LinkPreviewSettings>(configuration.GetSection("LinkPreview"));
+                services.AddValidatedSettings<LinkPreviewSettings, LinkPreviewSettingsValidator>(configuration, LinkPreviewSettingsValidator.Section);
                 services.AddScoped<ILinkPreviewLauncher, LinkPreviewLambdaLauncher>();
                 break;
             default:
@@ -163,7 +163,7 @@ public static class CoreServicesRegistration
         switch (configuration.GetValue<string>("Features:ImageProcessingMode"))
         {
             case "aws":
-                services.Configure<AwsSettings>(configuration.GetSection("Aws"));
+                services.AddValidatedSettings<AwsSettings, AwsSettingsValidator>(configuration, AwsSettingsValidator.Section);
                 services.Configure<ApplicationUrlSettings>(configuration.GetSection("ApplicationUrls"));
                 services.AddScoped<IImageProcessingLauncher, ImageProcessingLambdaLauncher>();
                 break;

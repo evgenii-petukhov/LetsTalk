@@ -56,12 +56,12 @@ Implementation:
 
 ## Phase 5 - Required secrets (FR-014)
 Tests first, in `LetsTalk.Server.Configuration.Tests` (each: empty, whitespace and null fail; a value passes; the message names the key and never the value):
-- [ ] **T560** `SignPackageSettingsValidatorTests`, `CloudflareSettingsValidatorTests` (extend with `TurnTokenId`, `ApiToken`), `LinkPreviewSettingsValidatorTests`, `AwsSettingsValidatorTests` (four keys) [P]. (FR-014)
-- [ ] **T561** `EmailServiceSettingsValidatorTests` [P]: five texts non-empty; `Port` 0 and 65536 fail, 25, 587 and 65535 pass. (FR-014)
-- [ ] **T562** `AddValidatedSettings` called twice for one class (the API registers `Aws` in two modes) reports each failure once. (plan D1)
+- [x] **T560** `SignPackageSettingsValidatorTests`, `CloudflareSettingsValidatorTests` (extend with `TurnTokenId`, `ApiToken`), `LinkPreviewSettingsValidatorTests`, `AwsSettingsValidatorTests` (four keys) [P]. (FR-014)
+- [x] **T561** `EmailServiceSettingsValidatorTests` [P]: five texts non-empty; `Port` 0 and 65536 fail, 25, 587 and 65535 pass. (FR-014)
+- [x] **T562** `AddValidatedSettings` called twice for one class (the API registers `Aws` in two modes) reports each failure once. (plan D1)
 
 Implementation:
-- [ ] **T563** Validators; registrations in `SignPackageServiceRegistration.cs`, `CoreServicesRegistration.cs` (Cloudflare, Aws and LinkPreview in the `aws` modes), `LinkPreviewServiceRegistration.cs`, `AmazonFileServicesRegistration.cs`, `EmailServiceRegistration.cs`. No defaults, no JSON change. (T560 to T562)
+- [x] **T563** Validators; registrations in `SignPackageServiceRegistration.cs`, `CoreServicesRegistration.cs` (Cloudflare, Aws and LinkPreview in the `aws` modes), `LinkPreviewServiceRegistration.cs`, `AmazonFileServicesRegistration.cs`, `EmailServiceRegistration.cs`. No defaults, no JSON change. Two findings: `AddAmazonFileServices` is called unconditionally by every file-storage host, so `Aws` is validated there only when `Features:FileStorage` is `AmazonS3` (a local set-up needs no Aws values); and `Features:FileStorage` falls back to `Local` when absent, so the `BasePath` rule of phase 4 now reads the mode with the same helper (`FileStorageMode.Of`). (T560 to T562)
 - [ ] **T564** `dotnet build`, `dotnet test BE/LetsTalk.Server.sln`. **Checkpoint 5.** Propose the commit message and file list; wait for approval.
 
 ## Phase 6 - Documentation and verification

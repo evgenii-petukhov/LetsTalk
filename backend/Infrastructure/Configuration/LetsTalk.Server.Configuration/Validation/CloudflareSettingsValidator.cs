@@ -13,6 +13,8 @@ public class CloudflareSettingsValidator : SettingsValidatorBase<CloudflareSetti
 
     protected override IEnumerable<string?> GetErrors(CloudflareSettings settings)
     {
+        yield return SettingsRules.NotEmpty(Key(nameof(settings.TurnTokenId)), settings.TurnTokenId);
+        yield return SettingsRules.NotEmpty(Key(nameof(settings.ApiToken)), settings.ApiToken);
         yield return SettingsRules.Range(Key(nameof(settings.TokenTtl)), settings.TokenTtl, MinTokenTtl, MaxTokenTtl);
     }
 }

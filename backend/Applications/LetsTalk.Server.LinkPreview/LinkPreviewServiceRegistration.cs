@@ -1,5 +1,6 @@
-﻿using LetsTalk.Server.Configuration;
+using LetsTalk.Server.Configuration;
 using LetsTalk.Server.Configuration.Models;
+using LetsTalk.Server.Configuration.Validation;
 using LetsTalk.Server.LinkPreview.Services;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -75,7 +76,7 @@ public static class LinkPreviewServiceRegistration
             }
         });
         services.Configure<ApplicationUrlSettings>(configuration.GetSection("ApplicationUrls"));
-        services.Configure<LinkPreviewSettings>(configuration.GetSection("LinkPreview"));
+        services.AddValidatedSettings<LinkPreviewSettings, LinkPreviewSettingsValidator>(configuration, LinkPreviewSettingsValidator.Section);
         services.AddScoped<IHttpClientService, HttpClientService>();
         services.AddHttpClient(nameof(HttpClientService)).ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler
         {

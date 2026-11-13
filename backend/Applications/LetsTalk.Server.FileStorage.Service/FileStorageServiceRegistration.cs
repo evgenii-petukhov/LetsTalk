@@ -2,6 +2,7 @@ using LetsTalk.Server.Authentication.Client;
 using LetsTalk.Server.Configuration;
 using LetsTalk.Server.Configuration.Models;
 using LetsTalk.Server.Configuration.Validation;
+using LetsTalk.Server.Persistence.Enums;
 using LetsTalk.Server.FileStorage.Service.Abstractions;
 using LetsTalk.Server.FileStorage.Service.GrpcInterceptors;
 using LetsTalk.Server.FileStorage.Service.Services;
@@ -36,7 +37,7 @@ public static class FileStorageServiceRegistration
         services.AddImageResizeEngineServices();
         services.AddFileStorageSettings(
             configuration,
-            requireBasePath: string.Equals(configuration.GetValue<string>("Features:FileStorage"), "Local", StringComparison.OrdinalIgnoreCase));
+            requireBasePath: FileStorageMode.Of(configuration) == FileStorageTypes.Local);
         services.AddValidatedSettings<ImageConstraints, ImageConstraintsValidator>(configuration, ImageConstraintsValidator.Section);
         services.AddAuthCookieSettings(configuration);
         services.AddAutoMapper(

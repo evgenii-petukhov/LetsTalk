@@ -1,4 +1,5 @@
-﻿using LetsTalk.Server.Configuration.Models;
+using LetsTalk.Server.Configuration.Models;
+using LetsTalk.Server.Configuration.Validation;
 using LetsTalk.Server.SignPackage.Abstractions;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -11,7 +12,7 @@ public static class SignPackageServiceRegistration
         this IServiceCollection services,
         IConfiguration configuration)
     {
-        services.Configure<SignPackageSettings>(configuration.GetSection("SignPackage"));
+        services.AddValidatedSettings<SignPackageSettings, SignPackageSettingsValidator>(configuration, SignPackageSettingsValidator.Section);
         services.AddScoped<ISignPackageService, SignPackageService>();
 
         return services;
