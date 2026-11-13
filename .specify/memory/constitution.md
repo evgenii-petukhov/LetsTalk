@@ -36,9 +36,10 @@ Non-negotiable rules that every spec, plan and task list is checked against. Der
 - Work follows `spec.md` (what and why) -> `plan.md` (how) -> `tasks.md` (do). The spec stays technology-free.
 - Behavior changes update the spec first, then the plan and tasks.
 - Unresolved `[NEEDS CLARIFICATION]` markers block planning.
+- Implementation starts only after `spec.md`, `plan.md` and `tasks.md` are committed, in a commit of their own (with `research.md` and `quickstart.md` when they exist). A reviewer can then compare every code commit with an agreed specification.
 
 ## Governance
 - The constitution is amended by editing this file in its own commit, with the reason in the message.
 - A plan that violates a principle must list the violation and its justification in its "Constitution check" section.
 
-**Version**: 1.0.0 | **Ratified**: 2026-10-25
+**Version**: 1.1.0 | **Ratified**: 2026-10-25 | **Amended**: 2026-11-13 (principle 7: the specification is committed before implementation starts)
