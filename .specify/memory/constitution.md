@@ -17,7 +17,7 @@ Non-negotiable rules that every spec, plan and task list is checked against. Der
 ### 3. Back end: event-driven microservices with provider-neutral persistence
 - Services stay separate (API, Authentication, FileStorage, Notifications, ...). Cross-service calls go through the existing gRPC and broker clients.
 - Application code depends on `*AgnosticService` abstractions only. A persistence feature is implemented for every provider (EntityFramework/MySQL, MongoDB, CosmosDB) with identical behavior.
-- Shared registration lives in `Infrastructure/DependencyInjection`.
+- Shared registration lives in `Infrastructure/DependencyInjection`. A static class that registers a feature is named `<Feature>ServiceCollectionExtensions` (file and class), its method `Add<Feature>` or `Add<Feature>Services`. Do not reuse a framework class name (the EF Core class is `EntityFrameworkServiceCollectionExtensions`, hence `EntityFrameworkMySql...`).
 
 ### 4. Test-first, with the project's tools
 - Back end: NUnit + Moq + FluentAssertions. Test names follow `Method_WhenCondition_ShouldOutcome`; repeated literals are class-level `private const`. Persistence service tests mock repositories and `IMapper` (see `.github/instructions/persistence-service-tests.instructions.md`).
@@ -42,4 +42,4 @@ Non-negotiable rules that every spec, plan and task list is checked against. Der
 - The constitution is amended by editing this file in its own commit, with the reason in the message.
 - A plan that violates a principle must list the violation and its justification in its "Constitution check" section.
 
-**Version**: 1.1.1 | **Ratified**: 2026-10-25 | **Amended**: 2026-11-13 (principle 1: where secrets come from now; earlier, 1.1.0: the specification is committed before implementation starts)
+**Version**: 1.1.2 | **Ratified**: 2026-10-25 | **Amended**: 2026-11-13 (principle 3: naming of registration classes; earlier, 1.1.1: where secrets come from, 1.1.0: the specification is committed before implementation starts)
