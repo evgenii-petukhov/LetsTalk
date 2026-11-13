@@ -6,7 +6,7 @@ Non-negotiable rules that every spec, plan and task list is checked against. Der
 
 ### 1. Security first
 - Credentials and tokens must not be readable by browser JavaScript.
-- No secrets (keys, API tokens, connection strings) in commits. `appsettings.json` values stay empty or come from user secrets and environment variables.
+- No secrets (keys, API tokens, passwords, connection strings) in commits. The committed `appsettings.json` files list none; secrets come from `LetsTalk_`-prefixed environment variables locally and are added to the deployed `appsettings.json` at deployment.
 - Swagger and other developer tooling stay limited to the Development environment.
 - CORS uses explicit origins from configuration, never "allow any" together with credentials.
 
@@ -42,4 +42,4 @@ Non-negotiable rules that every spec, plan and task list is checked against. Der
 - The constitution is amended by editing this file in its own commit, with the reason in the message.
 - A plan that violates a principle must list the violation and its justification in its "Constitution check" section.
 
-**Version**: 1.1.0 | **Ratified**: 2026-10-25 | **Amended**: 2026-11-13 (principle 7: the specification is committed before implementation starts)
+**Version**: 1.1.1 | **Ratified**: 2026-10-25 | **Amended**: 2026-11-13 (principle 1: where secrets come from now; earlier, 1.1.0: the specification is committed before implementation starts)
