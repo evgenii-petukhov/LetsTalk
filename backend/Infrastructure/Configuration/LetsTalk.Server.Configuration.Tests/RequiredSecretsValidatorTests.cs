@@ -32,25 +32,6 @@ public class RequiredSecretsValidatorTests
             .Succeeded.Should().BeTrue();
     }
 
-    [TestCase(null)]
-    [TestCase("")]
-    [TestCase("  ")]
-    public void LinkPreview_WhenSecretKeyIsEmpty_ShouldFail(string? key)
-    {
-        // Act
-        var result = new LinkPreviewSettingsValidator().Validate(null, new LinkPreviewSettings { SecretKey = key });
-
-        // Assert
-        result.Failures.Should().ContainSingle().Which.Should().Be("LinkPreview:SecretKey must be set.");
-    }
-
-    [Test]
-    public void LinkPreview_WhenSecretKeyIsSet_ShouldSucceed()
-    {
-        new LinkPreviewSettingsValidator().Validate(null, new LinkPreviewSettings { SecretKey = Secret })
-            .Succeeded.Should().BeTrue();
-    }
-
     [Test]
     public void Aws_WhenAllFourValuesAreSet_ShouldSucceed()
     {

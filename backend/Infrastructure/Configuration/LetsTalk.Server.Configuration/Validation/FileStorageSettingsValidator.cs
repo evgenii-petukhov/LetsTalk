@@ -1,3 +1,4 @@
+using System.Buffers;
 using LetsTalk.Server.Configuration.Models;
 
 namespace LetsTalk.Server.Configuration.Validation;
@@ -9,7 +10,7 @@ public class FileStorageSettingsValidator : SettingsValidatorBase<FileStorageSet
 
     // Not taken from Path.GetInvalidFileNameChars(): that differs by operating system, and the same
     // configuration file must be valid on every one of them.
-    private static readonly char[] InvalidChars = ['<', '>', ':', '"', '|', '?', '*'];
+    private static readonly SearchValues<char> InvalidChars = SearchValues.Create("<>:\"|?*");
 
     protected override string SectionName => Section;
 
@@ -34,7 +35,7 @@ public class FileStorageSettingsValidator : SettingsValidatorBase<FileStorageSet
             yield return $"{key} must not contain '..'.";
         }
 
-        if (folder.IndexOfAny(InvalidChars) >= 0 || folder.Any(char.IsControl))
+        if (folder.AsSpan().IndexOfAny(InvalidChars) >= 0 || folder.Any(char.IsControl))
         {
             yield return $"{key} contains a character that is not allowed in a folder name.";
         }

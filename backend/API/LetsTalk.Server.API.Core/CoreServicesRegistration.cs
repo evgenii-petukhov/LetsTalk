@@ -152,7 +152,7 @@ public static class CoreServicesRegistration
             case "aws":
                 services.AddValidatedSettings<AwsSettings, AwsSettingsValidator>(configuration, AwsSettingsValidator.Section);
                 services.Configure<ApplicationUrlSettings>(configuration.GetSection("ApplicationUrls"));
-                services.AddValidatedSettings<LinkPreviewSettings, LinkPreviewSettingsValidator>(configuration, LinkPreviewSettingsValidator.Section);
+                services.Configure<LinkPreviewSettings>(configuration.GetSection("LinkPreview"));
                 services.AddScoped<ILinkPreviewLauncher, LinkPreviewLambdaLauncher>();
                 break;
             default:

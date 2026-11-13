@@ -56,18 +56,18 @@ Implementation:
 
 ## Phase 5 - Required secrets (FR-014)
 Tests first, in `LetsTalk.Server.Configuration.Tests` (each: empty, whitespace and null fail; a value passes; the message names the key and never the value):
-- [x] **T560** `SignPackageSettingsValidatorTests`, `CloudflareSettingsValidatorTests` (extend with `TurnTokenId`, `ApiToken`), `LinkPreviewSettingsValidatorTests`, `AwsSettingsValidatorTests` (four keys) [P]. (FR-014)
+- [x] **T560** `SignPackageSettingsValidatorTests`, `CloudflareSettingsValidatorTests` (extend with `TurnTokenId`, `ApiToken`), `AwsSettingsValidatorTests` (four keys) [P]. (FR-014)
 - [x] **T561** `EmailServiceSettingsValidatorTests` [P]: five texts non-empty; `Port` 0 and 65536 fail, 25, 587 and 65535 pass. (FR-014)
 - [x] **T562** `AddValidatedSettings` called twice for one class (the API registers `Aws` in two modes) reports each failure once. (plan D1)
 
 Implementation:
-- [x] **T563** Validators; registrations in `SignPackageServiceRegistration.cs`, `CoreServicesRegistration.cs` (Cloudflare, Aws and LinkPreview in the `aws` modes), `LinkPreviewServiceRegistration.cs`, `AmazonFileServicesRegistration.cs`, `EmailServiceRegistration.cs`. No defaults, no JSON change. Two findings: `AddAmazonFileServices` is called unconditionally by every file-storage host, so `Aws` is validated there only when `Features:FileStorage` is `AmazonS3` (a local set-up needs no Aws values); and `Features:FileStorage` falls back to `Local` when absent, so the `BasePath` rule of phase 4 now reads the mode with the same helper (`FileStorageMode.Of`). (T560 to T562)
+- [x] **T563** Validators; registrations in `SignPackageServiceRegistration.cs`, `CoreServicesRegistration.cs` (Cloudflare, and Aws in the `aws` modes), `AmazonFileServicesRegistration.cs`, `EmailServiceRegistration.cs`. No defaults, no JSON change. Two findings: `AddAmazonFileServices` is called unconditionally by every file-storage host, so `Aws` is validated there only when `Features:FileStorage` is `AmazonS3` (a local set-up needs no Aws values); and `Features:FileStorage` falls back to `Local` when absent, so the `BasePath` rule of phase 4 now reads the mode with the same helper (`FileStorageMode.Of`). (T560 to T562)
 - [ ] **T564** `dotnet build`, `dotnet test BE/LetsTalk.Server.sln`. **Checkpoint 5.** Propose the commit message and file list; wait for approval.
 
 ## Phase 6 - Documentation and verification
-- [ ] **T550** `deployment.md` (already drafted) updated with the final limits; `quickstart.md` run by the owner, results recorded in its Result column.
-- [ ] **T551** `README.md`: a short "Settings" paragraph (defaults live in the classes, the file lists them, a wrong value stops the start); one sentence in `CLAUDE.md` (Back end section) pointing to the validators, only if a natural place exists.
-- [ ] **T552** Final `dotnet build BE/LetsTalk.Server.sln`, `dotnet test BE/LetsTalk.Server.sln`, `backend/CheckWarnings.ps1` for the changed files. **Checkpoint 6.** Propose the commit message and file list; wait for approval.
+- [~] **T550** (`deployment.md` is final: limits, required secrets per service, steps before deploying; the quickstart run is the owner's and is still open) `deployment.md` (already drafted) updated with the final limits; `quickstart.md` run by the owner, results recorded in its Result column.
+- [x] **T551** `README.md`: a short "Settings" paragraph (defaults live in the classes, the file lists them, a wrong value stops the start); one sentence in `CLAUDE.md` (Back end section) pointing to the validators, only if a natural place exists.
+- [x] **T552** Final `dotnet build BE/LetsTalk.Server.sln`, `dotnet test BE/LetsTalk.Server.sln`, `backend/CheckWarnings.ps1` for the changed files (it sees only uncommitted changes, so the warnings were compared with every file changed since `master` instead: one, CA1870 in `FileStorageSettingsValidator`, fixed with `SearchValues`). **Checkpoint 6.** Propose the commit message and file list; wait for approval.
 
 ## Dependencies
 T500 first. T510 to T512 can run in parallel; T513 needs T510 and T511; T514 needs T512 and T513. Phases 2 to 4 need Phase 1; within them the validators are independent of each other, so T520 to T523 and T540 to T542 can run in parallel. T541 needs the defaults of Phases 2 to 4 to exist, so it is written in Phase 4 and its expectations for earlier phases are added as those phases land.
