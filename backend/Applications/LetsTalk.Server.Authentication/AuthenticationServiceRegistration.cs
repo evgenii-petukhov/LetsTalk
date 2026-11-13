@@ -29,7 +29,7 @@ namespace LetsTalk.Server.Authentication
             services.AddGrpcReflection();
             services.AddScoped<IJwtStorageService, JwtStorageService>();
             services.AddScoped<ILoginCodeGenerator, LoginCodeGenerator>();
-            services.Configure<JwtSettings>(configuration.GetSection("JwtSettings"));
+            services.AddValidatedSettings<JwtSettings, JwtSettingsValidator>(configuration, JwtSettingsValidator.Section);
             services.AddMemoryCache();
             services.AddSingleton(TimeProvider.System);
             services.AddLoggingServices();

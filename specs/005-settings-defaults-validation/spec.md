@@ -51,7 +51,7 @@ As an operator, when I delete a tunable key from `appsettings.json`, the service
 - **FR-006** A service MUST validate only the classes it binds. Classes shared by several services are validated in each of them.
 - **FR-007** The allowed values are those of the table in "Settings in scope". They are constants in the validator, documented in `deployment.md`.
 - **FR-008** The cache lifetimes `Messages`, `Chat`, `Account`, `Profile` and `Images` MUST keep their present meaning: `0` switches that cache off and a negative value means it never expires (see research, section 2). Validation MUST NOT reject these two values.
-- **FR-009** `JwtSettings:Key` MUST be at least 32 bytes (256 bits) when encoded as UTF-8. Its value MUST NOT appear in any message or log.
+- **FR-009** `JwtSettings:Key` MUST be at least 32 characters (256 bits) and consist of ASCII characters only, because the signing code reads the key as ASCII and would turn any other character into `?` (owner's decision, 2026-11-13). Its value MUST NOT appear in any message or log.
 - **FR-010** The `AuthCookie` section MUST be added, with the shipped defaults, to `appsettings.json` of the API, FileStorage.Service and Notifications.
 - **FR-011** `FileStorage:ImageFolder` MUST be added to the `appsettings.json` of the `ExtractImageInfo` tool (it was missing from the first list; the owner plans to remove that project later, so this is the minimum), and MUST be a relative folder name that stays inside `FileStorage:BasePath` (no root, no `..`).
 - **FR-013** The meaning of the special cache values (`0` = off, `-1` = never expires, any other negative value is rejected) MUST be documented on the properties of the model (XML comments), not only in this spec.
@@ -92,7 +92,7 @@ Defaults equal the values now shipped. Ranges are proposals (D-1). "JSON" says w
 | `Aws:AccessKey`, `SecretKey`, `Region`, `BucketName` | none (secrets, deployment values) | non-empty | API (modes `aws`), FileStorage.Service (Amazon storage) | not listed |
 | `EmailService:SenderEmail`, `SenderName`, `Server`, `UserName`, `Password` | none | non-empty | EmailService | not listed |
 | `EmailService:Port` | none | 1 to 65535 | EmailService | not listed |
-| `JwtSettings:Key` | none (secret) | at least 32 bytes UTF-8, never shown | Authentication | not listed (environment) |
+| `JwtSettings:Key` | none (secret) | at least 32 characters, ASCII only, never shown | Authentication | not listed (environment) |
 | `JwtSettings:AccessTokenLifetime` | 15 min | 1 min to 7 days | Authentication | Authentication (**new**, D-4) |
 | `JwtSettings:BackgroundTokenLifetime` | 1 hour | 1 min to 7 days | Authentication | Authentication (**new**, D-4) |
 | `JwtSettings:RefreshIdleLifetime` | 30 days | 1 hour to 365 days | Authentication | Authentication (**new**, D-4) |

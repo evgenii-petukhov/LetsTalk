@@ -36,12 +36,12 @@ Implementation:
 
 ## Phase 3 - Authentication
 Tests first:
-- [ ] **T530** `JwtSettingsValidatorTests`: key absent, empty, 31 bytes fail; 32 bytes pass; 32 ASCII characters pass; 17 two-byte characters (34 bytes) pass; 16 two-byte characters (32 bytes) pass; 31 bytes made of 16 characters fails; the failure message does not contain the key (AS3.2, SC-003). Lifetimes: each bound, one below, one above; idle larger than absolute fails (AS2.4); the shipped Development values (`1.00:00:00`) pass (AS5.2). (FR-009, FR-012)
-- [ ] **T531** `AuthenticationRegistrationTests` (in the Authentication test project): the service collection built by `AddAuthenticationServices` with a short key makes the start fail, and with a valid key resolves `IOptions<JwtSettings>`. (US3)
+- [x] **T530** `JwtSettingsValidatorTests`: key absent, empty, 31 characters fail; 32 and 36 ASCII characters pass; a key with any non-ASCII character fails even when it has 32 or more UTF-8 bytes (the signing code reads the key as ASCII); the failure message does not contain the key (AS3.2, SC-003). Lifetimes: each bound, one below, one above; idle larger than absolute fails (AS2.4); the shipped Development values (`1.00:00:00`) pass (AS5.2). (FR-009, FR-012)
+- [x] **T531** `AuthenticationRegistrationTests` (in the Authentication test project): the service collection built by `AddAuthenticationServices` with a short key makes the start fail, and with a valid key resolves `IOptions<JwtSettings>`. (US3)
 
 Implementation:
-- [ ] **T532** `JwtSettingsValidator`; replace `Configure<JwtSettings>` in `AuthenticationServiceRegistration.cs`; list the five lifetimes (not the key) in the Authentication `appsettings.json` (D-4). (T530, T531; plan D6)
-- [ ] **T533** `dotnet build`, `dotnet test BE/LetsTalk.Server.sln`. **Checkpoint 3.** Propose the commit message and file list; wait for approval.
+- [x] **T532** `JwtSettingsValidator`; replace `Configure<JwtSettings>` in `AuthenticationServiceRegistration.cs`; list the five lifetimes (not the key) in the Authentication `appsettings.json` (D-4). (T530, T531; plan D6)
+- [x] **T533** `dotnet build`, `dotnet test BE/LetsTalk.Server.sln`. **Checkpoint 3.** Propose the commit message and file list; wait for approval.
 
 ## Phase 4 - File storage and the remaining JSON
 Tests first:

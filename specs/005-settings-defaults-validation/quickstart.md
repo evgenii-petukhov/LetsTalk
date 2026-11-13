@@ -14,7 +14,7 @@ The message of a refused start has the form `Messaging:MessagesPerPage must be b
 | Q4 | API: `Messaging:MessagesPerPage` = `"twenty"` | The API does not start; the message names the key | AS2.3 | |
 | Q5 | API: `Caching:ChatCacheLifeTimeInSeconds` = `0`, start, then `-1`, start | Both start; with `0` the chat is read from the database on every request, with `-1` the cache entry has no expiry (check with `redis-cli TTL`) | FR-008 | |
 | Q6 | FileStorage.Service: `ImageConstraints:AvatarMaxWidth` = `5000` (picture limit stays 4000) | Does not start; the message names the avatar and picture limits | AS2.4 | |
-| Q7 | Authentication: set `LetsTalk_JwtSettings__Key` to 31 characters, start; then to 32 characters, start | 31: does not start, the message says "at least 32 bytes" and does not contain the key. 32: starts | AS3.1, AS3.2, SC-003 | |
+| Q7 | Authentication: set `LetsTalk_JwtSettings__Key` to 31 ASCII characters, start; then to 32 ASCII characters, start; then to 16 Cyrillic letters, start | 31: does not start, the message says "at least 32 bytes" and does not contain the key. 32: starts. 16 Cyrillic letters: does not start (ASCII only) | AS3.1, AS3.2, SC-003 | |
 | Q8 | In the Notifications `appsettings.json` add `"AuthCookie": { "Name": "other" }`; run the unit tests of `LetsTalk.Server.Configuration.Tests` | The cookie-agreement test fails and names the file. Revert: it passes. Also change one value in a shipped `Caching` section: the drift test fails | AS4.2, SC-004 | |
 | Q9 | API: `AuthCookie:SameSite` = `None` and `AuthCookie:Secure` = `false` | Does not start (as before the change) | AS4.3 | |
 | Q10 | Authentication: set `LetsTalk_JwtSettings__AccessTokenLifetime` to `1.00:00:00` (the Development value) | Starts | AS5.1, AS5.2 | |
