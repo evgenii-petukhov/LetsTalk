@@ -7,7 +7,7 @@ using LetsTalk.Server.Configuration;
 
 namespace LetsTalk.Server.FileStorage.AgnosticServices;
 
-public static class FileStorageAgnosticServicesRegistration
+public static class FileStorageAgnosticServiceCollectionExtensions
 {
     public static IServiceCollection AddFileStorageAgnosticServices(
         this IServiceCollection services,

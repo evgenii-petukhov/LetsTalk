@@ -1,31 +1,36 @@
+﻿using LetsTalk.Server.Authentication.Client;
 using LetsTalk.Server.Configuration;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
 using LetsTalk.Server.Configuration.Models;
-using LetsTalk.Server.Configuration.Validation;
-using LetsTalk.Server.FileStorage.AgnosticServices;
-using LetsTalk.Server.ImageProcessing.Utility;
-using MassTransit;
+using LetsTalk.Server.Cors;
 using LetsTalk.Server.Models.Kafka;
+using LetsTalk.Server.Logging;
+using LetsTalk.Server.Notifications.Abstractions;
+using LetsTalk.Server.Notifications.Handlers;
+using LetsTalk.Server.Notifications.Services;
+using MassTransit;
 using System.Net.Mime;
-using LetsTalk.Server.ImageProcessing.ImageResizeEngine;
-using LetsTalk.Server.ImageProcessing.Utility.Abstractions;
 
-namespace LetsTalk.Server.ImageProcessing.Service;
+namespace LetsTalk.Server.Notifications;
 
-public static class ImageProcessingServiceRegistration
+public static class NotificationsServiceCollectionExtensions
 {
-    public static IServiceCollection AddImageProcessingServiceServices(
+    public static IServiceCollection AddNotificationsServices(
         this IServiceCollection services,
         IConfiguration configuration)
     {
-        services.AddFileStorageAgnosticServices(configuration);
-        services.AddImageResizeEngineServices();
+        services.AddSingleton<IConnectionManager, ConnectionManager>();
+        services.AddScoped<INotificationService, NotificationService>();
+        services.AddAuthenticationClientServices(configuration);
+        services.AddControllers();
+        services.AddSignalR(o => o.EnableDetailedErrors = true);
+        services.AddCredentialedCors(configuration);
+        services.AddLoggingServices();
+        services.AddAuthCookieSettings(configuration);
         services.AddMassTransit(x =>
         {
             if (configuration.GetValue<string>("Features:EventBrokerMode") == "aws")
             {
-                x.AddConsumer<ImageResizeRequestConsumer>();
+                x.AddConsumer<NotificationConsumer>();
 
                 x.UsingAmazonSqs((context, configure) =>
                 {
@@ -43,15 +48,15 @@ public static class ImageProcessingServiceRegistration
 
                     configure.WaitTimeSeconds = 20;
                     var queueSettings = ConfigurationHelper.GetQueueSettings(configuration);
-                    if (!string.IsNullOrWhiteSpace(queueSettings.ImageResizeRequest))
+                    if (!string.IsNullOrWhiteSpace(queueSettings.Notification))
                     {
-                        configure.ReceiveEndpoint(queueSettings.ImageResizeRequest, e =>
+                        configure.ReceiveEndpoint(queueSettings.Notification, e =>
                         {
                             e.WaitTimeSeconds = 20;
                             e.DefaultContentType = new ContentType("application/json");
                             e.UseRawJsonDeserializer();
                             e.ConfigureConsumeTopology = false;
-                            e.ConfigureConsumer<ImageResizeRequestConsumer>(context);
+                            e.ConfigureConsumer<NotificationConsumer>(context);
                         });
                     }
                 });
@@ -61,35 +66,24 @@ public static class ImageProcessingServiceRegistration
                 x.UsingInMemory();
                 x.AddRider(rider =>
                 {
-                    rider.AddConsumer<ImageResizeRequestConsumer>();
+                    rider.AddConsumer<NotificationConsumer>();
                     rider.UsingKafka((context, k) =>
                     {
                         var kafkaSettings = ConfigurationHelper.GetKafkaSettings(configuration);
                         var topicSettings = ConfigurationHelper.GetTopicSettings(configuration);
                         k.Host(kafkaSettings.Url);
-                        k.TopicEndpoint<ImageResizeRequest>(
-                            topicSettings.ImageResizeRequest,
+                        k.TopicEndpoint<Notification>(
+                            topicSettings.Notification,
                             kafkaSettings.GroupId,
                             e =>
                             {
-                                e.ConfigureConsumer<ImageResizeRequestConsumer>(context);
+                                e.ConfigureConsumer<NotificationConsumer>(context);
                                 e.CreateIfMissing();
                             });
                     });
                 });
             }
         });
-
-        services.AddFileStorageSettings(configuration, requireBasePath: true);
-        services.Configure<ApplicationUrlSettings>(configuration.GetSection("ApplicationUrls"));
-        services.AddHttpClient(nameof(ImageResizeRequestConsumer)).ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler
-        {
-#if DEBUG
-            ServerCertificateCustomValidationCallback = HttpClientHandler.DangerousAcceptAnyServerCertificateValidator
-#endif
-        });
-
-        services.AddScoped<IImageProcessingService, ImageProcessingService>();
 
         return services;
     }

@@ -6,7 +6,7 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace LetsTalk.Server.Configuration;
 
-public static class ConfigurationServicesRegistration
+public static class ConfigurationServiceCollectionExtensions
 {
     public static IServiceCollection AddConfigurationServices(
         this IServiceCollection services,

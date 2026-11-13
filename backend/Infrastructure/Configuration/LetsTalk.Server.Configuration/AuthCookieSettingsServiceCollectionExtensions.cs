@@ -5,7 +5,7 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace LetsTalk.Server.Configuration;
 
-public static class AuthCookieSettingsRegistration
+public static class AuthCookieSettingsServiceCollectionExtensions
 {
     public static IServiceCollection AddAuthCookieSettings(
         this IServiceCollection services,

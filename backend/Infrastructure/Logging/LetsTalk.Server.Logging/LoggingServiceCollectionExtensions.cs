@@ -3,7 +3,7 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace LetsTalk.Server.Logging;
 
-public static class LoggingServicesRegistration
+public static class LoggingServiceCollectionExtensions
 {
     public static IServiceCollection AddLoggingServices(
         this IServiceCollection services)

@@ -6,7 +6,7 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace LetsTalk.Server.Telemetry.AgnosticServices;
 
-public static class TelemetryAgnosticServicesRegistration
+public static class TelemetryAgnosticServiceCollectionExtensions
 {
     private const string ModeKey = "Features:Telemetry";
     private const string ConnectionStringKey = "ApplicationInsights:ConnectionString";

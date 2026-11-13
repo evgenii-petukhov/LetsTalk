@@ -12,7 +12,7 @@ using Microsoft.OpenApi;
 
 namespace LetsTalk.Server.API;
 
-public static class ApiServiceRegistration
+public static class ApiServiceCollectionExtensions
 {
     public static async Task<IServiceCollection> AddApiServices(
         this IServiceCollection services,

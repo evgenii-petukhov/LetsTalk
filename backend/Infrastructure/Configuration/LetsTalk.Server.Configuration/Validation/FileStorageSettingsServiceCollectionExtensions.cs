@@ -6,7 +6,7 @@ using Microsoft.Extensions.Options;
 
 namespace LetsTalk.Server.Configuration.Validation;
 
-public static class FileStorageSettingsRegistration
+public static class FileStorageSettingsServiceCollectionExtensions
 {
     /// <summary>
     /// Registers and validates <see cref="FileStorageSettings"/>. <paramref name="requireBasePath"/> is true in a host

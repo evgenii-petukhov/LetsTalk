@@ -21,7 +21,7 @@ using System.Reflection;
 
 namespace LetsTalk.Server.API.Core;
 
-public static class CoreServicesRegistration
+public static class CoreServiceCollectionExtensions
 {
     public static async Task<IServiceCollection> AddCoreServices(
         this IServiceCollection services,
@@ -33,7 +33,7 @@ public static class CoreServicesRegistration
                 cfg.LicenseKey = configuration.GetValue<string>("AutoMapper:LicenseKey");
             },
             Assembly.GetExecutingAssembly(),
-            PersistenceAgnosticServicesRegistration.GetMappingProfilesAssembly(configuration));
+            PersistenceAgnosticServiceCollectionExtensions.GetMappingProfilesAssembly(configuration));
         services.AddMediatR(options =>
         {
             options.RegisterServicesFromAssembly(Assembly.GetExecutingAssembly());

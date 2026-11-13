@@ -21,7 +21,7 @@ using System.Net.Mime;
 
 namespace LetsTalk.Server.FileStorage.Service;
 
-public static class FileStorageServiceRegistration
+public static class FileStorageServiceCollectionExtensions
 {
     public static IServiceCollection AddFileStorageServices(
         this IServiceCollection services,

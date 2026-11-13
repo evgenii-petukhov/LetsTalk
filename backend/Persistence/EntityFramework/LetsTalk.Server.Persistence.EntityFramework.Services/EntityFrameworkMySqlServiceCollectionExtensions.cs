@@ -5,7 +5,7 @@ using LetsTalk.Server.Persistence.EntityFramework.Repository;
 
 namespace LetsTalk.Server.Persistence.EntityFramework.Services;
 
-public static class EntityFrameworkServiceRegistration
+public static class EntityFrameworkMySqlServiceCollectionExtensions
 {
     public static IServiceCollection AddEntityFrameworkServices(
         this IServiceCollection services,

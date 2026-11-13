@@ -7,7 +7,7 @@ using Microsoft.Extensions.Hosting;
 
 namespace LetsTalk.Server.Telemetry.Azure.Services;
 
-public static class AzureTelemetryServicesRegistrations
+public static class AzureTelemetryServiceCollectionExtensions
 {
     public static IServiceCollection AddAzureTelemetryServices(this IServiceCollection services)
     {

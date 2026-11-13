@@ -4,7 +4,7 @@ namespace LetsTalk.Server.Configuration.Validation;
 
 /// <summary>
 /// <see cref="FileStorageSettings.BasePath"/> is a deployment value with no default. It is checked only in a host
-/// that stores files locally (see <see cref="FileStorageSettingsRegistration.AddFileStorageSettings"/>).
+/// that stores files locally (see <see cref="FileStorageSettingsServiceCollectionExtensions.AddFileStorageSettings"/>).
 /// </summary>
 public class FileStorageBasePathValidator : SettingsValidatorBase<FileStorageSettings>
 {

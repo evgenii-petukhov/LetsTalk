@@ -7,7 +7,7 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace LetsTalk.Server.Persistence.CosmosDB.Repository;
 
-public static class CosmosDBRepositoryRegistration
+public static class CosmosDBRepositoryServiceCollectionExtensions
 {
     public static async Task<IServiceCollection> AddCosmosDBRepository(
         this IServiceCollection services,

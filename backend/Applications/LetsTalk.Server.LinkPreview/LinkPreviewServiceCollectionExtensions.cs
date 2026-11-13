@@ -12,7 +12,7 @@ using LetsTalk.Server.DependencyInjection;
 
 namespace LetsTalk.Server.LinkPreview;
 
-public static class LinkPreviewServiceRegistration
+public static class LinkPreviewServiceCollectionExtensions
 {
     public static IServiceCollection AddLinkPreviewServices(
         this IServiceCollection services,

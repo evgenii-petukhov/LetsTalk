@@ -1,36 +1,27 @@
-﻿using LetsTalk.Server.Authentication.Client;
 using LetsTalk.Server.Configuration;
 using LetsTalk.Server.Configuration.Models;
-using LetsTalk.Server.Cors;
+using LetsTalk.Server.Configuration.Validation;
+using LetsTalk.Server.EmailService.Abstractions;
+using LetsTalk.Server.EmailService.Services;
 using LetsTalk.Server.Models.Kafka;
-using LetsTalk.Server.Logging;
-using LetsTalk.Server.Notifications.Abstractions;
-using LetsTalk.Server.Notifications.Handlers;
-using LetsTalk.Server.Notifications.Services;
 using MassTransit;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 using System.Net.Mime;
 
-namespace LetsTalk.Server.Notifications;
+namespace LetsTalk.Server.EmailService;
 
-public static class NotificationsServicesRegistration
+public static class EmailServiceCollectionExtensions
 {
-    public static IServiceCollection AddNotificationsServices(
+    public static IServiceCollection AddEmailServices(
         this IServiceCollection services,
         IConfiguration configuration)
     {
-        services.AddSingleton<IConnectionManager, ConnectionManager>();
-        services.AddScoped<INotificationService, NotificationService>();
-        services.AddAuthenticationClientServices(configuration);
-        services.AddControllers();
-        services.AddSignalR(o => o.EnableDetailedErrors = true);
-        services.AddCredentialedCors(configuration);
-        services.AddLoggingServices();
-        services.AddAuthCookieSettings(configuration);
         services.AddMassTransit(x =>
         {
             if (configuration.GetValue<string>("Features:EventBrokerMode") == "aws")
             {
-                x.AddConsumer<NotificationConsumer>();
+                x.AddConsumer<SendEmailRequestConsumer>();
 
                 x.UsingAmazonSqs((context, configure) =>
                 {
@@ -48,15 +39,15 @@ public static class NotificationsServicesRegistration
 
                     configure.WaitTimeSeconds = 20;
                     var queueSettings = ConfigurationHelper.GetQueueSettings(configuration);
-                    if (!string.IsNullOrWhiteSpace(queueSettings.Notification))
+                    if (!string.IsNullOrWhiteSpace(queueSettings.SendEmailRequest))
                     {
-                        configure.ReceiveEndpoint(queueSettings.Notification, e =>
+                        configure.ReceiveEndpoint(queueSettings.SendEmailRequest, e =>
                         {
                             e.WaitTimeSeconds = 20;
                             e.DefaultContentType = new ContentType("application/json");
                             e.UseRawJsonDeserializer();
                             e.ConfigureConsumeTopology = false;
-                            e.ConfigureConsumer<NotificationConsumer>(context);
+                            e.ConfigureConsumer<SendEmailRequestConsumer>(context);
                         });
                     }
                 });
@@ -66,24 +57,27 @@ public static class NotificationsServicesRegistration
                 x.UsingInMemory();
                 x.AddRider(rider =>
                 {
-                    rider.AddConsumer<NotificationConsumer>();
+                    rider.AddConsumer<SendEmailRequestConsumer>();
                     rider.UsingKafka((context, k) =>
                     {
                         var kafkaSettings = ConfigurationHelper.GetKafkaSettings(configuration);
                         var topicSettings = ConfigurationHelper.GetTopicSettings(configuration);
                         k.Host(kafkaSettings.Url);
-                        k.TopicEndpoint<Notification>(
-                            topicSettings.Notification,
+                        k.TopicEndpoint<SendEmailRequest>(
+                            topicSettings.SendEmailRequest,
                             kafkaSettings.GroupId,
                             e =>
                             {
-                                e.ConfigureConsumer<NotificationConsumer>(context);
+                                e.ConfigureConsumer<SendEmailRequestConsumer>(context);
                                 e.CreateIfMissing();
                             });
                     });
                 });
             }
         });
+
+        services.AddValidatedSettings<EmailServiceSettings, EmailServiceSettingsValidator>(configuration, EmailServiceSettingsValidator.Section);
+        services.AddScoped<IEmailService, DefaultEmailService>();
 
         return services;
     }

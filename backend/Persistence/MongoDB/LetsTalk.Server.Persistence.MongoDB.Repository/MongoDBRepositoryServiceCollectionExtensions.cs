@@ -7,7 +7,7 @@ using MongoDB.Driver;
 
 namespace LetsTalk.Server.Persistence.MongoDB.Repository;
 
-public static class MongoDBRepositoryRegistration
+public static class MongoDBRepositoryServiceCollectionExtensions
 {
     public static IServiceCollection AddMongoDBRepository(
         this IServiceCollection services,

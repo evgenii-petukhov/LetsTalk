@@ -7,7 +7,7 @@ using SimpleMongoMigrations;
 
 namespace LetsTalk.Server.Persistence.MongoDB.Services;
 
-public static class MongoDBServicesRegistration
+public static class MongoDBServiceCollectionExtensions
 {
     public static async Task<IServiceCollection> AddMongoDBServices(
         this IServiceCollection services,

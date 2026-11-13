@@ -41,10 +41,10 @@ public class AutoMapperRegistrationTests
         services.Where(descriptor => descriptor.ServiceType == typeof(IMapper)).Should().ContainSingle();
     }
 
-    [TestCase("MongoDB", typeof(MongoDBServicesRegistration))]
-    [TestCase("CosmosDB", typeof(CosmosDBServicesRegistration))]
-    [TestCase("MySql", typeof(EntityFrameworkServiceRegistration))]
-    [TestCase(null, typeof(EntityFrameworkServiceRegistration))]
+    [TestCase("MongoDB", typeof(MongoDBServiceCollectionExtensions))]
+    [TestCase("CosmosDB", typeof(CosmosDBServiceCollectionExtensions))]
+    [TestCase("MySql", typeof(EntityFrameworkMySqlServiceCollectionExtensions))]
+    [TestCase(null, typeof(EntityFrameworkMySqlServiceCollectionExtensions))]
     public void GetMappingProfilesAssembly_ShouldFollowTheDatabaseMode(string? databaseMode, Type expectedMarker)
     {
         // Arrange
@@ -53,7 +53,7 @@ public class AutoMapperRegistrationTests
             .Build();
 
         // Act
-        var assembly = PersistenceAgnosticServicesRegistration.GetMappingProfilesAssembly(configuration);
+        var assembly = PersistenceAgnosticServiceCollectionExtensions.GetMappingProfilesAssembly(configuration);
 
         // Assert
         assembly.Should().BeSameAs(expectedMarker.Assembly);

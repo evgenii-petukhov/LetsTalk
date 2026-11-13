@@ -7,7 +7,7 @@ using System.Reflection;
 
 namespace LetsTalk.Server.Persistence.AgnosticServices;
 
-public static class PersistenceAgnosticServicesRegistration
+public static class PersistenceAgnosticServiceCollectionExtensions
 {
     public static async Task<IServiceCollection> AddPersistenceAgnosticServices(
         this IServiceCollection services,
@@ -34,9 +34,9 @@ public static class PersistenceAgnosticServicesRegistration
     {
         return configuration.GetValue<string>("Features:DatabaseMode") switch
         {
-            "MongoDB" => typeof(MongoDBServicesRegistration).Assembly,
-            "CosmosDB" => typeof(CosmosDBServicesRegistration).Assembly,
-            _ => typeof(EntityFrameworkServiceRegistration).Assembly
+            "MongoDB" => typeof(MongoDBServiceCollectionExtensions).Assembly,
+            "CosmosDB" => typeof(CosmosDBServiceCollectionExtensions).Assembly,
+            _ => typeof(EntityFrameworkMySqlServiceCollectionExtensions).Assembly
         };
     }
 }

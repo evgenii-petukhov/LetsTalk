@@ -7,7 +7,7 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace LetsTalk.Server.FileStorage.Amazon.Services;
 
-public static class AmazonFileServicesRegistration
+public static class AmazonFileServiceCollectionExtensions
 {
     public static IServiceCollection AddAmazonFileServices(
         this IServiceCollection services,

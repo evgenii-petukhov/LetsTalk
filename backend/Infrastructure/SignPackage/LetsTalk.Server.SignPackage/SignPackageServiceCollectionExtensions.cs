@@ -6,7 +6,7 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace LetsTalk.Server.SignPackage;
 
-public static class SignPackageServiceRegistration
+public static class SignPackageServiceCollectionExtensions
 {
     public static IServiceCollection AddSignPackageServices(
         this IServiceCollection services,

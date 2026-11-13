@@ -9,7 +9,7 @@ using LetsTalk.Server.Persistence.Redis;
 
 namespace LetsTalk.Server.Authentication
 {
-    public static class AuthenticationServiceRegistration
+    public static class AuthenticationServiceCollectionExtensions
     {
         public static IServiceCollection AddAuthenticationServices(
             this IServiceCollection services,

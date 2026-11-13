@@ -6,7 +6,7 @@ using static LetsTalk.Server.Authentication.LoginCodeGrpcService;
 
 namespace LetsTalk.Server.Authentication.Client;
 
-public static class AuthenticationClientServicesRegistration
+public static class AuthenticationClientServiceCollectionExtensions
 {
     public static IServiceCollection AddAuthenticationClientServices(
         this IServiceCollection services,

@@ -5,7 +5,7 @@ using Microsoft.Extensions.Options;
 
 namespace LetsTalk.Server.Configuration.Validation;
 
-public static class ValidatedSettingsRegistration
+public static class ValidatedSettingsServiceCollectionExtensions
 {
     /// <summary>
     /// Binds a configuration section to <typeparamref name="TSettings"/> and checks it with

@@ -4,7 +4,7 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace LetsTalk.Server.FileStorage.Local.Services;
 
-public static class FileStorageServicesRegistration
+public static class LocalFileStorageServiceCollectionExtensions
 {
     public static IServiceCollection AddFileStorageServices(this IServiceCollection services)
     {

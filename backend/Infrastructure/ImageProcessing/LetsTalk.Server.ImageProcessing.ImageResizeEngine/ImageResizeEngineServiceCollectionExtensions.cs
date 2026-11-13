@@ -3,7 +3,7 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace LetsTalk.Server.ImageProcessing.ImageResizeEngine;
 
-public static class ImageResizeEngineRegistration
+public static class ImageResizeEngineServiceCollectionExtensions
 {
     public static IServiceCollection AddImageResizeEngineServices(
         this IServiceCollection services)

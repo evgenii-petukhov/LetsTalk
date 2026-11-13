@@ -5,7 +5,7 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace LetsTalk.Server.Persistence;
 
-public static class PersistenceServiceRegistration
+public static class PersistenceServiceCollectionExtensions
 {
     public static IServiceCollection AddPersistenceServices(
         this IServiceCollection services,

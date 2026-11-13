@@ -1,27 +1,31 @@
 using LetsTalk.Server.Configuration;
-using LetsTalk.Server.Configuration.Models;
-using LetsTalk.Server.Configuration.Validation;
-using LetsTalk.Server.EmailService.Abstractions;
-using LetsTalk.Server.EmailService.Services;
-using LetsTalk.Server.Models.Kafka;
-using MassTransit;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using LetsTalk.Server.Configuration.Models;
+using LetsTalk.Server.Configuration.Validation;
+using LetsTalk.Server.FileStorage.AgnosticServices;
+using LetsTalk.Server.ImageProcessing.Utility;
+using MassTransit;
+using LetsTalk.Server.Models.Kafka;
 using System.Net.Mime;
+using LetsTalk.Server.ImageProcessing.ImageResizeEngine;
+using LetsTalk.Server.ImageProcessing.Utility.Abstractions;
 
-namespace LetsTalk.Server.EmailService;
+namespace LetsTalk.Server.ImageProcessing.Service;
 
-public static class EmailServiceRegistration
+public static class ImageProcessingServiceCollectionExtensions
 {
-    public static IServiceCollection AddEmailServices(
+    public static IServiceCollection AddImageProcessingServiceServices(
         this IServiceCollection services,
         IConfiguration configuration)
     {
+        services.AddFileStorageAgnosticServices(configuration);
+        services.AddImageResizeEngineServices();
         services.AddMassTransit(x =>
         {
             if (configuration.GetValue<string>("Features:EventBrokerMode") == "aws")
             {
-                x.AddConsumer<SendEmailRequestConsumer>();
+                x.AddConsumer<ImageResizeRequestConsumer>();
 
                 x.UsingAmazonSqs((context, configure) =>
                 {
@@ -39,15 +43,15 @@ public static class EmailServiceRegistration
 
                     configure.WaitTimeSeconds = 20;
                     var queueSettings = ConfigurationHelper.GetQueueSettings(configuration);
-                    if (!string.IsNullOrWhiteSpace(queueSettings.SendEmailRequest))
+                    if (!string.IsNullOrWhiteSpace(queueSettings.ImageResizeRequest))
                     {
-                        configure.ReceiveEndpoint(queueSettings.SendEmailRequest, e =>
+                        configure.ReceiveEndpoint(queueSettings.ImageResizeRequest, e =>
                         {
                             e.WaitTimeSeconds = 20;
                             e.DefaultContentType = new ContentType("application/json");
                             e.UseRawJsonDeserializer();
                             e.ConfigureConsumeTopology = false;
-                            e.ConfigureConsumer<SendEmailRequestConsumer>(context);
+                            e.ConfigureConsumer<ImageResizeRequestConsumer>(context);
                         });
                     }
                 });
@@ -57,18 +61,18 @@ public static class EmailServiceRegistration
                 x.UsingInMemory();
                 x.AddRider(rider =>
                 {
-                    rider.AddConsumer<SendEmailRequestConsumer>();
+                    rider.AddConsumer<ImageResizeRequestConsumer>();
                     rider.UsingKafka((context, k) =>
                     {
                         var kafkaSettings = ConfigurationHelper.GetKafkaSettings(configuration);
                         var topicSettings = ConfigurationHelper.GetTopicSettings(configuration);
                         k.Host(kafkaSettings.Url);
-                        k.TopicEndpoint<SendEmailRequest>(
-                            topicSettings.SendEmailRequest,
+                        k.TopicEndpoint<ImageResizeRequest>(
+                            topicSettings.ImageResizeRequest,
                             kafkaSettings.GroupId,
                             e =>
                             {
-                                e.ConfigureConsumer<SendEmailRequestConsumer>(context);
+                                e.ConfigureConsumer<ImageResizeRequestConsumer>(context);
                                 e.CreateIfMissing();
                             });
                     });
@@ -76,8 +80,16 @@ public static class EmailServiceRegistration
             }
         });
 
-        services.AddValidatedSettings<EmailServiceSettings, EmailServiceSettingsValidator>(configuration, EmailServiceSettingsValidator.Section);
-        services.AddScoped<IEmailService, DefaultEmailService>();
+        services.AddFileStorageSettings(configuration, requireBasePath: true);
+        services.Configure<ApplicationUrlSettings>(configuration.GetSection("ApplicationUrls"));
+        services.AddHttpClient(nameof(ImageResizeRequestConsumer)).ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler
+        {
+#if DEBUG
+            ServerCertificateCustomValidationCallback = HttpClientHandler.DangerousAcceptAnyServerCertificateValidator
+#endif
+        });
+
+        services.AddScoped<IImageProcessingService, ImageProcessingService>();
 
         return services;
     }

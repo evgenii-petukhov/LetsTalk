@@ -4,7 +4,7 @@ using Microsoft.Extensions.DependencyInjection.Extensions;
 
 namespace LetsTalk.Server.Persistence.Redis
 {
-    public static class RedisRegistration
+    public static class RedisServiceCollectionExtensions
     {
         public static IServiceCollection AddRedisCache(this IServiceCollection services)
         {
