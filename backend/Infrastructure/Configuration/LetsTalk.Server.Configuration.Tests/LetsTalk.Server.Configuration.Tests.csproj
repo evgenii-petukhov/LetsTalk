@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>net10.0</TargetFramework>
@@ -32,6 +32,16 @@
 
   <ItemGroup>
     <ProjectReference Include="..\LetsTalk.Server.Configuration\LetsTalk.Server.Configuration.csproj" />
+  </ItemGroup>
+
+  <!-- The shipped appsettings.json files, read by ShippedSettingsTests and AuthCookieSectionsAgreeTests -->
+  <ItemGroup>
+    <Content Include="..\..\..\Applications\LetsTalk.Server.API\appsettings.json" Link="Shipped\API.appsettings.json" CopyToOutputDirectory="PreserveNewest" />
+    <Content Include="..\..\..\Applications\LetsTalk.Server.Authentication\appsettings.json" Link="Shipped\Authentication.appsettings.json" CopyToOutputDirectory="PreserveNewest" />
+    <Content Include="..\..\..\Applications\LetsTalk.Server.FileStorage.Service\appsettings.json" Link="Shipped\FileStorage.appsettings.json" CopyToOutputDirectory="PreserveNewest" />
+    <Content Include="..\..\..\Applications\LetsTalk.Server.ImageProcessing.Service\appsettings.json" Link="Shipped\ImageProcessing.appsettings.json" CopyToOutputDirectory="PreserveNewest" />
+    <Content Include="..\..\..\Applications\LetsTalk.Server.Notifications\appsettings.json" Link="Shipped\Notifications.appsettings.json" CopyToOutputDirectory="PreserveNewest" />
+    <Content Include="..\..\..\Applications\Tools\LetsTalk.Server.Tools.ExtractImageInfo\appsettings.json" Link="Shipped\ExtractImageInfo.appsettings.json" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
   <ItemGroup>

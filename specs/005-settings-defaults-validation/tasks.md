@@ -45,14 +45,14 @@ Implementation:
 
 ## Phase 4 - File storage and the remaining JSON
 Tests first:
-- [ ] **T540** `FileStorageSettingsValidatorTests` [P]: `ImageFolder` `Images` and `a/b` pass; empty, `/abs`, `C:\x`, `..\x`, `a/../b`, a name with `<` fail; `BasePath` empty fails only when required (D-6). (FR-011)
-- [ ] **T541** `ShippedSettingsTests` (drift, plan D2): every key of every in-scope section of each linked shipped file equals the class default and is a known property; the project file links the five shipped `appsettings.json` files. (FR-002, SC-004) [P]
-- [ ] **T542** `AuthCookieSectionsAgreeTests`: the `AuthCookie` sections of the API, FileStorage.Service and Notifications files are equal and equal the class defaults. (AS4.2) [P]
+- [x] **T540** `FileStorageSettingsValidatorTests` [P]: `ImageFolder` `Images` and `a/b` pass; empty, `/abs`, `C:\x`, `..\x`, `a/../b`, a name with `<` fail; `BasePath` empty fails only when required (D-6). (FR-011)
+- [x] **T541** `ShippedSettingsTests` (drift, plan D2): every key of every in-scope section of each linked shipped file equals the class default and is a known property; the project file links the five shipped `appsettings.json` files. (FR-002, SC-004) [P]
+- [x] **T542** `AuthCookieSectionsAgreeTests`: the `AuthCookie` sections of the API, FileStorage.Service and Notifications files are equal and equal the class defaults. (AS4.2) [P]
 
 Implementation:
-- [ ] **T543** `FileStorageSettings` default `ImageFolder = "Images"`, its validator, registration in FileStorage.Service, ImageProcessing.Service and ExtractImageInfo; add `FileStorage:ImageFolder` to the `ExtractImageInfo` `appsettings.json` (it is missing there). (T540; FR-011)
-- [ ] **T544** Add the `AuthCookie` section (six defaults) to the `appsettings.json` of the API, FileStorage.Service and Notifications. (T542; FR-010)
-- [ ] **T545** `dotnet build`, `dotnet test BE/LetsTalk.Server.sln`. **Checkpoint 4.** Propose the commit message and file list; wait for approval.
+- [x] **T543** `FileStorageSettings` default `ImageFolder = "Images"`, its validator, registration in FileStorage.Service, ImageProcessing.Service and ExtractImageInfo; `ExtractImageInfo` already lists `FileStorage:ImageFolder`, so its JSON is unchanged (the earlier note that it was missing was wrong). `BasePath` is checked by a second validator, `FileStorageBasePathValidator`, added through `AddFileStorageSettings(configuration, requireBasePath)`: required in ImageProcessing and ExtractImageInfo, and in FileStorage.Service only when `Features:FileStorage` is `Local` (plan D7, second option). (T540; FR-011)
+- [x] **T544** Add the `AuthCookie` section (six defaults) to the `appsettings.json` of the API, FileStorage.Service and Notifications. (T542; FR-010)
+- [x] **T545** `dotnet build`, `dotnet test BE/LetsTalk.Server.sln`. **Checkpoint 4.** Propose the commit message and file list; wait for approval.
 
 ## Phase 5 - Required secrets (FR-014)
 Tests first, in `LetsTalk.Server.Configuration.Tests` (each: empty, whitespace and null fail; a value passes; the message names the key and never the value):

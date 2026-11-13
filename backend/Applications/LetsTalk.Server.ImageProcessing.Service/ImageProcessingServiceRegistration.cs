@@ -1,7 +1,8 @@
-﻿using LetsTalk.Server.Configuration;
+using LetsTalk.Server.Configuration;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using LetsTalk.Server.Configuration.Models;
+using LetsTalk.Server.Configuration.Validation;
 using LetsTalk.Server.FileStorage.AgnosticServices;
 using LetsTalk.Server.ImageProcessing.Utility;
 using MassTransit;
@@ -79,7 +80,7 @@ public static class ImageProcessingServiceRegistration
             }
         });
 
-        services.Configure<FileStorageSettings>(configuration.GetSection("FileStorage"));
+        services.AddFileStorageSettings(configuration, requireBasePath: true);
         services.Configure<ApplicationUrlSettings>(configuration.GetSection("ApplicationUrls"));
         services.AddHttpClient(nameof(ImageResizeRequestConsumer)).ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler
         {

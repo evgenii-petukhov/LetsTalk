@@ -34,7 +34,9 @@ public static class FileStorageServiceRegistration
         services.AddAuthenticationClientServices(configuration);
         services.AddLoggingServices();
         services.AddImageResizeEngineServices();
-        services.Configure<FileStorageSettings>(configuration.GetSection("FileStorage"));
+        services.AddFileStorageSettings(
+            configuration,
+            requireBasePath: string.Equals(configuration.GetValue<string>("Features:FileStorage"), "Local", StringComparison.OrdinalIgnoreCase));
         services.AddValidatedSettings<ImageConstraints, ImageConstraintsValidator>(configuration, ImageConstraintsValidator.Section);
         services.AddAuthCookieSettings(configuration);
         services.AddAutoMapper(

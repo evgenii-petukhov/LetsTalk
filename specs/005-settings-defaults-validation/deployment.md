@@ -7,7 +7,7 @@ Applies to the release of `specs/005-settings-defaults-validation`. No secret, c
 - A service now **checks its settings when it starts**. A wrong value stops the start, and the message names the section, the key and the allowed range. All wrong values are listed in one message.
 - The Authentication service refuses a `JwtSettings:Key` shorter than 32 bytes (256 bits) or containing a character that is not ASCII.
 - One behavior change for a **correct** configuration: a tunable key that is **absent** now means its shipped value; before, it meant 0. An explicit `0` is unchanged.
-- New sections in the shipped files: `AuthCookie` (API, FileStorage.Service, Notifications), `JwtSettings` lifetimes (Authentication), `FileStorage:ImageFolder` (ExtractImageInfo).
+- New sections in the shipped files: `AuthCookie` (API, FileStorage.Service, Notifications), `JwtSettings` lifetimes (Authentication).
 
 ## Before you deploy
 1. Compare the production `appsettings.json` of each service with the table below. Every value that is there must be inside its allowed range, otherwise that service will not start after the release. The shipped values all are.
