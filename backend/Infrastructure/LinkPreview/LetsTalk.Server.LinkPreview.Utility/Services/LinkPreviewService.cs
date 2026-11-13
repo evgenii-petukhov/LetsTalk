@@ -7,25 +7,25 @@ namespace LetsTalk.Server.LinkPreview.Utility.Services;
 public class LinkPreviewService(
     IDownloadService downloadService,
     IRegexService regexService,
-    ILinkPreviewService linkPreviewService,
-    ILinkPreviewLogger linkPreviewLogger) : ILinkPreviewService
+    ILinkPreviewService fallbackLinkPreviewService,
+    ILinkPreviewLogger logger) : ILinkPreviewService
 {
     private readonly IDownloadService _downloadService = downloadService;
     private readonly IRegexService _regexService = regexService;
-    private readonly ILinkPreviewService _linkPreviewService = linkPreviewService;
-    private readonly ILinkPreviewLogger _linkPreviewLogger = linkPreviewLogger;
+    private readonly ILinkPreviewService _fallbackLinkPreviewService = fallbackLinkPreviewService;
+    private readonly ILinkPreviewLogger _logger = logger;
 
     public async Task<OpenGraphModel> GenerateLinkPreviewAsync(
         LinkPreviewRequest request,
         CancellationToken cancellationToken = default)
     {
-        _linkPreviewLogger.LogInformation($"Generating link preview for URL: {request.Url}");
+        _logger.LogInformation($"Generating link preview for URL: {request.Url}");
         try
         {
-            _linkPreviewLogger.LogInformation("Downloading page content...");
+            _logger.LogInformation("Downloading page content...");
             var pageString = await _downloadService.DownloadAsStringAsync(request.Url!, cancellationToken);
 
-            _linkPreviewLogger.LogInformation("Parsing Open Graph data...");
+            _logger.LogInformation("Parsing Open Graph data...");
             var model = _regexService.GetOpenGraphModel(pageString);
 
             if (model == null)
@@ -42,8 +42,8 @@ public class LinkPreviewService(
         catch (HttpRequestException e)
         when (e.StatusCode == System.Net.HttpStatusCode.Forbidden && !string.IsNullOrWhiteSpace(request.SecretKey))
         {
-            _linkPreviewLogger.LogError(e, "Forbidden error occurred. Trying fallback service.");
-            return await _linkPreviewService.GenerateLinkPreviewAsync(request, cancellationToken);
+            _logger.LogError(e, "Forbidden error occurred. Trying fallback service.");
+            return await _fallbackLinkPreviewService.GenerateLinkPreviewAsync(request, cancellationToken);
         }
     }
 }
