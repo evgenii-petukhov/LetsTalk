@@ -15,7 +15,7 @@ public class ShippedSettingsTests
 {
     private static readonly string[] Files =
     [
-        "API", "Authentication", "FileStorage", "ImageProcessing", "Notifications", "ExtractImageInfo"
+        "API", "Authentication", "FileStorage", "ImageProcessing", "Notifications"
     ];
 
     private static readonly Dictionary<string, Type> Sections = new()

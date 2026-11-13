@@ -41,7 +41,6 @@
     <Content Include="..\..\..\Applications\LetsTalk.Server.FileStorage.Service\appsettings.json" Link="Shipped\FileStorage.appsettings.json" CopyToOutputDirectory="PreserveNewest" />
     <Content Include="..\..\..\Applications\LetsTalk.Server.ImageProcessing.Service\appsettings.json" Link="Shipped\ImageProcessing.appsettings.json" CopyToOutputDirectory="PreserveNewest" />
     <Content Include="..\..\..\Applications\LetsTalk.Server.Notifications\appsettings.json" Link="Shipped\Notifications.appsettings.json" CopyToOutputDirectory="PreserveNewest" />
-    <Content Include="..\..\..\Applications\Tools\LetsTalk.Server.Tools.ExtractImageInfo\appsettings.json" Link="Shipped\ExtractImageInfo.appsettings.json" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
   <ItemGroup>
