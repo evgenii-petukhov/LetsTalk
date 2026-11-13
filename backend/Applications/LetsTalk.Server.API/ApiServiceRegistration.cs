@@ -1,6 +1,7 @@
-﻿using LetsTalk.Server.Authentication.Client;
+using LetsTalk.Server.Authentication.Client;
 using LetsTalk.Server.Configuration;
 using LetsTalk.Server.Configuration.Models;
+using LetsTalk.Server.Configuration.Validation;
 using LetsTalk.Server.API.Core;
 using LetsTalk.Server.Cors;
 using LetsTalk.Server.KeepAlive;
@@ -37,8 +38,8 @@ public static class ApiServiceRegistration
             };
             c.AddSecurityDefinition(JwtBearerDefaults.AuthenticationScheme, securityScheme);
         });
-        services.Configure<MessagingSettings>(configuration.GetSection("Messaging"));
-        services.Configure<SecuritySettings>(configuration.GetSection("Security"));
+        services.AddValidatedSettings<MessagingSettings, MessagingSettingsValidator>(configuration, MessagingSettingsValidator.Section);
+        services.AddValidatedSettings<SecuritySettings, SecuritySettingsValidator>(configuration, SecuritySettingsValidator.Section);
         services.AddAuthCookieSettings(configuration);
         services.Configure<FeaturesSettings>(configuration.GetSection("Features"));
 

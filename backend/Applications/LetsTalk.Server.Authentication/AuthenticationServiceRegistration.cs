@@ -1,8 +1,9 @@
-﻿using LetsTalk.Server.Authentication.Abstractions;
+using LetsTalk.Server.Authentication.Abstractions;
 using LetsTalk.Server.Authentication.Services.Cache.LoginCodes;
 using LetsTalk.Server.Authentication.Services.Cache.Token;
 using LetsTalk.Server.Authentication.Services.Session;
 using LetsTalk.Server.Configuration.Models;
+using LetsTalk.Server.Configuration.Validation;
 using LetsTalk.Server.Logging;
 using LetsTalk.Server.Persistence.Redis;
 
@@ -32,7 +33,7 @@ namespace LetsTalk.Server.Authentication
             services.AddMemoryCache();
             services.AddSingleton(TimeProvider.System);
             services.AddLoggingServices();
-            services.Configure<CachingSettings>(configuration.GetSection("Caching"));
+            services.AddValidatedSettings<CachingSettings, CachingSettingsValidator>(configuration, CachingSettingsValidator.Section);
             switch (configuration.GetValue<string>("Features:CachingMode"))
             {
                 case "redis":

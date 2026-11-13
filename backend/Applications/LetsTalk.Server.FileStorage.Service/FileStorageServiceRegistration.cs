@@ -1,6 +1,7 @@
-﻿using LetsTalk.Server.Authentication.Client;
+using LetsTalk.Server.Authentication.Client;
 using LetsTalk.Server.Configuration;
 using LetsTalk.Server.Configuration.Models;
+using LetsTalk.Server.Configuration.Validation;
 using LetsTalk.Server.FileStorage.Service.Abstractions;
 using LetsTalk.Server.FileStorage.Service.GrpcInterceptors;
 using LetsTalk.Server.FileStorage.Service.Services;
@@ -34,7 +35,7 @@ public static class FileStorageServiceRegistration
         services.AddLoggingServices();
         services.AddImageResizeEngineServices();
         services.Configure<FileStorageSettings>(configuration.GetSection("FileStorage"));
-        services.Configure<ImageConstraints>(configuration.GetSection("ImageConstraints"));
+        services.AddValidatedSettings<ImageConstraints, ImageConstraintsValidator>(configuration, ImageConstraintsValidator.Section);
         services.AddAuthCookieSettings(configuration);
         services.AddAutoMapper(
             cfg =>
@@ -102,7 +103,7 @@ public static class FileStorageServiceRegistration
             }
         });
 
-        services.Configure<CachingSettings>(configuration.GetSection("Caching"));
+        services.AddValidatedSettings<CachingSettings, CachingSettingsValidator>(configuration, CachingSettingsValidator.Section);
         services.AddFileStorageAgnosticServices(configuration);
         services.AddSignPackageServices(configuration);
 
