@@ -1,4 +1,4 @@
-﻿using Confluent.Kafka;
+using Confluent.Kafka;
 using LetsTalk.Server.API.Core.Abstractions;
 using LetsTalk.Server.API.Core.Services;
 using LetsTalk.Server.API.Core.Services.Cache.Accounts;
@@ -8,6 +8,7 @@ using LetsTalk.Server.API.Core.Services.Cache.Messages;
 using LetsTalk.Server.API.Core.Services.Cache.Profile;
 using LetsTalk.Server.Configuration;
 using LetsTalk.Server.Configuration.Models;
+using LetsTalk.Server.Configuration.Validation;
 using LetsTalk.Server.DependencyInjection;
 using LetsTalk.Server.Models.Kafka;
 using LetsTalk.Server.Persistence.AgnosticServices;
@@ -89,11 +90,10 @@ public static class CoreServicesRegistration
                 });
             }
         });
-        services.Configure<CachingSettings>(configuration.GetSection("Caching"));
-        services.Configure<RtcSettings>(configuration.GetSection("Rtc"));
-        services.Configure<CloudflareSettings>(configuration.GetSection("Cloudflare"));
+        services.AddValidatedSettings<CachingSettings, CachingSettingsValidator>(configuration, CachingSettingsValidator.Section);
+        services.AddValidatedSettings<CloudflareSettings, CloudflareSettingsValidator>(configuration, CloudflareSettingsValidator.Section);
         services.Configure<ApplicationInsightsSettings>(configuration.GetSection("ApplicationInsights"));
-        services.Configure<ImageConstraints>(configuration.GetSection("ImageConstraints"));
+        services.AddValidatedSettings<ImageConstraints, ImageConstraintsValidator>(configuration, ImageConstraintsValidator.Section);
 
         switch (configuration.GetValue<string>("Features:CachingMode"))
         {
@@ -150,7 +150,7 @@ public static class CoreServicesRegistration
         switch (configuration.GetValue<string>("Features:LinkPreviewMode"))
         {
             case "aws":
-                services.Configure<AwsSettings>(configuration.GetSection("Aws"));
+                services.AddValidatedSettings<AwsSettings, AwsSettingsValidator>(configuration, AwsSettingsValidator.Section);
                 services.Configure<ApplicationUrlSettings>(configuration.GetSection("ApplicationUrls"));
                 services.Configure<LinkPreviewSettings>(configuration.GetSection("LinkPreview"));
                 services.AddScoped<ILinkPreviewLauncher, LinkPreviewLambdaLauncher>();
@@ -163,7 +163,7 @@ public static class CoreServicesRegistration
         switch (configuration.GetValue<string>("Features:ImageProcessingMode"))
         {
             case "aws":
-                services.Configure<AwsSettings>(configuration.GetSection("Aws"));
+                services.AddValidatedSettings<AwsSettings, AwsSettingsValidator>(configuration, AwsSettingsValidator.Section);
                 services.Configure<ApplicationUrlSettings>(configuration.GetSection("ApplicationUrls"));
                 services.AddScoped<IImageProcessingLauncher, ImageProcessingLambdaLauncher>();
                 break;

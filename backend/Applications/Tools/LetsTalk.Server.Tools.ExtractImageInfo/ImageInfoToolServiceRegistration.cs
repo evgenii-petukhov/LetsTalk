@@ -1,4 +1,5 @@
-﻿using LetsTalk.Server.Configuration.Models;
+using LetsTalk.Server.Configuration.Models;
+using LetsTalk.Server.Configuration.Validation;
 using LetsTalk.Server.FileStorage.AgnosticServices;
 using LetsTalk.Server.ImageProcessing.ImageResizeEngine;
 using Microsoft.Extensions.Configuration;
@@ -16,7 +17,7 @@ public static class ImageInfoToolServiceRegistration
         services.AddFileStorageAgnosticServices(configuration);
         services.AddHostedService<ImageInfoHostedService>();
 
-        services.Configure<FileStorageSettings>(configuration.GetSection("FileStorage"));
+        services.AddFileStorageSettings(configuration, requireBasePath: true);
 
         return services;
     }

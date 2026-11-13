@@ -1122,7 +1122,6 @@ export interface IAccountDto {
 
 export class CallSettingsDto implements ICallSettingsDto {
     iceServerConfiguration?: string | undefined;
-    maxVideoDurationInSeconds?: number;
 
     constructor(data?: ICallSettingsDto) {
         if (data) {
@@ -1136,7 +1135,6 @@ export class CallSettingsDto implements ICallSettingsDto {
     init(_data?: any) {
         if (_data) {
             this.iceServerConfiguration = _data["iceServerConfiguration"];
-            this.maxVideoDurationInSeconds = _data["maxVideoDurationInSeconds"];
         }
     }
 
@@ -1150,14 +1148,12 @@ export class CallSettingsDto implements ICallSettingsDto {
     toJSON(data?: any) {
         data = typeof data === 'object' ? data : {};
         data["iceServerConfiguration"] = this.iceServerConfiguration;
-        data["maxVideoDurationInSeconds"] = this.maxVideoDurationInSeconds;
         return data;
     }
 }
 
 export interface ICallSettingsDto {
     iceServerConfiguration?: string | undefined;
-    maxVideoDurationInSeconds?: number;
 }
 
 export class ChatDto implements IChatDto {

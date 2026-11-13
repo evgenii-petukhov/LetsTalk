@@ -1,4 +1,4 @@
-﻿using LetsTalk.Server.Configuration;
+using LetsTalk.Server.Configuration;
 using LetsTalk.Server.Configuration.Models;
 using LetsTalk.Server.LinkPreview.Services;
 using Microsoft.Extensions.Configuration;
