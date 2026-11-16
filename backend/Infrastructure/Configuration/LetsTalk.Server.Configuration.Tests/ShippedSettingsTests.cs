@@ -1,6 +1,7 @@
 using System.Reflection;
 using FluentAssertions;
 using LetsTalk.Server.Configuration.Models;
+using LetsTalk.Server.Resilience;
 using Microsoft.Extensions.Configuration;
 
 namespace LetsTalk.Server.Configuration.Tests;
@@ -15,7 +16,7 @@ public class ShippedSettingsTests
 {
     private static readonly string[] Files =
     [
-        "API", "Authentication", "FileStorage", "ImageProcessing", "Notifications"
+        "API", "Authentication", "FileStorage", "ImageProcessing", "LinkPreview", "Notifications"
     ];
 
     private static readonly Dictionary<string, Type> Sections = new()
@@ -27,7 +28,9 @@ public class ShippedSettingsTests
         ["ImageConstraints"] = typeof(ImageConstraints),
         ["FileStorage"] = typeof(FileStorageSettings),
         ["JwtSettings"] = typeof(JwtSettings),
-        ["AuthCookie"] = typeof(AuthCookieSettings)
+        ["AuthCookie"] = typeof(AuthCookieSettings),
+        ["Resilience:Http"] = typeof(HttpRetrySettings),
+        ["Resilience:Grpc"] = typeof(GrpcRetrySettings)
     };
 
     public static IEnumerable<string> ShippedFiles => Files;
@@ -78,6 +81,11 @@ public class ShippedSettingsTests
         Keys("Authentication", "JwtSettings").Should().BeEquivalentTo(["AccessTokenLifetime", "BackgroundTokenLifetime",
             "RefreshIdleLifetime", "RefreshAbsoluteLifetime", "RefreshReuseGrace"]);
         Keys("FileStorage", "ImageConstraints").Should().HaveCount(4);
+
+        // Spec 006: the two services that report to the API list the numbers of the HTTP retry
+        string[] httpRetryKeys = ["MaxRetryAttempts", "Delay", "MaxDelay", "AttemptTimeout", "TotalTimeout"];
+        Keys("ImageProcessing", "Resilience:Http").Should().BeEquivalentTo(httpRetryKeys);
+        Keys("LinkPreview", "Resilience:Http").Should().BeEquivalentTo(httpRetryKeys);
     }
 
     [Test]

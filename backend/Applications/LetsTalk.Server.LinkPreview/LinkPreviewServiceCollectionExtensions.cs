@@ -9,6 +9,7 @@ using MassTransit;
 using LetsTalk.Server.Models.Kafka;
 using System.Net.Mime;
 using LetsTalk.Server.DependencyInjection;
+using LetsTalk.Server.Resilience;
 
 namespace LetsTalk.Server.LinkPreview;
 
@@ -77,7 +78,15 @@ public static class LinkPreviewServiceCollectionExtensions
         services.Configure<ApplicationUrlSettings>(configuration.GetSection("ApplicationUrls"));
         services.Configure<LinkPreviewSettings>(configuration.GetSection("LinkPreview"));
         services.AddScoped<IHttpClientService, HttpClientService>();
-        services.AddHttpClient(nameof(HttpClientService)).ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler
+        services.AddHttpRetrySettings(configuration);
+        // Two clients: a page that keeps failing must not share anything with the report to the API (spec 006)
+        services.AddHttpClient(nameof(HttpClientService)).AddHttpRetry(nameof(HttpClientService)).ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler
+        {
+#if DEBUG
+            ServerCertificateCustomValidationCallback = HttpClientHandler.DangerousAcceptAnyServerCertificateValidator
+#endif
+        });
+        services.AddHttpClient(LinkPreviewRequestConsumer.ApiClientName).AddHttpRetry(LinkPreviewRequestConsumer.ApiClientName).ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler
         {
 #if DEBUG
             ServerCertificateCustomValidationCallback = HttpClientHandler.DangerousAcceptAnyServerCertificateValidator

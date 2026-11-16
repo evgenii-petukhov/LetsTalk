@@ -10,6 +10,7 @@ using LetsTalk.Server.Models.Kafka;
 using System.Net.Mime;
 using LetsTalk.Server.ImageProcessing.ImageResizeEngine;
 using LetsTalk.Server.ImageProcessing.Utility.Abstractions;
+using LetsTalk.Server.Resilience;
 
 namespace LetsTalk.Server.ImageProcessing.Service;
 
@@ -82,7 +83,8 @@ public static class ImageProcessingServiceCollectionExtensions
 
         services.AddFileStorageSettings(configuration, requireBasePath: true);
         services.Configure<ApplicationUrlSettings>(configuration.GetSection("ApplicationUrls"));
-        services.AddHttpClient(nameof(ImageResizeRequestConsumer)).ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler
+        services.AddHttpRetrySettings(configuration);
+        services.AddHttpClient(nameof(ImageResizeRequestConsumer)).AddHttpRetry(nameof(ImageResizeRequestConsumer)).ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler
         {
 #if DEBUG
             ServerCertificateCustomValidationCallback = HttpClientHandler.DangerousAcceptAnyServerCertificateValidator

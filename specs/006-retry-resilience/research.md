@@ -3,9 +3,9 @@
 ## Where calls are made today
 | Place | Call | Registration |
 |---|---|---|
-| `ImageResizeRequestConsumer` | `ApiClient.SetImagePreviewAsync` (POST) | named client `ImageResizeRequestConsumer` (`AddHttpClient`, no handler besides the debug certificate bypass) |
-| `LinkPreviewRequestConsumer` | `ApiClient.SetLinkPreviewAsync` (POST) | named client `HttpClientService`, **shared** with `DownloadService` (GET of arbitrary web pages) |
-| `ImageProcessingLambda`, `LinkPreviewLambda` | the same two POSTs, and the page download | no DI: `new HttpClient()` in `FakeHttpClientService` |
+| `ImageResizeRequestConsumer` | `ApiClient.SetImagePreviewAsync` (PATCH, spec 003) | named client `ImageResizeRequestConsumer` (`AddHttpClient`, no handler besides the debug certificate bypass) |
+| `LinkPreviewRequestConsumer` | `ApiClient.SetLinkPreviewAsync` (PATCH) | named client `HttpClientService`, **shared** with `DownloadService` (GET of arbitrary web pages) |
+| `ImageProcessingLambda`, `LinkPreviewLambda` | the same two PATCH calls, and the page download | no DI: `new HttpClient()` in `FakeHttpClientService` |
 | `AuthenticationClient` (used by the API) | 8 gRPC calls | `AddGrpcClient<JwtTokenGrpcServiceClient>` and `<LoginCodeGrpcServiceClient>` |
 
 Nothing in the solution references Polly or `Microsoft.Extensions.Http.Resilience`; MassTransit consumers have no retry configured.
@@ -39,7 +39,7 @@ gRPC retries only on status `Unavailable`, where the request did not reach the s
 
 ## Technical notes
 - `AddResilienceHandler("name", builder => ...)` receives a `ResiliencePipelineBuilder<HttpResponseMessage>` from `Polly.Core`, so one function `Configure(builder, settings, onRetry)` can serve both the DI clients and the Lambda's handler.
-- Retry resends the same `HttpRequestMessage`. NSwag's `ApiClient` builds `StringContent` (re-readable), so a POST body is safe to resend; the test of task T601 proves it.
+- Retry resends the same `HttpRequestMessage`. NSwag's `ApiClient` builds a `ByteArrayContent` (re-readable), so a PATCH body is safe to resend; the test of task T601 proves it for a request body.
 - gRPC retry: `GrpcChannelOptions.ServiceConfig` with `MethodConfig { Names = { new MethodName { Service, Method } }, RetryPolicy = new RetryPolicy { MaxAttempts (at most 5), InitialBackoff, MaxBackoff, BackoffMultiplier, RetryableStatusCodes = { StatusCode.Unavailable } } }`. `AddGrpcClient(...).ConfigureChannel(o => o.ServiceConfig = ...)`. The gRPC client library retries only with HTTP/2 and buffers the request, which is fine for these small messages.
 - The existing `HttpClient` default timeout is 100 seconds; the defaults of FR-003 keep that.
 - Delay with `Retry-After`: Polly's `DelayGenerator` can return the header's value; capped by the maximum pause.
