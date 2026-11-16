@@ -7,7 +7,7 @@
 **One commit per phase**, made only when the owner approves, with the ticked `tasks.md` included. Stage files by explicit path. Before staging an `appsettings.json`, check that `git diff` shows only the intended lines. Run `backend/CheckWarnings.ps1` before reporting a phase.
 
 ## Phase 0 - Setup
-- [ ] **T600** Branch `006-retry-resilience` from `master` (done when the spec was written); confirm the spec files are committed in their own commit before any code.
+- [x] **T600** (2026-11-16: the branch starts at `master` `08447a26`, the working tree was clean; the five spec files are alone in commit `0a88d824`, and the first commit that touches `backend/` is `fc4985e3`, after it) Branch `006-retry-resilience` from `master`; confirm the spec files are committed in their own commit before any code.
 
 ## Phase 1 - Shared library
 Tests first, in the new `BE/Infrastructure/LetsTalk.Server.Resilience.Tests` (a stub `HttpMessageHandler` that answers from a queue, and `FakeTimeProvider`):
@@ -56,9 +56,9 @@ Implementation:
 - [x] **T633** (2026-11-16: solution builds with 0 errors; `dotnet test` of the solution passes in all 23 test projects (Lambda.Tests 12, Resilience.Tests 27); the Lambda tests ran 3 times without a failure; `CheckWarnings.ps1` 0 warnings in the changed files) `dotnet build BE/LetsTalk.Server.sln`, `dotnet test BE/LetsTalk.Server.sln`, `CheckWarnings.ps1`. **Checkpoint 4.** Propose the commit; wait.
 
 ## Phase 5 - Documents and verification
-- [ ] **T640** `CLAUDE.md`: one sentence in the Infrastructure bullet (where the retry rules live and that gRPC uses the channel's service config). Constitution unchanged unless the owner wants the rule there.
-- [ ] **T641** Write `deployment.md` if the Lambdas need a redeploy note (they do: the new code only takes effect after the Lambda packages are redeployed) and the three `Resilience` sections.
-- [ ] **T642** The owner runs `quickstart.md`; record results in its Result column.
-- [ ] **T643** Final `dotnet test BE/LetsTalk.Server.sln`. **Checkpoint 5.** Propose the commit; wait.
+- [x] **T640** (one sentence added to the `Infrastructure/` bullet of `CLAUDE.md`; the constitution is unchanged) `CLAUDE.md`: one sentence in the Infrastructure bullet (where the retry rules live and that gRPC uses the channel's service config). Constitution unchanged unless the owner wants the rule there.
+- [x] **T641** (written: what repeats and what does not, the order of the release (the Lambda packages must be redeployed), the settings and their limits, the log lines, rollback (`MaxRetryAttempts` 0 and `MaxAttempts` 1); prefixed environment variables win over the file, which differs from the note in spec 004) Write `deployment.md` if the Lambdas need a redeploy note (they do: the new code only takes effect after the Lambda packages are redeployed) and the three `Resilience` sections.
+- [ ] **T642** The owner runs `quickstart.md` (Q1 to Q10); the results go into its Result column in a later commit.
+- [x] **T643** (2026-11-16: solution builds with 0 errors; `dotnet test` of the solution passes in all 23 test projects; no code changed since Checkpoint 4) Final `dotnet test BE/LetsTalk.Server.sln`. **Checkpoint 5.** Propose the commit; wait.
 
 The quickstart lives in [quickstart.md](quickstart.md).
