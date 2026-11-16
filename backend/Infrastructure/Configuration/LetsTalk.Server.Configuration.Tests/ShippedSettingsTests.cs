@@ -86,6 +86,12 @@ public class ShippedSettingsTests
         string[] httpRetryKeys = ["MaxRetryAttempts", "Delay", "MaxDelay", "AttemptTimeout", "TotalTimeout"];
         Keys("ImageProcessing", "Resilience:Http").Should().BeEquivalentTo(httpRetryKeys);
         Keys("LinkPreview", "Resilience:Http").Should().BeEquivalentTo(httpRetryKeys);
+
+        // The three services that call the Authentication service list the numbers of the gRPC retry
+        string[] grpcRetryKeys = ["MaxAttempts", "InitialBackoff", "MaxBackoff"];
+        Keys("API", "Resilience:Grpc").Should().BeEquivalentTo(grpcRetryKeys);
+        Keys("FileStorage", "Resilience:Grpc").Should().BeEquivalentTo(grpcRetryKeys);
+        Keys("Notifications", "Resilience:Grpc").Should().BeEquivalentTo(grpcRetryKeys);
     }
 
     [Test]
