@@ -2,6 +2,7 @@ using Amazon.Lambda.Core;
 using LetsTalk.Server.API.Client;
 using LetsTalk.Server.LinkPreview.Utility.Abstractions.Models;
 using LetsTalk.Server.LinkPreview.Utility.Services;
+using LetsTalk.Server.Resilience;
 using System.Text.Json;
 
 [assembly: LambdaSerializer(typeof(Amazon.Lambda.Serialization.SystemTextJson.DefaultLambdaJsonSerializer))]
@@ -15,7 +16,8 @@ namespace LetsTalk.Server.LinkPreview.Lambda
             var serializedRequest = JsonSerializer.Serialize(request);
             context.Logger.LogLine($"Request received: {serializedRequest}");
 
-            var httpClientService = new FakeHttpClientService();
+            // The report to the API and the download of the page both repeat a failed call and write it to the Lambda log (spec 006)
+            var httpClientService = new FakeHttpClientService(retry => context.Logger.LogWarning(retry.Describe(nameof(LinkPreviewLambda))));
             var downloadService = new DownloadService(httpClientService);
             var logger = new AmazonLambdaLogger(context.Logger);
 

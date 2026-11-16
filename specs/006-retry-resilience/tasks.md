@@ -48,12 +48,12 @@ Implementation:
 
 ## Phase 4 - Lambdas
 Tests first (in `Resilience.Tests`; the Lambda projects have no test project and stay thin):
-- [ ] **T630** [P] `RetryingHttpHandler` default-construction test: `new RetryingHttpHandler(stub, new HttpRetrySettings(), null)` repeats a 503 (AS4.1). Covered by T602; add here only if T602 did not use the default settings.
-- [ ] **T631** [P] A test that both `FakeHttpClientService` classes return a client that repeats (the Lambda projects are referenced from a small test, or the factory method is made `public static` in `Resilience` and tested there; choose at T632 and say which).
+- [x] **T630** (covered by the first test of `LambdaHttpClientTests`, which builds the client with no settings and a fake clock and counts 4 calls for a failing answer: the shipped defaults; 2 tests in `RetryEventTests` for the log line) [P] `RetryingHttpHandler` default-construction test: `new RetryingHttpHandler(stub, new HttpRetrySettings(), null)` repeats a 503 (AS4.1). Covered by T602; add here only if T602 did not use the default settings.
+- [x] **T631** (decided: a new project `LetsTalk.Server.Lambda.Tests` that references both Lambda projects; 6 scenarios run against each of the two `FakeHttpClientService` classes (12 test cases): defaults, later answer wins, no repeat for 404, the event has no address, given settings are used, clients dispose separately) [P] A test that both `FakeHttpClientService` classes return a client that repeats (the Lambda projects are referenced from a small test, or the factory method is made `public static` in `Resilience` and tested there; choose at T632 and say which).
 
 Implementation:
-- [ ] **T632** In `ImageProcessing.Lambda` and `LinkPreview.Lambda`: reference `LetsTalk.Server.Resilience`; `FakeHttpClientService` returns the retrying client; pass `context.Logger` for the retry warning; no configuration file. (T630, T631; plan D5)
-- [ ] **T633** `dotnet build BE/LetsTalk.Server.sln`, `dotnet test BE/LetsTalk.Server.sln`, `CheckWarnings.ps1`. **Checkpoint 4.** Propose the commit; wait.
+- [x] **T632** (both `FakeHttpClientService` classes build a `RetryingHttpHandler`; `ImageProcessingLambda` and `LinkPreviewLambda` pass a callback that writes the repeat to `context.Logger.LogWarning`; the Lambda csproj files reference `LetsTalk.Server.Resilience` (it needs only Polly.Core); nothing else in the Lambdas changed) In `ImageProcessing.Lambda` and `LinkPreview.Lambda`: reference `LetsTalk.Server.Resilience`; `FakeHttpClientService` returns the retrying client; pass `context.Logger` for the retry warning; no configuration file. (T630, T631; plan D5)
+- [x] **T633** (2026-11-16: solution builds with 0 errors; `dotnet test` of the solution passes in all 23 test projects (Lambda.Tests 12, Resilience.Tests 27); the Lambda tests ran 3 times without a failure; `CheckWarnings.ps1` 0 warnings in the changed files) `dotnet build BE/LetsTalk.Server.sln`, `dotnet test BE/LetsTalk.Server.sln`, `CheckWarnings.ps1`. **Checkpoint 4.** Propose the commit; wait.
 
 ## Phase 5 - Documents and verification
 - [ ] **T640** `CLAUDE.md`: one sentence in the Infrastructure bullet (where the retry rules live and that gRPC uses the channel's service config). Constitution unchanged unless the owner wants the rule there.

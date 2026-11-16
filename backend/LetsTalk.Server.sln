@@ -199,6 +199,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LetsTalk.Server.ImageProces
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LetsTalk.Server.LinkPreview.Tests", "Applications\LetsTalk.Server.LinkPreview.Tests\LetsTalk.Server.LinkPreview.Tests.csproj", "{D2607B4F-93E1-4C85-B0A7-1F4C8E3D5A69}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LetsTalk.Server.Lambda.Tests", "Infrastructure\LetsTalk.Server.Lambda.Tests\LetsTalk.Server.Lambda.Tests.csproj", "{E5B8A1C3-6D27-4F94-8A0E-B3C19D7F2A56}"
+EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LetsTalk.Server.Authentication.Client.Tests", "Infrastructure\Authentication\LetsTalk.Server.Authentication.Client.Tests\LetsTalk.Server.Authentication.Client.Tests.csproj", "{7D3E5B91-2C84-4F6A-9B10-5E8A2C7F3D46}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LetsTalk.Server.Persistence.EntityFramework.MigrationTool", "Persistence\EntityFramework\LetsTalk.Server.Persistence.EntityFramework.MigrationTool\LetsTalk.Server.Persistence.EntityFramework.MigrationTool.csproj", "{A88B819A-C417-CB90-1DA6-0759264D6A7C}"
@@ -537,6 +539,10 @@ Global
 		{B84D2E70-1A6C-4F93-A5E8-3C7D90F1B246}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{B84D2E70-1A6C-4F93-A5E8-3C7D90F1B246}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{B84D2E70-1A6C-4F93-A5E8-3C7D90F1B246}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E5B8A1C3-6D27-4F94-8A0E-B3C19D7F2A56}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E5B8A1C3-6D27-4F94-8A0E-B3C19D7F2A56}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E5B8A1C3-6D27-4F94-8A0E-B3C19D7F2A56}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E5B8A1C3-6D27-4F94-8A0E-B3C19D7F2A56}.Release|Any CPU.Build.0 = Release|Any CPU
 		{C19E5A38-7D40-4B62-9F13-8A5E2D6C0B97}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{C19E5A38-7D40-4B62-9F13-8A5E2D6C0B97}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{C19E5A38-7D40-4B62-9F13-8A5E2D6C0B97}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -673,6 +679,7 @@ Global
 		{5C1D7A02-84E6-4B93-A0F1-2D9E6B3C7A18} = {AEEA38DD-12D9-4A3B-A544-99FA1FC0E53F}
 		{A3F1C6D4-52B7-4E19-8D0A-6B2E9C417F35} = {AEEA38DD-12D9-4A3B-A544-99FA1FC0E53F}
 		{B84D2E70-1A6C-4F93-A5E8-3C7D90F1B246} = {AEEA38DD-12D9-4A3B-A544-99FA1FC0E53F}
+		{E5B8A1C3-6D27-4F94-8A0E-B3C19D7F2A56} = {AEEA38DD-12D9-4A3B-A544-99FA1FC0E53F}
 		{C19E5A38-7D40-4B62-9F13-8A5E2D6C0B97} = {5686F7F7-B6BB-40D6-A0BC-BA7D8A853981}
 		{D2607B4F-93E1-4C85-B0A7-1F4C8E3D5A69} = {5686F7F7-B6BB-40D6-A0BC-BA7D8A853981}
 		{7D3E5B91-2C84-4F6A-9B10-5E8A2C7F3D46} = {33BBF78A-2694-42EB-A36C-B9411D95E70D}
