@@ -14,8 +14,8 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\Resilience\LetsTalk.Server.Resilience\LetsTalk.Server.Resilience.csproj" />
     <ProjectReference Include="..\LetsTalk.Server.Configuration.Abstractions\LetsTalk.Server.Configuration.Abstractions.csproj" />
-    <ProjectReference Include="..\..\LetsTalk.Server.Resilience\LetsTalk.Server.Resilience.csproj" />
   </ItemGroup>
 
 </Project>

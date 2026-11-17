@@ -28,7 +28,7 @@
     <ProjectReference Include="..\..\Infrastructure\FileStorage\LetsTalk.Server.FileStorage.AgnosticServices\LetsTalk.Server.FileStorage.AgnosticServices.csproj" />
     <ProjectReference Include="..\..\Infrastructure\ImageProcessing\LetsTalk.Server.ImageProcessing.ImageResizeEngine\LetsTalk.Server.ImageProcessing.ImageResizeEngine.csproj" />
     <ProjectReference Include="..\..\Infrastructure\ImageProcessing\LetsTalk.Server.ImageProcessing.Utility\LetsTalk.Server.ImageProcessing.Utility.csproj" />
-    <ProjectReference Include="..\..\Infrastructure\LetsTalk.Server.Resilience.Http\LetsTalk.Server.Resilience.Http.csproj" />
+    <ProjectReference Include="..\..\Infrastructure\Resilience\LetsTalk.Server.Resilience.Http\LetsTalk.Server.Resilience.Http.csproj" />
     <ProjectReference Include="..\..\Models\LetsTalk.Server.Models.Kafka\LetsTalk.Server.Models.Kafka.csproj" />
   </ItemGroup>
 
