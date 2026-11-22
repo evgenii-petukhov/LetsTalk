@@ -1,4 +1,4 @@
-namespace LetsTalk.Server.Resilience;
+namespace LetsTalk.Server.Configuration.Models;
 
 /// <summary>How a read-only gRPC call is repeated when the service cannot be reached (spec 006).</summary>
 public class GrpcRetrySettings

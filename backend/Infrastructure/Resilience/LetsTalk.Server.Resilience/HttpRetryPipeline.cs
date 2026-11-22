@@ -2,6 +2,7 @@ using System.Net;
 using Polly;
 using Polly.Retry;
 using Polly.Timeout;
+using LetsTalk.Server.Configuration.Models;
 
 namespace LetsTalk.Server.Resilience;
 

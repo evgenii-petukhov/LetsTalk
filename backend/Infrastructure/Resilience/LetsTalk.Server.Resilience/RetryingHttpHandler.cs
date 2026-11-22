@@ -1,4 +1,5 @@
 using Polly;
+using LetsTalk.Server.Configuration.Models;
 
 namespace LetsTalk.Server.Resilience;
 

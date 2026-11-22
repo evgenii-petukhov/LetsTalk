@@ -1,6 +1,7 @@
 using System.Net;
 using FluentAssertions;
 using Microsoft.Extensions.Time.Testing;
+using LetsTalk.Server.Configuration.Models;
 
 namespace LetsTalk.Server.Resilience.Tests;
 

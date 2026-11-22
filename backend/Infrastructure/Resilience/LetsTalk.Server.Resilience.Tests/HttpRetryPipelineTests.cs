@@ -3,6 +3,7 @@ using System.Net.Http.Headers;
 using FluentAssertions;
 using Microsoft.Extensions.Time.Testing;
 using Polly.Timeout;
+using LetsTalk.Server.Configuration.Models;
 
 namespace LetsTalk.Server.Resilience.Tests;
 

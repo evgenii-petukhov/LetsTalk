@@ -4,6 +4,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using static LetsTalk.Server.Authentication.JwtTokenGrpcService;
+using LetsTalk.Server.Configuration.Models;
 
 namespace LetsTalk.Server.Authentication.Client.Tests;
 
@@ -72,7 +73,7 @@ public class AuthenticationClientRegistrationTests
             new Dictionary<string, string?> { ["Resilience:Grpc:MaxAttempts"] = "9" });
 
         // Act
-        var act = () => provider.GetRequiredService<IOptions<LetsTalk.Server.Resilience.GrpcRetrySettings>>().Value;
+        var act = () => provider.GetRequiredService<IOptions<GrpcRetrySettings>>().Value;
 
         // Assert
         act.Should().Throw<OptionsValidationException>().WithMessage("*Resilience:Grpc:MaxAttempts*");

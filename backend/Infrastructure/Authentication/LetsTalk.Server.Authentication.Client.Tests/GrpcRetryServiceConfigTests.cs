@@ -1,6 +1,6 @@
 using FluentAssertions;
 using Grpc.Core;
-using LetsTalk.Server.Resilience;
+using LetsTalk.Server.Configuration.Models;
 
 namespace LetsTalk.Server.Authentication.Client.Tests;
 

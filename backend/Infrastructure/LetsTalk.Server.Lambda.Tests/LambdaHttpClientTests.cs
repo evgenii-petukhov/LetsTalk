@@ -2,6 +2,7 @@ using System.Net;
 using FluentAssertions;
 using LetsTalk.Server.Resilience;
 using Microsoft.Extensions.Time.Testing;
+using LetsTalk.Server.Configuration.Models;
 
 namespace LetsTalk.Server.Lambda.Tests;
 

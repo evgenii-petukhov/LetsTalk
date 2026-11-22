@@ -1,7 +1,6 @@
 using System.Reflection;
 using FluentAssertions;
 using LetsTalk.Server.Configuration.Models;
-using LetsTalk.Server.Resilience;
 using Microsoft.Extensions.Configuration;
 
 namespace LetsTalk.Server.Configuration.Tests;

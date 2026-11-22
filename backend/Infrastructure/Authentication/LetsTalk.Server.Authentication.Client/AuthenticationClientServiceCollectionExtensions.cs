@@ -1,11 +1,11 @@
 ﻿using LetsTalk.Server.Authentication.Abstractions;
 using LetsTalk.Server.Configuration.Validation;
-using LetsTalk.Server.Resilience;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using static LetsTalk.Server.Authentication.JwtTokenGrpcService;
 using static LetsTalk.Server.Authentication.LoginCodeGrpcService;
+using LetsTalk.Server.Configuration.Models;
 
 namespace LetsTalk.Server.Authentication.Client;
 

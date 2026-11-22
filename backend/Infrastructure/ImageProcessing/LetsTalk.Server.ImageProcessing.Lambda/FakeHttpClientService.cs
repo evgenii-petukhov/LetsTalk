@@ -1,5 +1,6 @@
 using LetsTalk.Server.ImageProcessing.Utility.Abstractions;
 using LetsTalk.Server.Resilience;
+using LetsTalk.Server.Configuration.Models;
 
 namespace LetsTalk.Server.ImageProcessing.Lambda;
 

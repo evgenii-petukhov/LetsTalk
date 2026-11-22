@@ -2,9 +2,9 @@ using FluentAssertions;
 using Google.Protobuf;
 using Grpc.Core;
 using Grpc.Net.Client;
-using LetsTalk.Server.Resilience;
 using static LetsTalk.Server.Authentication.JwtTokenGrpcService;
 using static LetsTalk.Server.Authentication.LoginCodeGrpcService;
+using LetsTalk.Server.Configuration.Models;
 
 namespace LetsTalk.Server.Authentication.Client.Tests;
 

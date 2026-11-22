@@ -1,4 +1,4 @@
-namespace LetsTalk.Server.Resilience;
+namespace LetsTalk.Server.Configuration.Models;
 
 /// <summary>
 /// How a call over HTTP is repeated (spec 006). The defaults are the shipped values; a Lambda has no configuration

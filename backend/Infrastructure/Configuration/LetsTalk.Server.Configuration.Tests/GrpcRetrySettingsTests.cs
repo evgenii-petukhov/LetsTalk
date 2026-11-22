@@ -1,6 +1,6 @@
 using FluentAssertions;
 using LetsTalk.Server.Configuration.Validation;
-using LetsTalk.Server.Resilience;
+using LetsTalk.Server.Configuration.Models;
 
 namespace LetsTalk.Server.Configuration.Tests;
 

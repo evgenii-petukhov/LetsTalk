@@ -131,6 +131,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LetsTalk.Server.Configurati
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LetsTalk.Server.Configuration.Abstractions", "Infrastructure\Configuration\LetsTalk.Server.Configuration.Abstractions\LetsTalk.Server.Configuration.Abstractions.csproj", "{BA04F9A6-F039-36CC-519B-E347F0E408A1}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LetsTalk.Server.Configuration.Models", "Infrastructure\Configuration\LetsTalk.Server.Configuration.Models\LetsTalk.Server.Configuration.Models.csproj", "{6A1E4C7D-3B25-4F8A-9D10-5E7C2B8F4A93}"
+EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LetsTalk.Server.Configuration.Tests", "Infrastructure\Configuration\LetsTalk.Server.Configuration.Tests\LetsTalk.Server.Configuration.Tests.csproj", "{2C2259D5-D70C-BD21-D021-C17093A81B25}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LetsTalk.Server.Authentication.Abstractions", "Infrastructure\Authentication\LetsTalk.Server.Authentication.Abstractions\LetsTalk.Server.Authentication.Abstractions.csproj", "{35BA9F51-BC8D-78F8-7C7C-131C06666C57}"
@@ -413,6 +415,10 @@ Global
 		{BA04F9A6-F039-36CC-519B-E347F0E408A1}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{BA04F9A6-F039-36CC-519B-E347F0E408A1}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{BA04F9A6-F039-36CC-519B-E347F0E408A1}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6A1E4C7D-3B25-4F8A-9D10-5E7C2B8F4A93}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6A1E4C7D-3B25-4F8A-9D10-5E7C2B8F4A93}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6A1E4C7D-3B25-4F8A-9D10-5E7C2B8F4A93}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6A1E4C7D-3B25-4F8A-9D10-5E7C2B8F4A93}.Release|Any CPU.Build.0 = Release|Any CPU
 		{2C2259D5-D70C-BD21-D021-C17093A81B25}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{2C2259D5-D70C-BD21-D021-C17093A81B25}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{2C2259D5-D70C-BD21-D021-C17093A81B25}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -649,6 +655,7 @@ Global
 		{8CAF4F9B-686B-07BE-DE3D-CD1695D8E59D} = {D83E9825-17AC-4AE9-83D9-CBE9DDCC59F6}
 		{28C52808-AF1F-FBE3-A7ED-8C9D3CEC73D3} = {FE7EB757-F44A-4C1A-9561-AD0793CC8671}
 		{BA04F9A6-F039-36CC-519B-E347F0E408A1} = {FE7EB757-F44A-4C1A-9561-AD0793CC8671}
+		{6A1E4C7D-3B25-4F8A-9D10-5E7C2B8F4A93} = {FE7EB757-F44A-4C1A-9561-AD0793CC8671}
 		{2C2259D5-D70C-BD21-D021-C17093A81B25} = {FE7EB757-F44A-4C1A-9561-AD0793CC8671}
 		{35BA9F51-BC8D-78F8-7C7C-131C06666C57} = {33BBF78A-2694-42EB-A36C-B9411D95E70D}
 		{AE5ADBB9-4C2E-DD82-FD18-30B7672A6CD9} = {33BBF78A-2694-42EB-A36C-B9411D95E70D}

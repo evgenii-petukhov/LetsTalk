@@ -11,4 +11,8 @@
     <PackageReference Include="Polly.Core" Version="8.9.1" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\..\Configuration\LetsTalk.Server.Configuration.Models\LetsTalk.Server.Configuration.Models.csproj" />
+  </ItemGroup>
+
 </Project>
