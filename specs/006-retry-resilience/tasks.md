@@ -61,4 +61,15 @@ Implementation:
 - [ ] **T642** The owner runs `quickstart.md` (Q1 to Q10); the results go into its Result column in a later commit.
 - [x] **T643** (2026-11-16: solution builds with 0 errors; `dotnet test` of the solution passes in all 23 test projects; no code changed since Checkpoint 4) Final `dotnet test BE/LetsTalk.Server.sln`. **Checkpoint 5.** Propose the commit; wait.
 
+## Phase 6 - Settings classes in `Configuration.Models` (plan D11)
+Tests first:
+- [ ] **T650** `Lambda.Tests`: `LambdaAssemblies_ShouldNotReferenceTheConfigurationProject`: the referenced assemblies of `LetsTalk.Server.ImageProcessing.Lambda`, `LetsTalk.Server.LinkPreview.Lambda` and `LetsTalk.Server.Resilience` do not include `LetsTalk.Server.Configuration`, `Microsoft.Extensions.Options` or `Microsoft.Extensions.Configuration`. It passes before the move and must still pass after it. (D11, guard)
+
+Implementation:
+- [ ] **T651** New project `LetsTalk.Server.Configuration.Models` (net10.0, no package, no project reference); `git mv` the 20 classes of `Configuration/Models` into it, the namespace unchanged; `LetsTalk.Server.Configuration` references it; the solution file lists it by hand (do not use `dotnet sln add`, it rewrites the file).
+- [ ] **T652** Move `HttpRetrySettings` and `GrpcRetrySettings` from `Resilience` to the new project with the namespace `LetsTalk.Server.Configuration.Models`; update the `using` lines (`Resilience`, `Resilience.Http`, the validators, `Authentication.Client`, the two Lambdas, the tests); `Resilience` references `Configuration.Models`; `Configuration` drops its reference to `Resilience`. (T650)
+- [ ] **T653** `ShippedSettingsTests` and the other test projects that link or name the moved classes build and pass unchanged apart from `using` lines.
+- [ ] **T654** `CLAUDE.md`: the Infrastructure bullet names `Configuration.Models` as the home of the settings classes (one clause); `specs/006-retry-resilience/deployment.md` stays as it is (no behaviour change).
+- [ ] **T655** `dotnet build backend/LetsTalk.Server.sln`, `dotnet test backend/LetsTalk.Server.sln` (all 23 test projects, same counts plus the guard test), `CheckWarnings.ps1`; `git diff` of the `appsettings.json` files is empty. **Checkpoint 6.** Propose the commit (`Retry: move the settings classes to Configuration.Models`); wait.
+
 The quickstart lives in [quickstart.md](quickstart.md).
