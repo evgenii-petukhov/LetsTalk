@@ -17,11 +17,22 @@ public class GrpcRetrySettingsValidator : SettingsValidatorBase<GrpcRetrySetting
 
     protected override IEnumerable<string?> GetErrors(GrpcRetrySettings settings)
     {
-        yield return SettingsRules.Range(Key(nameof(settings.MaxAttempts)), settings.MaxAttempts,
-            MinMaxAttempts, MaxMaxAttempts);
-        yield return SettingsRules.Range(Key(nameof(settings.InitialBackoff)), settings.InitialBackoff,
-            MinBackoff, MaxInitialBackoff);
-        yield return SettingsRules.Range(Key(nameof(settings.MaxBackoff)), settings.MaxBackoff,
-            settings.InitialBackoff > MinBackoff ? settings.InitialBackoff : MinBackoff, MaxBackoffLimit);
+        yield return SettingsRules.Range(
+            Key(nameof(settings.MaxAttempts)),
+            settings.MaxAttempts,
+            MinMaxAttempts,
+            MaxMaxAttempts);
+
+        yield return SettingsRules.Range(
+            Key(nameof(settings.InitialBackoff)),
+            settings.InitialBackoff,
+            MinBackoff,
+            MaxInitialBackoff);
+
+        yield return SettingsRules.Range(
+            Key(nameof(settings.MaxBackoff)),
+            settings.MaxBackoff,
+            settings.InitialBackoff > MinBackoff ? settings.InitialBackoff : MinBackoff,
+            MaxBackoffLimit);
     }
 }

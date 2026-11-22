@@ -14,7 +14,11 @@ namespace LetsTalk.Server.Authentication.Client;
 public static class GrpcRetryServiceConfig
 {
     /// <summary>The methods of <see cref="JwtTokenGrpcService"/> that may be repeated.</summary>
-    private static readonly string[] RepeatableMethods = ["GenerateJwtToken", "ValidateJwtToken", "RevokeJwtToken", "EndSession"];
+    private static readonly string[] RepeatableMethods = [
+        "GenerateJwtToken",
+        "ValidateJwtToken",
+        "RevokeJwtToken",
+        "EndSession"];
 
     private const double BackoffMultiplier = 2;
 
@@ -45,7 +49,11 @@ public static class GrpcRetryServiceConfig
         {
             var descriptor = JwtTokenGrpcService.Descriptor.FindMethodByName(method)
                 ?? throw new InvalidOperationException($"{JwtTokenGrpcService.Descriptor.FullName} has no method {method}.");
-            methodConfig.Names.Add(new MethodName { Service = JwtTokenGrpcService.Descriptor.FullName, Method = descriptor.Name });
+            methodConfig.Names.Add(new MethodName
+            {
+                Service = JwtTokenGrpcService.Descriptor.FullName,
+                Method = descriptor.Name
+            });
         }
 
         config.MethodConfigs.Add(methodConfig);
