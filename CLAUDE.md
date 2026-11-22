@@ -59,6 +59,14 @@ When adding a persistence feature, implement it across all providers and keep be
 ### Persistence service tests
 Follow `.github/instructions/persistence-service-tests.instructions.md` (referenced from `backend/AGENTS.md`) when touching any `Persistence/**/*.Services.Tests`: mock repositories and `IMapper` (no real DB), use NUnit/Moq/FluentAssertions, name tests `Method_WhenCondition_ShouldOutcome`, hoist repeated literals to class-level `private const`, and use the EntityFramework and MongoDB test projects as references.
 
+### Long comments (C#)
+Model files: `GrpcRetryServiceConfig.cs` (class summary) and `LinkPreview.Lambda/FakeHttpClientService.cs`.
+- A rule or a non-obvious class gets an XML `<summary>` on the type: first the rule in one sentence, then the exceptions as a `- ` list, one line each with the reason in parentheses. Public members get a one-line `<summary>`. Refer to a parameter or type with `<paramref>` / `<see cref>`, not by retyping its name.
+- Say why, not what. Name the spec and requirement behind a rule, e.g. `(spec 006, FR-007)`, so the next reader can find the decision.
+- Break lines at a clause or sentence boundary, about 120 characters, so a diff changes one line, not a paragraph.
+- Inside a method use `//` on its own line above the code it explains, never at the end of a line; one short line is better than a block.
+- Do not restate the code, do not leave commented-out code, and do not narrate history ("was changed from ..."): that belongs in the commit or the spec.
+
 ## Frontend notes
 
 The Angular app is organized by `components/`, `state/` (NgRx), `services/`, `api-client/`, `protos/` (grpc-web), with SignalR for realtime. Components use `ChangeDetectionStrategy.OnPush`.
