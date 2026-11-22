@@ -5,11 +5,13 @@ using LetsTalk.Server.Resilience;
 namespace LetsTalk.Server.Authentication.Client;
 
 /// <summary>
-/// The gRPC retry rule of spec 006 (FR-007): a call is repeated only when the Authentication service cannot be reached
-/// (status "unavailable"), and only for the calls that a repeat cannot harm. The other calls get one attempt:
-/// starting a session (a repeat leaves an orphan session), renewing it (a repeat reuses a replaced token and ends the
-/// chain), generating a login code (a repeat answers "already created", so no e-mail is sent) and checking one
-/// (the first check may have used the code).
+/// The gRPC retry rule of spec 006 (FR-007):
+/// a call is repeated only when the Authentication service cannot be reached (status "unavailable"),
+/// and only for the calls that a repeat cannot harm.
+/// The other calls get one attempt:
+/// - starting a session (a repeat leaves an orphan session),
+/// - renewing it (a repeat reuses a replaced token and ends the chain),
+/// - generating and checking a login code (a repeat answers "already created", so no e-mail is sent).
 /// </summary>
 public static class GrpcRetryServiceConfig
 {

@@ -4,8 +4,9 @@ using LetsTalk.Server.Resilience;
 namespace LetsTalk.Server.ImageProcessing.Lambda;
 
 /// <summary>
-/// The Lambda has no dependency injection, so it builds its clients here. Each client repeats a failed call by the same
-/// rules as the services (spec 006) and, because the Lambda reads no configuration, with the default numbers.
+/// The Lambda has no dependency injection, so it builds its clients here.
+/// Each client repeats a failed call by the same rules as the services (spec 006) with the default numbers,
+/// because the Lambda reads no configuration.
 /// The parameters let a test replace the network, the numbers and the clock; the Lambda passes only <paramref name="onRetry"/>.
 /// </summary>
 public class FakeHttpClientService(
