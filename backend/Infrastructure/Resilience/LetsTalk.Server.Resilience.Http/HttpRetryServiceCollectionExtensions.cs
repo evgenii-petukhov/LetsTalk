@@ -4,7 +4,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
-namespace LetsTalk.Server.Resilience;
+namespace LetsTalk.Server.Resilience.Http;
 
 public static class HttpRetryServiceCollectionExtensions
 {

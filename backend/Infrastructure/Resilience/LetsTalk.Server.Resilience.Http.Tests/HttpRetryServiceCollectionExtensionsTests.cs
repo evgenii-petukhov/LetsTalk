@@ -4,7 +4,6 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using LetsTalk.Server.Resilience;
 
 namespace LetsTalk.Server.Resilience.Http.Tests;
 

@@ -9,7 +9,7 @@ using MassTransit;
 using LetsTalk.Server.Models.Kafka;
 using System.Net.Mime;
 using LetsTalk.Server.DependencyInjection;
-using LetsTalk.Server.Resilience;
+using LetsTalk.Server.Resilience.Http;
 
 namespace LetsTalk.Server.LinkPreview;
 
@@ -80,18 +80,22 @@ public static class LinkPreviewServiceCollectionExtensions
         services.AddScoped<IHttpClientService, HttpClientService>();
         services.AddHttpRetrySettings(configuration);
         // Two clients: a page that keeps failing must not share anything with the report to the API (spec 006)
-        services.AddHttpClient(nameof(HttpClientService)).AddHttpRetry(nameof(HttpClientService)).ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler
-        {
+        services.AddHttpClient(nameof(HttpClientService))
+            .AddHttpRetry(nameof(HttpClientService))
+            .ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler
+            {
 #if DEBUG
-            ServerCertificateCustomValidationCallback = HttpClientHandler.DangerousAcceptAnyServerCertificateValidator
+                ServerCertificateCustomValidationCallback = HttpClientHandler.DangerousAcceptAnyServerCertificateValidator
 #endif
-        });
-        services.AddHttpClient(LinkPreviewRequestConsumer.ApiClientName).AddHttpRetry(LinkPreviewRequestConsumer.ApiClientName).ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler
-        {
+            });
+        services.AddHttpClient(LinkPreviewRequestConsumer.ApiClientName)
+            .AddHttpRetry(LinkPreviewRequestConsumer.ApiClientName)
+            .ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler
+            {
 #if DEBUG
-            ServerCertificateCustomValidationCallback = HttpClientHandler.DangerousAcceptAnyServerCertificateValidator
+                ServerCertificateCustomValidationCallback = HttpClientHandler.DangerousAcceptAnyServerCertificateValidator
 #endif
-        });
+            });
         services.AddScoped<IDownloadService, DownloadService>();
         services.AddScoped<IRegexService, RegexService>();
         services.AddScoped<ILinkPreviewService, FallbackLinkPreviewService>();

@@ -2,7 +2,6 @@ using Amazon.Lambda.Core;
 using LetsTalk.Server.API.Client;
 using LetsTalk.Server.LinkPreview.Utility.Abstractions.Models;
 using LetsTalk.Server.LinkPreview.Utility.Services;
-using LetsTalk.Server.Resilience;
 using System.Text.Json;
 
 [assembly: LambdaSerializer(typeof(Amazon.Lambda.Serialization.SystemTextJson.DefaultLambdaJsonSerializer))]
