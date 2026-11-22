@@ -9,6 +9,7 @@ using MassTransit;
 using LetsTalk.Server.Models.Kafka;
 using System.Net.Mime;
 using LetsTalk.Server.DependencyInjection;
+using LetsTalk.Server.Resilience.Http;
 
 namespace LetsTalk.Server.LinkPreview;
 
@@ -77,12 +78,11 @@ public static class LinkPreviewServiceCollectionExtensions
         services.Configure<ApplicationUrlSettings>(configuration.GetSection("ApplicationUrls"));
         services.Configure<LinkPreviewSettings>(configuration.GetSection("LinkPreview"));
         services.AddScoped<IHttpClientService, HttpClientService>();
-        services.AddHttpClient(nameof(HttpClientService)).ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler
-        {
-#if DEBUG
-            ServerCertificateCustomValidationCallback = HttpClientHandler.DangerousAcceptAnyServerCertificateValidator
-#endif
-        });
+        services.AddHttpRetrySettings(configuration);
+        // Retry policy is applied for downloading the content of the link preview request
+        // and for the API client used by the link preview service
+        services.AddHttpClient(nameof(HttpClientService)).AddHttpRetry(nameof(HttpClientService));
+        services.AddHttpClient(LinkPreviewRequestConsumer.ApiClientName).AddHttpRetry(LinkPreviewRequestConsumer.ApiClientName);
         services.AddScoped<IDownloadService, DownloadService>();
         services.AddScoped<IRegexService, RegexService>();
         services.AddScoped<ILinkPreviewService, FallbackLinkPreviewService>();

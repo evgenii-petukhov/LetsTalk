@@ -302,4 +302,20 @@ public abstract class RefreshSessionServiceTestsBase
         // Assert
         await act.Should().NotThrowAsync();
     }
+
+    // The gRPC client repeats EndSession when the service is unreachable (spec 006), so a second call must be harmless
+    [Test]
+    public async Task EndByRefreshTokenAsync_WhenCalledTwiceWithTheSameToken_ShouldNotThrowAndKeepTheChainEnded()
+    {
+        // Arrange
+        var issued = await Service.IssueAsync(AccountId);
+        await Service.EndByRefreshTokenAsync(issued.RefreshToken!);
+
+        // Act
+        var act = () => Service.EndByRefreshTokenAsync(issued.RefreshToken!);
+
+        // Assert
+        await act.Should().NotThrowAsync();
+        (await Service.RotateAsync(issued.RefreshToken!)).Should().BeNull();
+    }
 }

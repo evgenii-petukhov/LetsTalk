@@ -17,6 +17,7 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\..\API\LetsTalk.Server.API.Client\LetsTalk.Server.API.Client.csproj" />
+    <ProjectReference Include="..\..\Resilience\LetsTalk.Server.Resilience\LetsTalk.Server.Resilience.csproj" />
     <ProjectReference Include="..\LetsTalk.Server.LinkPreview.Utility\LetsTalk.Server.LinkPreview.Utility.csproj" />
   </ItemGroup>
 </Project>

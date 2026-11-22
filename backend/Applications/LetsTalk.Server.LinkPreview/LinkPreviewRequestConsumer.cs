@@ -11,13 +11,16 @@ namespace LetsTalk.Server.LinkPreview;
 public partial class LinkPreviewRequestConsumer(
     ILinkPreviewService linkPreviewService,
     ILogger<LinkPreviewRequestConsumer> logger,
-    IHttpClientService httpClientService,
+    IHttpClientFactory httpClientFactory,
     IOptions<ApplicationUrlSettings> applicationSettingsOptions,
     IOptions<LinkPreviewSettings> linkPreviewSettingsOptions) : IConsumer<LinkPreviewRequest>
 {
+    /// <summary>The client that reports to the API. It is not the client that downloads the page (spec 006, FR-006).</summary>
+    public const string ApiClientName = "LinkPreviewApiClient";
+
     private readonly ILinkPreviewService _linkPreviewService = linkPreviewService;
     private readonly ILogger<LinkPreviewRequestConsumer> _logger = logger;
-    private readonly IHttpClientService _httpClientService = httpClientService;
+    private readonly IHttpClientFactory _httpClientFactory = httpClientFactory;
     private readonly ApplicationUrlSettings _applicationUrlSettings = applicationSettingsOptions.Value;
     private readonly LinkPreviewSettings _linkPreviewSettings = linkPreviewSettingsOptions.Value;
 
@@ -52,7 +55,7 @@ public partial class LinkPreviewRequestConsumer(
             Title = model.Title,
             ImageUrl = model.ImageUrl
         };
-        using var client = _httpClientService.GetHttpClient();
+        using var client = _httpClientFactory.CreateClient(ApiClientName);
         client.DefaultRequestHeaders.Add("Authorization", $"Bearer {context.Message.Token}");
         var apiClient = new ApiClient(_applicationUrlSettings.Api, client);
         await apiClient.SetLinkPreviewAsync(payload, context.CancellationToken);
