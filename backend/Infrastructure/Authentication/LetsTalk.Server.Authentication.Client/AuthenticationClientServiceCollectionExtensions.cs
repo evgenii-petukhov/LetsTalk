@@ -20,19 +20,8 @@ public static class AuthenticationClientServiceCollectionExtensions
         // Only the token client repeats calls; the login code client has no call that may be repeated (spec 006, FR-007)
         services.AddGrpcClient<JwtTokenGrpcServiceClient>(options => options.Address = new Uri(configuration.GetValue<string>("ApplicationUrls:Authentication")!))
             .ConfigureChannel((provider, channel) =>
-                channel.ServiceConfig = GrpcRetryServiceConfig.Create(provider.GetRequiredService<IOptions<GrpcRetrySettings>>().Value))
-            .ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler
-        {
-#if DEBUG
-            ServerCertificateCustomValidationCallback = HttpClientHandler.DangerousAcceptAnyServerCertificateValidator
-#endif
-        });
-        services.AddGrpcClient<LoginCodeGrpcServiceClient>(options => options.Address = new Uri(configuration.GetValue<string>("ApplicationUrls:Authentication")!)).ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler
-        {
-#if DEBUG
-            ServerCertificateCustomValidationCallback = HttpClientHandler.DangerousAcceptAnyServerCertificateValidator
-#endif
-        });
+                channel.ServiceConfig = GrpcRetryServiceConfig.Create(provider.GetRequiredService<IOptions<GrpcRetrySettings>>().Value));
+        services.AddGrpcClient<LoginCodeGrpcServiceClient>(options => options.Address = new Uri(configuration.GetValue<string>("ApplicationUrls:Authentication")!));
 
         return services;
     }

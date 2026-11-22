@@ -84,15 +84,7 @@ public static class ImageProcessingServiceCollectionExtensions
         services.AddFileStorageSettings(configuration, requireBasePath: true);
         services.Configure<ApplicationUrlSettings>(configuration.GetSection("ApplicationUrls"));
         services.AddHttpRetrySettings(configuration);
-        services.AddHttpClient(nameof(ImageResizeRequestConsumer))
-            .AddHttpRetry(nameof(ImageResizeRequestConsumer))
-            .ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler
-            {
-#if DEBUG
-                ServerCertificateCustomValidationCallback = HttpClientHandler.DangerousAcceptAnyServerCertificateValidator
-#endif
-            });
-
+        services.AddHttpClient(nameof(ImageResizeRequestConsumer)).AddHttpRetry(nameof(ImageResizeRequestConsumer));
         services.AddScoped<IImageProcessingService, ImageProcessingService>();
 
         return services;
