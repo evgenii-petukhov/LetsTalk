@@ -3,7 +3,7 @@
 ## Where calls are made today
 | Place | Call | Registration |
 |---|---|---|
-| `ImageResizeRequestConsumer` | `ApiClient.SetImagePreviewAsync` (PATCH, spec 003) | named client `ImageResizeRequestConsumer` (`AddHttpClient`, no handler besides the debug certificate bypass) |
+| `ImageResizeRequestConsumer` | `ApiClient.SetImagePreviewAsync` (PATCH, spec 003) | named client `ImageResizeRequestConsumer` (`AddHttpClient`; it had a debug certificate bypass, removed later, see D10 in `plan.md`) |
 | `LinkPreviewRequestConsumer` | `ApiClient.SetLinkPreviewAsync` (PATCH) | named client `HttpClientService`, **shared** with `DownloadService` (GET of arbitrary web pages) |
 | `ImageProcessingLambda`, `LinkPreviewLambda` | the same two PATCH calls, and the page download | no DI: `new HttpClient()` in `FakeHttpClientService` |
 | `AuthenticationClient` (used by the API) | 8 gRPC calls | `AddGrpcClient<JwtTokenGrpcServiceClient>` and `<LoginCodeGrpcServiceClient>` |

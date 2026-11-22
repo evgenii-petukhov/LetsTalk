@@ -21,6 +21,7 @@
 - **D7 - Logging.** The retry callback logs through a `[LoggerMessage]` method (`Retry {Target}: attempt {Attempt} after {Reason}`), where `Target` is the client name and `Reason` the exception type or `HTTP {status}`. No address, no headers (FR-010). gRPC retries are not logged by the library; the `Grpc.Net.Client` category logs them at debug level, which is documented in the quickstart and enough for this feature.
 - **D8 - Breaker and rate limiter are left out** (FR-006, research row A).
 - **D9 - Cancellation** passes through: the Polly pipeline sees the caller's token and stops without a retry (FR-004).
+- **D10 - The debug-only certificate bypass is removed** from the clients this feature touches: the three named HTTP clients (`ImageResizeRequestConsumer`, `LinkPreviewApiClient`, `HttpClientService`) and the two Authentication gRPC clients. Each had a `ConfigurePrimaryHttpMessageHandler` that accepted any server certificate in `DEBUG` builds; it was redundant (owner's decision, made after the phases of this plan). The clients keep the default handler, so they now require a trusted certificate in every build, and the retry setup (`AddHttpRetry`, the gRPC `ServiceConfig`) is unchanged.
 
 ## Constitution check
 - 1 Security first: no secrets are added; the log line carries neither address nor tokens (FR-010).
