@@ -1,13 +1,12 @@
+using LetsTalk.Server.Configuration.Models;
 using LetsTalk.Server.ImageProcessing.Utility.Abstractions;
 using LetsTalk.Server.Resilience;
-using LetsTalk.Server.Configuration.Models;
 
 namespace LetsTalk.Server.ImageProcessing.Lambda;
 
 /// <summary>
-/// The Lambda has no dependency injection, so it builds its clients here.
-/// Each client repeats a failed call by the same rules as the services (spec 006) with the default numbers,
-/// because the Lambda reads no configuration.
+/// The Lambda has no dependency injection, so it builds its client here, with <see cref="RetryingHttpClient"/>
+/// (the rules of the services, spec 006, and the default numbers, because the Lambda reads no configuration).
 /// The parameters let a test replace the network, the numbers and the clock; the Lambda passes only <paramref name="onRetry"/>.
 /// </summary>
 public class FakeHttpClientService(
@@ -18,10 +17,6 @@ public class FakeHttpClientService(
 {
     public HttpClient GetHttpClient()
     {
-        return new HttpClient(new RetryingHttpHandler(
-            innerHandler ?? new HttpClientHandler(),
-            settings ?? new HttpRetrySettings(),
-            onRetry,
-            timeProvider));
+        return RetryingHttpClient.Create(onRetry, settings, innerHandler, timeProvider);
     }
 }
